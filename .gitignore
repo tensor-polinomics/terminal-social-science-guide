@@ -1,0 +1,99 @@
+# Local agent/control docs. Keep these out of Git history.
+/PLAN.md
+/RESUME.md
+/CLAUDE.md
+
+# Local agent and editor state.
+/.claude/
+/.codex/
+/.agents/
+/.vscode/
+/.idea/
+
+# macOS and filesystem noise.
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Secrets and local environment files.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+
+# Python environments, caches, and test artifacts.
+/.venv/
+/venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# R local state and renv libraries. Keep renv.lock trackable.
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+renv/library/
+renv/staging/
+
+# Quarto/render outputs. Keep _freeze/ trackable if used intentionally.
+/book/_book/
+/book/_site/
+/book/.quarto/
+/book/*_files/
+/book/*_cache/
+/.quarto/
+/_book/
+/_site/
+*_cache/
+*_files/
+
+# LaTeX/PDF intermediate files.
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*.synctex.gz
+*.toc
+
+# Generated data and analysis outputs.
+/data/
+/output/
+/outputs/
+/results/
+/sandbox/**/data/
+/sandbox/**/output/
+/sandbox/**/outputs/
+/sandbox/**/results/
+/sandbox/**/.venv/
+/sandbox/**/*.tmp
+/sandbox/**/*.log
+
+# Transcript and verification scratch areas.
+/transcripts/raw/
+/transcripts/private/
+/transcripts/scratch/
+/verification/private/
+/verification/scratch/
+
+# Tool/build scratch.
+/tmp/
+/scratch/
+*.tmp
