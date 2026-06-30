@@ -1,7 +1,653 @@
 # Make as Cross-Language Pipeline Glue
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 11. EXEMPLAR (Phase 2,
-     G2 style). The reproducibility showcase: one build graph wiring
-     R / Python / Stata / Quarto / LaTeX; $@ $< $^, pattern rules,
-     .PHONY; TAB trap; timestamp-vs-content caveat. Stata/EViews
-     illustrative-only. + Smoke checks (make check). just aside. -->
+Chapter 10 turned a single analysis step into a script that
+fails loudly. A real project is not one step. Ours generates
+synthetic data, cleans it, forms a portfolio, draws a figure,
+runs a regression in a different language, and renders a
+report. Run those by hand, in order, every time, and sooner
+or later you will skip a step, run them out of order, or
+rebuild the figure from last week's data and not notice. The
+shell will happily let you: it runs what you type, in the
+order you type it, and remembers nothing.
+
+This chapter is about the tool that does remember. `make`
+reads a description of which file is built from which, and
+rebuilds exactly what is out of date, in the right order,
+from one command. For a research project this is the
+difference between "I think the paper matches the current
+data" and "one command rebuilt the paper from the raw inputs
+and it passed its own checks." Make is old, a little cranky,
+and installed almost everywhere, which is why it is the glue
+that holds a cross-language pipeline together. It is the
+reproducibility showcase of this whole book.
+
+A note on where the output comes from. The full
+cross-language build, the incremental rebuilds, the
+timestamp behavior, and `make check` are captured on the
+author's Mac (macOS, GNU Make 3.81, R 4.5.3, Quarto 1.9.36;
+`transcripts/ch11-make-mac.txt`), because R and Quarto do not
+run in this book's Linux sandbox. The generic Make mechanics
+and the Python half of the pipeline are captured in the
+sandbox (Ubuntu 22.04, GNU Make 4.3; the `ch11-*` transcript
+files). The Stata and EViews recipes near the end are
+illustrative and never executed, and are labeled as such.
+
+## What a build tool is for {.tier-beginner}
+
+A build tool answers one question well: given a set of files
+that are built from other files, what is the least work
+needed to bring everything up to date? You describe the
+"built from" relationships once. After that, `make` compares
+file timestamps and runs only the steps whose inputs changed.
+
+Keep the division of labor straight, because it is the same
+distinction from Chapter 2. The shell runs commands. A script
+runs a fixed list of commands every time. Make decides *which*
+commands need to run and in *what order*, then hands them to
+the shell. It does not version your files (that is Git, the
+companion book) and it does not reproduce your environment
+(that is uv and renv, Chapter 12). It orchestrates. That
+narrow job is exactly what a multi-step, multi-language
+pipeline needs.
+
+## The study as a dependency graph {.tier-beginner}
+
+Our running example is a chain. Each script reads one or two
+files and writes the next:
+
+```text
+00_make_data.py  ->  firm_panel.csv + factors.csv
+01_clean.py      ->  analysis.parquet
+02_portfolio.py  ->  portfolio.{parquet,csv}
+03_figure.py     ->  cumret.png
+04_regression.R  ->  ff5_alpha.{tex,txt}
+report.qmd       ->  report.html / report.pdf
+```
+
+Read top to bottom it is the analysis story: simulate a
+firm-month panel from a seed, rebuild and lag the mispricing
+signal, sort firms into a long-short portfolio, plot its
+cumulative return, regress that return on the five
+Fama-French factors, and assemble the table and figure into a
+short report. Read as arrows, it is a dependency graph, and a
+graph is exactly what `make` consumes. The figure depends on
+the portfolio, which depends on the clean sample, which
+depends on the raw panel, which depends on the generator
+script. Change the generator and everything downstream is
+stale. Change only `report.qmd` and nothing upstream needs to
+move.
+
+Notice the language boundary sitting in the middle of the
+chain. Steps 00 through 03 are Python; step 04 is R; the
+report is Quarto driving LaTeX. Nothing about the graph cares.
+Make sees files and the commands that produce them, not
+languages, which is precisely why it can glue a Python data
+pipeline to an R regression to a Quarto paper without any of
+them knowing about the others.
+
+## Anatomy of a rule, and the TAB trap {.tier-beginner}
+
+A Makefile is a list of rules. Each rule has three parts: a
+**target** (the file to build), its **prerequisites** (the
+files it is built from), and a **recipe** (the shell commands
+that build it). Here is the rule for our clean sample, with
+the variables spelled out:
+
+```makefile
+data/clean/analysis.parquet: scripts/01_clean.py \
+                             data/raw/firm_panel.csv
+	uv run python scripts/01_clean.py
+```
+
+The target is on the left of the colon, its two prerequisites
+on the right, and the recipe is the indented line below. Read
+it aloud: "`analysis.parquet` is built from `01_clean.py` and
+`firm_panel.csv`; to build it, run this command." If either
+prerequisite is newer than the target, `make` runs the recipe.
+
+The single most common way to break a Makefile is on that
+indented line.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Recipe lines must be indented with a real TAB, never spaces.
+This is the oldest trap in Make. `cat -et` makes the
+indentation visible: a TAB shows as `^I`, spaces show as
+spaces, and `$` marks each line end. With eight spaces
+instead of a TAB, Make stops with a `missing separator`
+error:
+
+```bash
+$ cat -et Makefile
+h:$
+        echo hi$
+
+$ make
+Makefile:2: *** missing separator (did you mean TAB instead of 8 spaces?).  Stop.
+```
+
+Indent the recipe with a TAB and it runs. If your editor
+inserts spaces for tabs, turn that off for Makefiles; in VS
+Code the "Makefile" language mode already does.
+:::
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+Two portability notes hide in that one example. First, `cat
+-et` is the BSD (macOS) spelling. GNU coreutils on Linux also
+accepts `cat -A` for the same view, but macOS `cat` has no
+`-A`. Second, the Make versions differ: macOS ships GNU Make
+**3.81** (2006), while Linux and the sandbox here run 4.x. The
+`missing separator` message is identical on both (3.81 prints
+the same hint, verified on the author's Mac), so you cannot
+read the version from the error. The gap is not cosmetic
+anyway: it changes how Make compares timestamps, as the
+next-but-one section shows. For a modern Make on a Mac, `brew
+install make` installs it as `gmake`.
+:::
+
+## Automatic variables {.tier-advanced}
+
+Writing the target and prerequisites out twice, once in the
+header and again in the recipe, is repetitive and a source of
+bugs when a filename changes. Make provides **automatic
+variables** that stand in for them: `$@` is the target, `$<`
+is the first prerequisite, and `$^` is the whole prerequisite
+list. A throwaway rule makes them concrete (`a.txt` holds
+`alpha`, `b.txt` holds `beta`):
+
+```bash
+$ cat Makefile
+combined.txt: a.txt b.txt
+	@echo 'target      $@ = $@'
+	@echo 'first prereq $< = $<'
+	@echo 'all prereqs  $^ = $^'
+	cat $^ > $@
+
+$ make
+target      $@ = combined.txt
+first prereq $< = a.txt
+all prereqs  $^ = a.txt b.txt
+cat a.txt b.txt > combined.txt
+```
+
+The last recipe line, `cat $^ > $@`, reads as "concatenate
+all prerequisites into the target" without naming any file
+twice. Rename the target and the recipe follows automatically.
+
+These pair naturally with **pattern rules**, where a `%`
+matches a stem shared by target and prerequisite. A single
+rule like
+
+```makefile
+%.csv: %.raw
+	clean-it $< > $@
+```
+
+builds any `.csv` from the matching `.raw`. Our pipeline uses
+explicit rules instead, because each step is bespoke (a
+different script, different inputs) and there is no repeated
+pattern to factor out. Pattern rules earn their keep when many
+files share one recipe; six unique steps do not.
+
+## One command builds the paper {.tier-beginner}
+
+Here is the spine of our Makefile, the rule chain that turns
+the dependency graph into something `make` can run. Variables
+at the top name the tools and the files; the rules wire them
+together:
+
+```makefile
+PY      := uv run python
+RSCRIPT := Rscript
+QUARTO  := quarto
+
+.PHONY: all check clean help
+all: report.html
+
+data/raw/firm_panel.csv: scripts/00_make_data.py
+	$(PY) scripts/00_make_data.py
+data/raw/factors.csv: data/raw/firm_panel.csv ;
+
+data/clean/analysis.parquet: scripts/01_clean.py \
+                             data/raw/firm_panel.csv
+	$(PY) scripts/01_clean.py
+
+data/clean/portfolio.parquet: scripts/02_portfolio.py \
+        data/clean/analysis.parquet data/raw/factors.csv
+	$(PY) scripts/02_portfolio.py
+data/clean/portfolio.csv: data/clean/portfolio.parquet ;
+
+output/figures/cumret.png: scripts/03_figure.py \
+                           data/clean/portfolio.parquet
+	$(PY) scripts/03_figure.py
+
+output/tables/ff5_alpha.tex: scripts/04_regression.R \
+                             data/clean/portfolio.csv
+	$(RSCRIPT) scripts/04_regression.R
+
+report.html: report.qmd output/figures/cumret.png \
+             output/tables/ff5_alpha.tex
+	$(QUARTO) render report.qmd --to html
+```
+
+Two small things earn a word. Two of the steps write *two*
+files in one run: the generator writes the panel and the
+factors, and the portfolio step writes a `.parquet` and a
+`.csv`. The bare-semicolon lines, `data/raw/factors.csv:
+data/raw/firm_panel.csv ;` and `data/clean/portfolio.csv:
+data/clean/portfolio.parquet ;`, are empty recipes that tell
+Make "this file rides along with that one," so each generator
+runs once, not once per output, and the ride-along file (the
+`.csv` the R step reads) still has a rule. The `all:
+report.html` line names the default goal: typing `make` with
+no target builds `all`, which builds the report, which pulls
+the whole graph behind it.
+
+Now the payoff. One command, from raw scripts to rendered
+paper, crossing three languages on the way:
+
+```bash
+$ make
+uv run python scripts/00_make_data.py
+wrote data/raw/factors.csv  months=180
+wrote data/raw/firm_panel.csv  rows=54000  firms=300
+seed=20260629  lambda=0.00149  sigma=0.06
+content-sha256=49b3a1733cf2...
+uv run python scripts/01_clean.py
+wrote data/clean/analysis.parquet  rows=53700  cols=4
+uv run python scripts/02_portfolio.py
+wrote data/clean/portfolio.parquet  months=179
+mean ls_ret=0.004126  sd=0.016625
+uv run python scripts/03_figure.py
+wrote output/figures/cumret.png  ... =103.95%
+Rscript scripts/04_regression.R
+alpha (monthly) = 0.0034   t = 2.635
+quarto render report.qmd --to html
+[...]
+Output created: report.html
+```
+
+Make ran four Python steps, one R step, and one Quarto render,
+in dependency order, because it walked the graph from
+`report.html` back to the scripts and found everything out of
+date on a clean tree.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+This is the whole argument of the book in one command. The
+paper is not a file you maintain by hand alongside the data;
+it is the output of a graph rooted in a seed. Anyone with the
+repository runs `make` and gets the same `report.html`, the
+same figure, and the same alpha, because every arrow in the
+graph is executable code. The synthetic data is regenerated
+from the seed rather than shipped, which is the same
+discipline licensed data demands (rebuild from code, never
+commit the data) and the reason the example is synthetic in
+the first place.
+:::
+
+## Rebuilding only what changed {.tier-beginner}
+
+The reason to use Make instead of a script that runs every
+step is that Make runs *only the stale steps*. Immediately
+after a build, nothing is out of date:
+
+```bash
+$ make
+make: Nothing to be done for `all'.
+```
+
+Touch one upstream file and Make rebuilds only what sits
+downstream of it. Touching the portfolio script invalidates
+the portfolio, and the cascade flows through the figure, the
+table, and the report:
+
+```bash
+$ touch scripts/02_portfolio.py
+$ make
+uv run python scripts/02_portfolio.py
+uv run python scripts/03_figure.py
+Rscript scripts/04_regression.R
+quarto render report.qmd --to html
+[...]
+Output created: report.html
+```
+
+The data generator and the cleaning step did not run: nothing
+they produce changed. Touch the regression script instead and
+only the table and the report rebuild, because nothing
+upstream of the regression depends on it:
+
+```bash
+$ touch scripts/04_regression.R
+$ make
+Rscript scripts/04_regression.R
+quarto render report.qmd --to html
+[...]
+Output created: report.html
+```
+
+To preview what a build *would* do without running anything,
+`make -n` prints the recipes and stops:
+
+```bash
+$ touch scripts/04_regression.R
+$ make -n
+Rscript scripts/04_regression.R
+quarto render report.qmd --to html
+```
+
+This selective rebuild is the feature. On a project where the
+data step takes an hour, you do not want to rerun it because
+you edited a figure caption.
+
+## When timestamps lie {.tier-advanced}
+
+Make decides "out of date" by comparing modification times: a
+target is stale if any prerequisite is newer. That rule is
+simple, fast, and occasionally wrong, and it is worth seeing
+*why* before you trust a build blindly.
+
+You can watch the rule decide, deterministically, by setting
+the timestamps by hand. In a throwaway project where `out.txt`
+is copied from `in.txt`, force both files to the same
+whole-second time with `touch -t`, and Make calls the target
+up to date:
+
+```bash
+$ touch -t 202606301200.00 in.txt out.txt
+$ stat -f '%Fm  %N' in.txt out.txt
+1782835200.000000000  in.txt
+1782835200.000000000  out.txt
+$ make
+make: `out.txt' is up to date.
+```
+
+Equal is not "newer," so nothing rebuilds. Make `in.txt` one
+second newer and the recipe runs:
+
+```bash
+$ touch -t 202606301200.01 in.txt
+$ stat -f '%Fm  %N' in.txt out.txt
+1782835201.000000000  in.txt
+1782835200.000000000  out.txt
+$ make
+cp in.txt out.txt
+```
+
+That is the entire decision procedure: a newer prerequisite
+rebuilds, the same age or older skips. It is clean here
+because we set the times to the whole second by hand. The
+failures start when the clock runs finer than Make can read.
+
+The trouble is resolution. GNU Make 3.81, the version Apple
+ships, compares timestamps at one-second granularity. The
+filesystem records nanoseconds, but 3.81 throws the fraction
+away. So if a prerequisite is rebuilt in the *same integer
+second* as the target that depends on it, Make sees the two as
+the same age, decides the target is not older, and skips it.
+The same `touch scripts/04_regression.R; make` that rebuilt
+the table and the report above will, on a fast machine,
+sometimes rebuild the table and *not* re-render the report,
+because the new table landed in the same second as the old
+report. Run it twice and you can get two different answers.
+The mtimes from one run that did rebuild correctly show the
+margin involved:
+
+```bash
+$ stat -f '%Fm  %N' output/tables/ff5_alpha.tex \
+    report.html
+1782846398.406904276  output/tables/ff5_alpha.tex
+1782846400.062016681  report.html
+```
+
+Here the table and the report are 1.66 seconds apart, in
+different integer seconds, so Make rebuilt correctly. Shave
+that gap below a second and 3.81 cannot tell them apart.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+This is a macOS hazard specifically. GNU Make 4.x, which
+Linux distributions ship (4.3 in this book's sandbox), reads
+sub-second timestamps and does not have the tie problem. The
+fix on a Mac is to stop relying on the system Make: `brew
+install make` gives you `gmake` 4.x. The deeper lesson is that
+*timestamps are a proxy for "did the content change," and the
+proxy can fail*. That is the motivation for the next section.
+:::
+
+## Smoke checks that fail loudly {.tier-beginner}
+
+If timestamps can lie, do not let the build be the only judge
+of whether the result is right. Our Makefile carries a `check`
+target that re-derives the two numbers that define the study,
+the data hash and the alpha, from the actual files, and
+fails if either has drifted:
+
+```bash
+$ make check
+uv run python scripts/check.py
+smoke checks:
+  PASS  data content hash matches (49b3a1733cf2...)
+  PASS  long-short alpha = 0.0034 (t=2.64)
+  PASS  figure exists (output/figures/cumret.png)
+  PASS  R table alpha = 0.0034 (ff5_alpha.tex)
+
+all checks passed
+```
+
+The check recomputes the SHA-256 of the raw returns and
+re-runs the regression independently, rather than trusting the
+pipeline's own arithmetic. When a result drifts, the check
+says so and returns a nonzero exit code, which stops any
+script or CI job built on top of it. To see the failure path,
+corrupt the table by hand and re-run:
+
+```bash
+$ sed -i '' 's/0.0034/0.0099/' \
+    output/tables/ff5_alpha.tex
+$ make check
+uv run python scripts/check.py
+smoke checks:
+  PASS  data content hash matches (49b3a1733cf2...)
+  PASS  long-short alpha = 0.0034 (t=2.64)
+  PASS  figure exists (output/figures/cumret.png)
+  FAIL  output/tables/ff5_alpha.tex: alpha 0.0099 != locked 0.0034 (stale table?)
+1 check(s) FAILED
+make: *** [check] Error 1
+```
+
+The check caught a table that disagreed with the data, exactly
+the kind of silent drift a timestamp tie can hide.
+
+::: {.callout-tip .recovery title="RECOVERY"}
+A failed check means a built file no longer matches its
+inputs. The honest fix is to rebuild it from source, not to
+hand-edit it back. `make -B output/tables/ff5_alpha.tex`
+forces the table to rebuild regardless of timestamps, after
+which `make check` passes again. `make -B` (build everything
+unconditionally) is also the blunt escape hatch whenever you
+suspect a timestamp tie has confused Make: it sidesteps the
+mtime logic entirely.
+:::
+
+## .PHONY: targets that are not files {.tier-advanced}
+
+`all`, `check`, `clean`, and `help` name actions, not files.
+There is no file called `check` on disk, so if a directory
+ever did contain one, Make would see it as "already built" and
+skip the recipe. Declaring them phony tells Make these targets
+never correspond to files and their recipes always run:
+
+```makefile
+.PHONY: all check clean help
+
+help:
+	@echo "make        build the study (-> report.html)"
+	@echo "make check  re-derive hash + alpha, check files"
+	@echo "make clean  remove generated files"
+```
+
+A `help` target that lists the real entry points is a small
+kindness to the next person, who is often you in six months.
+The `clean` target removes generated files so you can rebuild
+from nothing, which is the surest test that the graph is
+complete.
+
+::: {.callout-caution .danger title="DANGER"}
+`make clean` runs `rm -f` and `rm -rf` with no confirmation.
+In our Makefile it deletes only generated, regenerable files
+(data, figures, the report), which is safe by design. But a
+`clean` recipe is just shell, and a wrong path in one, for
+example `rm -rf $(BUILD)/` when `BUILD` is empty and expands
+to `rm -rf /`, is the kind of irreversible mistake Chapter 6
+warns about. Read a `clean` recipe before you trust it, keep
+its paths inside the project, and never let a variable that
+could be empty sit next to `rm -rf`.
+:::
+
+## The Python tier runs anywhere {.tier-advanced}
+
+Because Make orchestrates files and shell commands, the parts
+of the graph written in a portable language are portable too.
+The Python half of our pipeline (steps 00 through 03) runs
+unchanged in the locked-down Linux sandbox, with no R and no
+Quarto installed, and reproduces the locked data hash and the
+final cumulative return (103.95%):
+
+```bash
+$ make output/figures/cumret.png
+uv run python scripts/00_make_data.py
+[... uv installs the pinned environment ...]
+seed=20260629  lambda=0.00149  sigma=0.06
+content-sha256=49b3a1733cf2...
+uv run python scripts/01_clean.py
+uv run python scripts/02_portfolio.py
+uv run python scripts/03_figure.py
+wrote output/figures/cumret.png  ... =103.95%
+```
+
+Naming a specific target, `make output/figures/cumret.png`,
+builds just that file and its prerequisites and stops short of
+the R and Quarto steps the sandbox cannot run. The same hash
+appears here as on the Mac, which is the cross-machine
+determinism the seed promises. The smoke check run directly,
+`uv run python scripts/check.py`, confirms the data and alpha
+and reports the R table as not built here rather than failing:
+
+```bash
+$ uv run python scripts/check.py
+smoke checks:
+  PASS  data content hash matches (49b3a1733cf2...)
+  PASS  long-short alpha = 0.0034 (t=2.64)
+  PASS  figure exists (output/figures/cumret.png)
+  SKIP  R table not built here (run on the Mac)
+
+all checks passed
+```
+
+This is the toolchain split made concrete: the portable tier
+runs anywhere, the R and Quarto tiers run where they are
+installed, and the same Makefile drives both.
+
+## Stata and EViews in the graph {.tier-advanced}
+
+Not every tool a social scientist uses is scriptable from a
+Unix shell in the same way. Two common ones, Stata and EViews,
+slot into a Make graph differently, and our pipeline keeps
+them out of the executable core on purpose so every shown
+output stays real. The recipes below are **illustrative and
+are not run in this book.**
+
+Stata runs in batch with `stata -b`, which executes a do-file
+and writes a log. As a Make rule it looks like any other, the
+target being whatever the do-file produces:
+
+```makefile
+# illustrative; not run here
+output/tables/summary.tex: code/summary.do \
+                           data/clean/analysis.dta
+	stata -b do code/summary.do
+```
+
+The shape is identical to the R rule: a target, its data and
+script prerequisites, and a one-line batch recipe. A reader on
+a machine with Stata could drop this straight into the graph.
+
+EViews is the harder case, and the honest answer is to not
+pretend it runs in the pipeline at all. EViews is effectively
+Windows-only and interactive, so it does not belong on the
+critical path of a portable build. Treat its output as an
+**upstream manual step**: the researcher runs the EViews
+program separately, exports a result (a CSV, say), and commits
+that artifact. Make then consumes it as a prerequisite it
+never knows how to build:
+
+```makefile
+# illustrative; not run here.
+# data/external/eviews_var.csv is produced by hand in
+# EViews on Windows and committed; Make only reads it.
+output/figures/irf.png: scripts/plot_irf.py \
+                        data/external/eviews_var.csv
+	$(PY) scripts/plot_irf.py
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+This is the general pattern for any tool that will not run in
+your build environment, not just EViews: make its output a
+committed input rather than a built target. The pipeline stays
+portable and fully executable for everyone, and the
+non-portable step is quarantined to a documented manual
+hand-off. State plainly in the README which files are produced
+this way, so a replicator knows what they cannot regenerate
+from code alone.
+:::
+
+## just, and when to outgrow Make {.tier-advanced}
+
+Two questions come up once a pipeline grows. First, why not
+`just`? `just` is a modern command runner with a friendlier
+syntax and no TAB trap, and it is pleasant for collections of
+named tasks (`just test`, `just deploy`). But it is a *task
+runner*, not a *build system*: it does not track file
+dependencies or skip up-to-date work. For a reproducible
+analysis where "rebuild only what changed" is the entire
+point, that is the feature you would be giving up. Use `just`
+for convenience commands; use `make` for the dependency graph.
+
+Second, when does Make stop being enough? When the graph grows
+to dozens of steps, or you need to fan a step out over many
+inputs in parallel, or you want the rebuild trigger to be
+content hashes rather than timestamps, you have outgrown Make.
+The usual next steps are Snakemake (Python) or `targets` (R),
+both of which keep the dependency-graph idea and add
+content-based change detection, richer parallelism, and better
+logs. The mental model you built here carries straight over;
+the syntax changes, the graph does not.
+
+## Try it yourself {.unnumbered}
+
+1. Clone the example, run `make`, then run `make` again. Read
+   the second run's output: why does it say there is nothing to
+   do?
+
+2. Run `make clean`, then `make output/figures/cumret.png`.
+   Which steps run, and which are skipped? Explain the choice
+   from the dependency graph.
+
+3. `touch scripts/01_clean.py` and run `make -n`. Predict the
+   recipes it will print before you read them, then check.
+
+4. Break a recipe's indentation by replacing its leading TAB
+   with spaces (use `cat -et` on macOS, or `cat -A` on
+   GNU/Linux, to confirm), run `make`, and read the error.
+   Restore the TAB.
+
+5. Add a `.PHONY` target `figure` that builds only the figure
+   (`figure: output/figures/cumret.png`), so `make figure` is a
+   readable alias. Confirm `make help` is the natural place to
+   document it.
+
+6. Reproduce the timestamp rule yourself: in an empty
+   directory, write a Makefile with `out.txt: in.txt` and a
+   `cp in.txt out.txt` recipe, create both files, then
+   `touch -t` them to the same time and run `make`. Confirm it
+   skips. Make `in.txt` one second newer and confirm it
+   rebuilds.

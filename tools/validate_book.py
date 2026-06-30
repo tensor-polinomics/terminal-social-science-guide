@@ -13,8 +13,10 @@ Checks, per file and book-wide:
      (Quarto code-chunk syntax is normalised first).
   4. Callout / fenced-div fences are balanced (::: pairs).
   5. No em-dashes (style rule).
-  6. Code/terminal fenced blocks wrapped to ~64 chars
-     (advisory warning, real captured output may exceed).
+  6. Typed command lines and authored code listings wrapped
+     to ~64 chars (advisory). Verbatim tool output inside a
+     terminal-session block is exempt (it must stay
+     byte-faithful and the reader never types it).
 
 Exit code is nonzero if any ERROR is found. WARN does not
 fail the gate.
@@ -102,15 +104,53 @@ def check_emdash(f: str, text: str) -> None:
         err(f, f"{n} em-dash(es) on line(s) {lines[:10]}")
 
 
+def _is_prompt(ln: str) -> bool:
+    # A typed command line in a terminal session.
+    return ln.startswith("$ ") or ln.startswith("> ")
+
+
 def check_code_width(f: str, body: str) -> None:
-    in_code = False
+    """Width-check what the reader types, not machine output.
+
+    The ~64 target exists so a reader can copy a command
+    without horizontal scroll and so PDF code stays in the
+    margin. That applies to typed commands and to authored
+    code listings (Makefiles, scripts), which a reader may
+    copy. It does NOT apply to verbatim tool output, which the
+    reader never types and which must stay byte-faithful to
+    the "real output only" rule. So: in a terminal-session
+    block (one that contains a `$ ` or `> ` prompt), only the
+    prompt lines are checked; output lines are exempt. A code
+    block with no prompt is treated as an authored listing and
+    every line is checked.
+    """
     long_lines = []
+    in_code = False
+    block: list[tuple[int, str]] = []
+
+    def flush() -> None:
+        if not block:
+            return
+        is_session = any(_is_prompt(ln) for _, ln in block)
+        for i, ln in block:
+            if len(ln) <= CODE_WIDTH:
+                continue
+            if is_session and not _is_prompt(ln):
+                continue  # verbatim tool output: exempt
+            long_lines.append((i, len(ln)))
+
     for i, ln in enumerate(body.splitlines(), 1):
         if ln.startswith("```"):
+            if in_code:
+                flush()
+                block.clear()
             in_code = not in_code
             continue
-        if in_code and len(ln) > CODE_WIDTH:
-            long_lines.append((i, len(ln)))
+        if in_code:
+            block.append((i, ln))
+    if in_code:  # unterminated fence; check_fences reports it
+        flush()
+
     if long_lines:
         preview = ", ".join(f"L{n}({w})" for n, w in long_lines[:8])
         warn(f, f"{len(long_lines)} code line(s) > {CODE_WIDTH} "
