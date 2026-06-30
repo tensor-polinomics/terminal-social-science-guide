@@ -1,0 +1,5 @@
+# Environments from the Shell
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 12. uv (Python), renv
+     (R); reproducible seeds; Docker named not taught. + Provenance:
+     sessionInfo() / package versions / lockfiles. Drafted in Phase 5. -->

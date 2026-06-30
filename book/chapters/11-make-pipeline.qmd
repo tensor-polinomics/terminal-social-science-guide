@@ -1,0 +1,7 @@
+# Make as Cross-Language Pipeline Glue
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 11. EXEMPLAR (Phase 2,
+     G2 style). The reproducibility showcase: one build graph wiring
+     R / Python / Stata / Quarto / LaTeX; $@ $< $^, pattern rules,
+     .PHONY; TAB trap; timestamp-vs-content caveat. Stata/EViews
+     illustrative-only. + Smoke checks (make check). just aside. -->

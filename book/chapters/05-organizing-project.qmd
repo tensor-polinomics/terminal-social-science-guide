@@ -1,0 +1,6 @@
+# Organizing a Project from the Shell
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 5. mkdir -p, scaffold
+     scripts, copier/cookiecutter, directory hygiene; cross-ref Git book
+     for canonical layout. Anchors the running example. Drafted in
+     Phase 3. -->

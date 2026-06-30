@@ -1,0 +1,4 @@
+# Portable Command Cheat Sheet {#sec-cheatsheet .unnumbered}
+
+<!-- STUB (Phase 0). Appendix C: one-page portable command reference,
+     each command cross-referenced to its chapter. Drafted in Phase 7. -->

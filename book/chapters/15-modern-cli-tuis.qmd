@@ -1,0 +1,6 @@
+# Modern CLI Kit and TUIs
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 15. eza, bat, fd,
+     ripgrep, zoxide, fzf, delta + TUIs (lazygit, btop, ncdu); the
+     portability tax ("not on the server"); honest cost/benefit.
+     Drafted in Phase 6. -->

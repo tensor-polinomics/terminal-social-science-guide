@@ -1,0 +1,7 @@
+# Scripts That Fail Loudly
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 10. #!/usr/bin/env
+     bash, set -euo pipefail, exit codes; bash target with portable
+     habits; macOS bash-3.2 DIVERGENCE. + ShellCheck/shfmt. + Logs &
+     provenance (tee, script, /usr/bin/time). + Locale/timezone
+     reproducibility (pin LC_ALL/TZ). Drafted in Phase 5. -->

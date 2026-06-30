@@ -1,0 +1,8 @@
+[project]
+name = "terminal-social-science-guide"
+version = "0.1.0"
+description = "Validation tooling for the Terminal and Shell book scaffold."
+requires-python = ">=3.9"
+dependencies = [
+  "pyyaml>=6.0.2",
+]

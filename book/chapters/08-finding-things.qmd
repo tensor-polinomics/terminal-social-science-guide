@@ -1,0 +1,5 @@
+# Finding Things
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 8. find + fd, ripgrep;
+     globbing vs regex; reinforce null-safety from Ch 6. Drafted in
+     Phase 4. -->

@@ -1,0 +1,78 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "The Terminal and Shell for Social Science Researchers"
+  subtitle: "A reproducible-workflow guide for economics, finance, and the social sciences"
+  author: "Emma Luo"
+  date: today
+  search: true
+  reader-mode: true
+  page-footer:
+    left: "Built with Quarto. Reproducibility first."
+  sidebar:
+    style: docked
+    collapse-level: 1
+  chapters:
+    - index.qmd
+    - part: "Literacy Foundation"
+      chapters:
+        - chapters/01-why-terminal.qmd
+        - chapters/02-mental-model.qmd
+        - chapters/03-setup.qmd
+        - chapters/04-navigation.qmd
+        - chapters/05-organizing-project.qmd
+    - part: "Core Fluency"
+      chapters:
+        - chapters/06-pipes-redirection-danger.qmd
+        - chapters/07-text-tabular-data.qmd
+        - chapters/08-finding-things.qmd
+        - chapters/09-processes-permissions-secrets.qmd
+    - part: "Workflow Climax"
+      chapters:
+        - chapters/10-scripts-fail-loudly.qmd
+        - chapters/11-make-pipeline.qmd
+        - chapters/12-environments.qmd
+        - chapters/13-ssh-remote-compute.qmd
+        - chapters/14-persistent-sessions.qmd
+    - part: "Modern Tooling and AI"
+      chapters:
+        - chapters/15-modern-cli-tuis.qmd
+        - chapters/16-ai-terminal.qmd
+        - chapters/17-startup-files-path.qmd
+    - part: "Reference"
+      chapters:
+        - panic.qmd
+        - divergence.qmd
+        - cheatsheet.qmd
+        - checklist.qmd
+        - references.qmd
+
+bibliography: references.bib
+# Quarto's default citation style is Chicago Manual of Style 17th edition
+# (author-date); leaving csl unset renders Chicago author-date.
+link-citations: true
+
+# HTML + PDF. HTML publishes to Quarto Pub; PDF is rendered alongside for
+# the human review / reconciliation process at each gate (matched to the
+# Git book, which also renders both).
+format:
+  html:
+    theme:
+      - cosmo
+      - includes/custom.scss
+    toc: true
+    toc-depth: 3
+    code-copy: true
+    code-overflow: wrap
+    df-print: kable
+    default-image-extension: svg
+  pdf:
+    documentclass: scrreprt
+    keep-tex: false
+    default-image-extension: pdf
+
+execute:
+  freeze: auto
+  echo: true

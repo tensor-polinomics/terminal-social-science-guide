@@ -1,0 +1,7 @@
+# Setup: The Platform-Specific Zone
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 3. macOS / Linux /
+     WSL2 parallel tracks; shells, package managers; zsh-vs-bash;
+     Apple Silicon /opt/homebrew/bin PATH note; PowerShell sidebar.
+     + Supply-chain safety (verify installers, checksums, PATH-hijack).
+     Drafted in Phase 3. -->

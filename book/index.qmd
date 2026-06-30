@@ -1,0 +1,5 @@
+# Preface {.unnumbered}
+
+<!-- STUB (Phase 0). No preface prose yet, by design. Written after the
+     exemplar chapters lock the style at G2. Mirror the Git book's hero
+     band + feature cards (HTML-only, decorative). -->

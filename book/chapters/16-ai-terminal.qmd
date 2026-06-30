@@ -1,0 +1,8 @@
+# AI in the Terminal
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 16. EXEMPLAR (Phase 2,
+     G2 style). Claude Code / Codex / Gemini CLI; principles-first,
+     version-stamped. Durable spine: permission models, destructive-
+     command boundaries, file/scope boundaries, network access, secrets
+     in prompts, review discipline; what an agent must NEVER run
+     unsupervised; reproducibility implications. -->

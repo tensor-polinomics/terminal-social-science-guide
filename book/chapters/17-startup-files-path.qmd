@@ -1,0 +1,7 @@
+# Startup Files, PATH, and Portable Dotfiles
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 17. Startup-file order
+     (.zshrc / .bashrc / .bash_profile; login vs interactive vs
+     noninteractive), remote-shell startup ("works in terminal, fails
+     in script/SSH/cron"). + Scheduled/non-interactive contexts: cron
+     vs launchd vs CI and why PATH/env differ. Drafted in Phase 6. -->

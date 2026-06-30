@@ -1,0 +1,7 @@
+# SSH and Remote Compute: Servers, GPU Pods, HPC
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 13. ~/.ssh/config,
+     port forwarding, VS Code Remote. + SSH key hygiene. + Data movement
+     (rsync/scp, DANGER on rsync --delete + trailing slash, checksum
+     verify, tar/gzip, du/df/ncdu). + GPU pods (Runpod, nvtop). + SLURM/
+     HPC recognize-and-route (one page, droppable). Drafted in Phase 5. -->

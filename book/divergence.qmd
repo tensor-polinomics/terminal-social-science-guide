@@ -1,0 +1,4 @@
+# Divergence Reference {#sec-divergence .unnumbered}
+
+<!-- STUB (Phase 0). Appendix B: BSD/GNU, zsh/bash, and PowerShell
+     divergence table. Drafted in Phase 7. -->

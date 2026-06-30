@@ -50,6 +50,7 @@ renv/staging/
 
 # Quarto/render outputs. Keep _freeze/ trackable if used intentionally.
 /book/_book/
+/book/_book-*/
 /book/_site/
 /book/.quarto/
 /book/*_files/

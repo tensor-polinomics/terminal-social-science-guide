@@ -1,0 +1,4 @@
+# Navigation and File Operations
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 4. The daily loop;
+     portable baseline; first DIVERGENCE callouts. Drafted in Phase 3. -->

@@ -1,0 +1,6 @@
+# Text and Tabular Data as Data
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 7. grep, sed, awk
+     (shallow), sort, uniq, cut, tr, jq. + DuckDB CLI for CSV/Parquet
+     inspection and joins (preferred over deep awk). Drafted in
+     Phase 4. -->

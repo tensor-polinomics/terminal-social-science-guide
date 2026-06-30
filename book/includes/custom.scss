@@ -1,0 +1,107 @@
+/*-- scss:defaults --*/
+// Brand-ish accent for a calm, academic look. Matched to the Git book.
+$primary: #2c5f8a;
+
+/*-- scss:rules --*/
+
+/* ------------------------------------------------------------------
+   Tier badges. Tag a section heading with a tier class:
+     ## The daily loop {.tier-beginner}
+     ## Inspecting the connection {.tier-advanced}
+   Quarto applies that class to BOTH the wrapping <section> and the
+   heading element, so the badge MUST be scoped to the heading only.
+   Targeting `.tier-* > :first-child::before` (the old rule) matched
+   twice (once via the section -> the <h2>, once via the <h2> -> its
+   section-number <span>) and printed the badge twice. Scoping to the
+   heading elements themselves yields exactly one badge.
+   ------------------------------------------------------------------ */
+:is(h1, h2, h3, h4, h5, h6).tier-beginner::before,
+:is(h1, h2, h3, h4, h5, h6).tier-advanced::before {
+  display: inline-block;
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.10rem 0.5rem;
+  border-radius: 0.35rem;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+:is(h1, h2, h3, h4, h5, h6).tier-beginner::before {
+  content: "BEGINNER";
+  background: #e6f4ea;
+  color: #1e7e34;
+  border: 1px solid #bcdfc7;
+}
+:is(h1, h2, h3, h4, h5, h6).tier-advanced::before {
+  content: "ADVANCED";
+  background: #fdecea;
+  color: #b23b2e;
+  border: 1px solid #f4c7c0;
+}
+
+/* ------------------------------------------------------------------
+   Custom callouts. Quarto ships note/tip/warning/important/caution.
+   We standardise five research callouts by reusing those types with
+   fixed titles. Convention (documented in index.qmd):
+     PITFALL          -> callout-warning   (what breaks)
+     RECOVERY         -> callout-tip       (how to fix it after)
+     REPRODUCIBILITY  -> callout-important (why it matters)
+     DIVERGENCE       -> callout-note      (macOS/BSD vs Linux/GNU
+                                            vs WSL2 vs PowerShell)
+     DANGER           -> callout-caution   (destructive/irreversible)
+   The rules below tint them so they read as a distinct family.
+   ------------------------------------------------------------------ */
+div.callout-warning.pitfall .callout-title { background: #fff3cd; }
+div.callout-tip.recovery .callout-title { background: #e6f4ea; }
+div.callout-important.reproducibility .callout-title { background: #e7f0fa; }
+div.callout-note.divergence .callout-title { background: #eef0f4; }
+div.callout-caution.danger .callout-title { background: #fde4e1; }
+
+/* Keep terminal blocks visually distinct and wrapped. */
+pre.sourceCode, pre > code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ------------------------------------------------------------------
+   Landing page (index.qmd, HTML only). A calm academic hero band and
+   a row of feature cards. Decorative: the PDF hides these blocks and
+   falls back to the surrounding prose.
+   ------------------------------------------------------------------ */
+.hero-band {
+  margin: 0.5rem 0 2.25rem;
+  padding: 1.6rem 1.75rem;
+  background: linear-gradient(180deg, #f3f7fb 0%, #eef3f9 100%);
+  border: 1px solid #dbe6f1;
+  border-left: 4px solid $primary;
+  border-radius: 0.6rem;
+}
+.hero-band .hero-lead {
+  font-size: 1.18rem;
+  line-height: 1.55;
+  color: #2b3a4a;
+  max-width: 46rem;
+  margin-bottom: 1.15rem;
+}
+/* Space the quick-start buttons without relying on inline markup. */
+.hero-band .btn {
+  margin: 0.25rem 0.5rem 0.25rem 0;
+  font-weight: 600;
+}
+
+.feature-grid { margin: 2.25rem 0 2.5rem; }
+.feature-card {
+  padding: 1.15rem 1.25rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid $primary;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(20, 40, 70, 0.06);
+}
+.feature-card h4 {
+  margin-top: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $primary;
+}
+.feature-card p:last-child { margin-bottom: 0; }

@@ -1,0 +1,4 @@
+# Panic and Safety Reference {#sec-panic .unnumbered}
+
+<!-- STUB (Phase 0). Appendix A: destructive commands and recovery,
+     single end-of-book reference. Drafted in Phase 7. -->

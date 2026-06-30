@@ -1,0 +1,5 @@
+# Why the Terminal for Researchers
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 1. Differentiator
+     framing; cross-ref the Git book's reproducibility spine, do not
+     re-argue it. Drafted in Phase 3. -->

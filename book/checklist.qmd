@@ -1,0 +1,4 @@
+# Reproducibility and Safety Checklist {#sec-checklist .unnumbered}
+
+<!-- STUB (Phase 0). End-of-book reproducibility + safety checklist,
+     each item cross-referenced to its chapter. Drafted in Phase 7. -->

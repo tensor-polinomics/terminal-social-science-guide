@@ -1,0 +1,6 @@
+# Pipes, Redirection, and the Danger Chapter
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 6. EXEMPLAR (Phase 2,
+     G2 style). stdin/out/err, redirection, |; first-class DANGER
+     (rm -rf, > clobbering, curl | sh + supply-chain/PATH-hijack).
+     + Quoting / globs / null-safety taught as CORE (BEGINNER tier). -->

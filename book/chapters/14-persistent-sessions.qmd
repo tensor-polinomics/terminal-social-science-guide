@@ -1,0 +1,4 @@
+# Persistent Sessions
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 14. tmux (screen as
+     aside); surviving disconnects on long jobs. Drafted in Phase 5. -->

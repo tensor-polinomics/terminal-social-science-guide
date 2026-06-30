@@ -1,0 +1,6 @@
+# The Mental Model
+
+<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 2. Shell vs terminal
+     vs OS; processes, filesystem, PATH, environment, exit codes,
+     stdin/stdout/stderr; one diagram. + Help/discovery (man, --help,
+     type, command -v, tldr). Drafted in Phase 3. -->
