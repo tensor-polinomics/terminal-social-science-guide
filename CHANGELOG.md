@@ -8,6 +8,22 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Phase 1 running-example pipeline (G1 cleared)** in `sandbox/asset-pricing/`: a seeded
+  synthetic FF5 study wired as one `make` graph. Python (`00_make_data.py` ->
+  `01_clean.py` -> `02_portfolio.py` -> `03_figure.py`) generates, cleans,
+  forms a decile long-short portfolio, and draws the cumulative-return figure;
+  R (`04_regression.R`, fixest) runs the FF5 regression and
+  table; `report.qmd` assembles the Quarto/LaTeX report. `scripts/check.py`
+  (`make check`) re-derives the data hash and alpha. Python deps pinned in
+  `pyproject.toml` + `uv.lock`; R deps via `scripts/bootstrap_renv.R` ->
+  `renv.lock` (created on the Mac).
+- Reproducibility invariant re-locked after Codex audit found the original
+  sandbox hash `76c76eb...` did not reproduce on the Mac. The final G1 lock uses
+  deterministic hash-based streams with lambda 0.00149, data SHA-256
+  `49b3a173...`, long-short alpha 0.0034/mo (t = 2.635), and a cumulative-return
+  figure ending at 103.95%. Verified from VS Code/WezTerm on the Mac: standalone
+  R regression, Make-invoked R target, `make check`, HTML render, PDF render,
+  and book validator all passed.
 - `SETUP.md`: build environment and per-phase dependency guide across three
   machines (Mac, an SSH Linux box, the workspace sandbox).
 - `CHANGELOG.md`: this file.

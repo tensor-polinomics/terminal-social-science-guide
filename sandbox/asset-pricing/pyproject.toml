@@ -1,0 +1,31 @@
+# Reproducible environment for the running example:
+# "A Signal-Sorted Long-Short Portfolio: an FF5 example".
+#
+# Rebuild the Python half of the project from code with:
+#
+#     uv run python scripts/00_make_data.py
+#     uv run python scripts/01_clean.py
+#     uv run python scripts/02_portfolio.py
+#     uv run python scripts/03_figure.py
+#
+# uv constructs the locked environment from uv.lock on first run.
+# All data are simulated by 00_make_data.py (seeded), so the
+# project reproduces from code alone. The regression/table half
+# runs in R (scripts/04_regression.R, see renv.lock). The locked
+# expected result is pinned in README.md.
+
+[project]
+name = "asset-pricing"
+version = "0.1.0"
+description = "Synthetic FF5 signal-sorted long-short example."
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+]
+
+[tool.uv]
+package = false

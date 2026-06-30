@@ -1,0 +1,52 @@
+---
+title: "A Signal-Sorted Long-Short Portfolio"
+subtitle: "An FF5 example (synthetic data)"
+format:
+  html: default
+  pdf: default
+---
+
+## Question
+
+Does a simple accounting signal earn a long-short return
+that the five Fama-French factors do not span? Each month we
+sort firms on a lagged signal, form a self-financing
+top-minus-bottom-decile portfolio, and regress its return on
+the five factors. All data are simulated by a seeded script;
+the econometrics is illustrative scaffolding for the build
+pipeline, not the subject.
+
+## Specification
+
+$$
+\text{ls\_ret}_t = \alpha
+  + \beta_1\,\text{Mkt-RF}_t + \beta_2\,\text{SMB}_t
+  + \beta_3\,\text{HML}_t + \beta_4\,\text{RMW}_t
+  + \beta_5\,\text{CMA}_t + \varepsilon_t
+$$
+
+The intercept $\alpha$ is the part of the long-short return
+the factors do not explain.
+
+## Result
+
+```{r}
+#| echo: false
+#| results: asis
+# Wrap the fixed-width table in a fenced code block so the
+# columns render verbatim. Without the fence, the dashed
+# rule under the title is parsed as a Markdown heading and
+# the alignment collapses.
+cat("```text\n")
+cat(readLines("output/tables/ff5_alpha.txt"), sep = "\n")
+cat("\n```\n")
+```
+
+![Cumulative long-short return](output/figures/cumret.png)
+
+The estimated monthly alpha is about 0.34 percent (t near
+2.6), consistent with the value built into the simulation.
+Four of the five factor loadings are statistically
+indistinguishable from zero; only HML carries a marginal
+load (t near -1.8, significant at the 10 percent level). The
+alpha is the piece the factors do not explain.
