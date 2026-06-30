@@ -8,6 +8,17 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 11, "Make as Cross-Language Pipeline Glue" (Phase 2 exemplar 1 of 3,
+  committed `2dc8bcd`).** First drafted chapter; the reproducibility showcase
+  built on the committed `sandbox/asset-pricing/` graph. Teaches the dependency
+  model, rule anatomy + the TAB trap, automatic variables, the one-command
+  cross-language build (Python + R + Quarto), incremental rebuilds, the macOS
+  Make 3.81 one-second-timestamp hazard, content-hash `make check`, `.PHONY`,
+  illustrative-only Stata/EViews recipes, and a `just`/Snakemake aside. All shown
+  output is real (Mac + sandbox transcripts under `transcripts/ch11-*`); sources
+  logged in `verification/chapter-11.md`. Cleared the Ch 11 exemplar subgate
+  (validator 0/0, HTML+PDF render, Codex blind audit, human review); full G2
+  still waits on Ch 6 and Ch 16.
 - **Phase 1 running-example pipeline (G1 cleared)** in `sandbox/asset-pricing/`: a seeded
   synthetic FF5 study wired as one `make` graph. Python (`00_make_data.py` ->
   `01_clean.py` -> `02_portfolio.py` -> `03_figure.py`) generates, cleans,
@@ -27,6 +38,13 @@ are not part of this repo; this file is the repo-visible history.
 - `SETUP.md`: build environment and per-phase dependency guide across three
   machines (Mac, an SSH Linux box, the workspace sandbox).
 - `CHANGELOG.md`: this file.
+
+### Changed
+
+- **`tools/validate_book.py` width check (option A, Ch 11).** The ~64-char rule
+  now applies only to typed command lines (`$ `/`> `) and authored code listings;
+  verbatim tool output inside a terminal-session block is exempt, so real
+  captured output stays byte-faithful while the gate keeps a meaningful 0/0.
 
 ### Decisions
 
