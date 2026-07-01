@@ -1,7 +1,9 @@
 # Local agent/control docs. Keep these out of Git history.
-/PLAN.md
-/RESUME.md
+# CLAUDE.md stays at the terminal root so it keeps auto-loading; PLAN.md,
+# RESUME.md, and all handover docs live in private/ (whole folder ignored).
+# The handover glob is a safety net for a stray handover left at the root.
 /CLAUDE.md
+/private/
 /ch*-G*-handover.md
 
 # Local agent and editor state.

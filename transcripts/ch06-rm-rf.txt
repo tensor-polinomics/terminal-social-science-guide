@@ -1,0 +1,41 @@
+# transcript
+chapter: 06
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-06-30
+captured-by: sandbox
+note: ALL destructive demos run in /tmp (sandbox tmpfs), never
+      in the mounted repo. ${VAR:?msg} aborts when VAR is empty,
+      defusing the empty-path rm catastrophe. The empty-var case
+      is run inside a subshell ( ... ) so the :? abort matches
+      the interactive behavior (command aborts, shell survives)
+      rather than exiting the non-interactive capture shell.
+---
+$ find project
+project
+project/output
+project/output/fig.png
+project/data
+project/data/raw.csv
+
+$ BUILD=''
+$ ( rm -rf "${BUILD:?set BUILD first}"/ )
+bash: BUILD: set BUILD first
+$ echo $?
+1
+$ find project
+project
+project/output
+project/output/fig.png
+project/data
+project/data/raw.csv
+
+$ BUILD='project/output'
+$ rm -rf "${BUILD:?set BUILD first}"
+$ echo $?
+0
+$ find project
+project
+project/data
+project/data/raw.csv

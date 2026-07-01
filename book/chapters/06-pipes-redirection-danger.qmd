@@ -1,6 +1,707 @@
 # Pipes, Redirection, and the Danger Chapter
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 6. EXEMPLAR (Phase 2,
-     G2 style). stdin/out/err, redirection, |; first-class DANGER
-     (rm -rf, > clobbering, curl | sh + supply-chain/PATH-hijack).
-     + Quoting / globs / null-safety taught as CORE (BEGINNER tier). -->
+Chapter 5 gave the project a place for everything: raw data
+here, scripts there, output in its own folder. This chapter is
+about the plumbing that moves data between those places. Every
+command you run reads from somewhere and writes to somewhere,
+and the shell lets you re-point both ends: send a command's
+output to a file, feed a file into a command, or chain
+commands so one's output becomes the next one's input. That
+small set of moves, redirection and pipes, is most of what
+makes the shell feel like a workshop instead of a list of
+isolated tools.
+
+It is also where the shell first turns dangerous. Chapter 2
+drew the line between what the shell does and what Git does:
+the shell runs commands, Git versions files. The companion Git
+book can recover almost anything you have committed. The shell
+can destroy, in one keystroke and with no confirmation, things
+Git never saw: an uncommitted result, a raw data file you were
+told never to commit, a whole directory. There is no reflog
+for `rm -rf` and no undo for `>`. So this chapter teaches the
+plumbing and the danger together, because in the shell they
+are the same lever. The quoting and null-safety rules near the
+end are not advanced polish; they are the seatbelt, and they
+belong at the beginner tier with everything else.
+
+A note on where the output comes from. The redirection, pipe,
+quoting, glob, and `rm` demonstrations are run in this book's
+Linux sandbox (Ubuntu 22.04, GNU bash 5.1, GNU coreutils 8.32,
+GNU findutils 4.8; the `ch06-*` transcript files). Every
+destructive demonstration is run in a throwaway `/tmp`
+directory, never in a real project, for reasons that become
+obvious by the end. The macOS and BSD divergences, where zsh
+and BSD tools behave differently from the Linux baseline, are
+captured separately on the author's Mac
+(`transcripts/ch06-divergence-mac.txt`, produced by
+`capture-ch06-mac.sh`) and called out where they bite. The one
+command this chapter refuses to run anywhere, a blind
+`curl | sh`, is shown but never executed, and labeled as such.
+
+## Three streams: stdin, stdout, stderr {.tier-beginner}
+
+Chapter 2 introduced the three standard streams in the
+abstract. Here is where they earn their keep. Every command
+starts life with three channels already open: **standard
+input** (stdin, where it reads from), **standard output**
+(stdout, where it writes results), and **standard error**
+(stderr, where it writes diagnostics). They carry the numbers
+0, 1, and 2. The reason they are separate, rather than one
+combined stream, is the whole point: results and complaints
+can be sent to different places.
+
+You can see the split with a command that produces both at
+once. Asking `ls` to list one directory that exists and one
+that does not sends the listing to stdout and the error to
+stderr:
+
+```bash
+$ ls data/raw nope_dir
+ls: cannot access 'nope_dir': No such file or directory
+data/raw:
+factors.csv
+firm_panel.csv
+```
+
+On a plain terminal both streams land on the screen, which is
+why they look interleaved. They are not the same channel,
+though, and you can prove it by silencing one at a time.
+Sending stderr to the discard file `/dev/null` leaves the
+results untouched:
+
+```bash
+$ ls data/raw nope_dir 2>/dev/null
+data/raw:
+factors.csv
+firm_panel.csv
+```
+
+Silencing stdout instead leaves only the error behind:
+
+```bash
+$ ls data/raw nope_dir 1>/dev/null
+ls: cannot access 'nope_dir': No such file or directory
+```
+
+The `2>` and `1>` are the next section's subject. The point
+for now is that "the output" of a command is really two
+streams, and keeping them apart is what lets you save a clean
+result while still seeing the warnings, or log the warnings
+while letting the result flow on down a pipe.
+
+## Redirecting output to files: `>` and `>>` {.tier-beginner}
+
+The single greater-than, `>`, sends a command's stdout to a
+file instead of the screen. If the file does not exist it is
+created; if it does exist it is **truncated to empty first**,
+then written. The double form, `>>`, appends to the file
+instead, creating it only if needed. Counting the rows of the
+two raw inputs and collecting both counts in one file shows
+the pair at work:
+
+```bash
+$ wc -l data/raw/firm_panel.csv >  counts.txt
+$ wc -l data/raw/factors.csv    >> counts.txt
+$ cat counts.txt
+54001 data/raw/firm_panel.csv
+181 data/raw/factors.csv
+```
+
+The first line creates `counts.txt` and writes the panel's
+line count; the second appends the factor file's count below
+it. Swap the `>>` for a `>` on the second line and you would
+be left with only the factor count, because the second `>`
+would empty the file before writing. That is not a
+hypothetical:
+
+```bash
+$ echo 'first version'  > note.txt
+$ echo 'second version' > note.txt
+$ cat note.txt
+second version
+```
+
+The first line is gone. No prompt, no warning, no copy in a
+trash folder. The file held `first version` for a fraction of
+a second and now it does not.
+
+::: {.callout-caution .danger title="DANGER"}
+`>` overwrites an existing file silently and irreversibly.
+There is no confirmation and no undo. The classic way to lose
+work is to reach for `>` when you meant `>>`, or to redirect
+into a file that is also feeding the command (`sort data.csv >
+data.csv` truncates `data.csv` to empty before `sort` ever
+reads it, destroying the input). bash can refuse to clobber:
+set the `noclobber` option and `>` will decline to overwrite
+an existing file, with `>|` as the explicit override for the
+times you mean it:
+
+```bash
+$ set -o noclobber
+$ echo 'third version' > note.txt
+bash: note.txt: cannot overwrite existing file
+$ echo 'forced' >| note.txt
+$ cat note.txt
+forced
+```
+
+Turning on `noclobber` (many people put `set -o noclobber` in
+their shell startup file, Chapter 17) converts a silent
+overwrite into a loud refusal. It does not protect against
+`>|`, against `rm`, or against a script that runs with it
+unset, so treat it as one guard rail, not the guard rail.
+:::
+
+Redirection has a quieter, constructive use that matters for
+reproducibility: it captures what happened. Merging a
+command's stdout and stderr into one log file (the `2>&1` is
+the next section) gives you a record you can commit alongside
+results, so "what did that run actually print" has an answer
+months later:
+
+```bash
+$ { echo "run: distinct-firm count"; \
+    cut -d, -f1 data/raw/firm_panel.csv \
+      | tail -n +2 | sort -u | wc -l; } > run.log 2>&1
+$ cat run.log
+run: distinct-firm count
+300
+```
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+A result you cannot trace back to the command that produced it
+is a result you have to take on faith. Redirecting a run into a
+dated log file, or `make`-ing the report from a graph as in
+Chapter 11, is how a shell session leaves a paper trail instead
+of a screenful of text that scrolls away. When you want the log
+*and* the output on screen at the same time, `tee` (Chapter 10)
+splits the stream in two; here a plain `>` is enough. The
+discipline is the same one the Git book argues for results:
+prefer the artifact you can regenerate and inspect over the one
+you remember running.
+:::
+
+## Separating errors from results: `2>` and `2>&1` {.tier-advanced}
+
+Because stdout and stderr are numbered channels, you redirect
+each by its number. `2>` points stderr at a file while stdout
+goes wherever it would normally go. Sending the errors to a log
+keeps them out of the results without throwing them away:
+
+```bash
+$ ls data/raw nope_dir 2> errors.log
+data/raw:
+factors.csv
+firm_panel.csv
+$ cat errors.log
+ls: cannot access 'nope_dir': No such file or directory
+```
+
+To put **both** streams in one file, redirect stdout to the
+file and then tie stderr to "wherever stdout now points" with
+`2>&1`. The portable spelling puts the file first and the tie
+second:
+
+```bash
+$ ls data/raw nope_dir > both.log 2>&1
+$ cat both.log
+ls: cannot access 'nope_dir': No such file or directory
+data/raw:
+factors.csv
+firm_panel.csv
+```
+
+The order is not decoration. `2>&1` means "make stderr go where
+stdout goes *right now*," so it has to come after the file
+redirection. Reverse them and stderr is tied to the screen
+(stdout's original destination) before stdout is moved to the
+file, so the error misses the file entirely:
+
+```bash
+$ ls data/raw nope_dir 2>&1 > only_stdout.log
+ls: cannot access 'nope_dir': No such file or directory
+$ cat only_stdout.log
+data/raw:
+factors.csv
+firm_panel.csv
+```
+
+The error printed to the terminal and `only_stdout.log` caught
+just the listing. This trips up nearly everyone once.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+bash and zsh both accept the shorthand `&> file` for "redirect
+stdout and stderr to file," and it is convenient interactively.
+It is **not portable**: it is undefined in POSIX `sh`, so a
+script that runs under `/bin/sh` (dash on Debian and Ubuntu)
+can fail or misbehave with it. The portable form that works in
+every Bourne-family shell is `> file 2>&1`, in that order. This
+book writes the portable form in scripts and saves `&>` for the
+interactive prompt. The redirection-order rule above is the
+same on macOS (zsh 5.9, and the system bash 3.2.57) as on
+Linux, confirmed in `transcripts/ch06-divergence-mac.txt`.
+:::
+
+## Pipes: composing small commands {.tier-beginner}
+
+Redirection connects a command to a file. A **pipe**, the `|`
+character, connects a command's stdout directly to the next
+command's stdin, with no file in between. This is the idea the
+whole Unix toolset is built around: instead of one program that
+does everything, many small programs that each do one thing,
+strung together so the output of one is the input of the next.
+
+Counting the distinct firms in the panel is a four-stage pipe,
+and it answers a real question about the running example:
+
+```bash
+$ cut -d, -f1 data/raw/firm_panel.csv | tail -n +2 \
+    | sort -u | wc -l
+300
+```
+
+Read left to right, that is the pipeline in English: take the
+first comma-separated column (`cut -d, -f1`), drop the header
+row (`tail -n +2`), reduce to unique sorted values
+(`sort -u`), and count the lines that remain (`wc -l`). The
+answer, 300, is the firm count the generator locked in. The
+companion month count is a two-stage pipe on the factor file:
+
+```bash
+$ tail -n +2 data/raw/factors.csv | wc -l
+180
+```
+
+The way to build a pipe is the way to read it: one stage at a
+time. Run `cut` alone and look; add `tail` and look again. Each
+stage sees only the text the previous one emitted, so you can
+inspect the stream at any point:
+
+```bash
+$ cut -d, -f1 data/raw/firm_panel.csv | head -4
+firm
+F0000
+F0000
+F0000
+```
+
+The header `firm` is still there, which is exactly why the full
+pipe needs the `tail -n +2` to drop it before counting. Pipes
+reward this build-and-check habit: a long pipeline that
+misbehaves is almost always one stage that is not emitting what
+you assumed, and you find it by stopping the pipe one stage
+earlier.
+
+## Pipes and exit status: `pipefail` {.tier-advanced}
+
+A pipe hides a trap that matters the moment you put one in a
+script. By default, a pipeline's exit status is the status of
+its **last** command only. Every earlier stage can fail and the
+pipe still reports success, because the last stage succeeded.
+Watch a deliberately failing first stage vanish:
+
+```bash
+$ cut -d, -f1 missing.csv | sort | head -1
+cut: missing.csv: No such file or directory
+$ echo $?
+0
+```
+
+`cut` failed (there is no `missing.csv`), printed its error,
+and produced no output, yet the pipeline's exit status is `0`,
+success, because `head` ran fine on the empty stream. A script
+that checks the exit status here would conclude all is well and
+march on with no data.
+
+The fix is the `pipefail` option, which makes a pipeline fail
+if **any** stage fails:
+
+```bash
+$ set -o pipefail
+$ cut -d, -f1 missing.csv | sort | head -1
+cut: missing.csv: No such file or directory
+$ echo $?
+1
+```
+
+Same pipe, same error, but now the status is `1` and a script
+will notice.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+A pipeline that "worked" because its last stage succeeded is
+one of the most common silent failures in shell scripts, and it
+is invisible until a missing file or a typo upstream feeds an
+empty stream into a step that is perfectly happy to process
+nothing. This is exactly why the next chapter's scripts open
+with `set -euo pipefail`: the `pipefail` shown here, plus `-e`
+to stop on the first failure and `-u` to catch unset variables.
+Turn it on for any pipe whose result you act on. At the
+interactive prompt it is optional; in a script that decides what
+to do next, it is not.
+:::
+
+## Quoting: the space that breaks everything {.tier-beginner}
+
+Before a command runs, the shell rewrites the line: it expands
+variables, splits the result into separate words on whitespace,
+and expands globs. That word-splitting step is the one that
+bites. A variable holding a filename with a space in it is, to
+the unquoted shell, two words, and the command sees two
+arguments where you meant one. This is not an edge case;
+spreadsheet exports, downloaded datasets, and "Final Report
+v2.csv" all carry spaces.
+
+Make a file with a space in its name and try to count its lines
+through an unquoted variable:
+
+```bash
+$ f='fy 2011.csv'
+$ wc -l $f
+0 total
+wc: fy: No such file or directory
+wc: 2011.csv: No such file or directory
+```
+
+The shell split `$f` into `fy` and `2011.csv`, so `wc` looked
+for two files that do not exist. Quote the variable and it stays
+a single argument:
+
+```bash
+$ wc -l "$f"
+181 fy 2011.csv
+```
+
+The same splitting governs loops, which is where it quietly
+corrupts batch jobs. Unquoted, the loop iterates over the
+*words*; quoted, over the *value*:
+
+```bash
+$ for w in $f; do echo "  arg: $w"; done
+  arg: fy
+  arg: 2011.csv
+$ for w in "$f"; do echo "  arg: $w"; done
+  arg: fy 2011.csv
+```
+
+::: {.callout-warning .pitfall title="PITFALL"}
+The rule is mechanical and absolute: **always quote your
+variable expansions**, `"$f"`, and prefer the brace form
+`"${f}"` when the name butts up against other text
+(`"${f}_backup"`). The cost of quoting when you did not need to
+is zero; the cost of not quoting when you did is a command run
+on the wrong arguments, and next to `rm` that is a deleted file.
+The one expansion beginners reach for and mis-remember is the
+list of positional arguments: write it `"$@"`, quoted, which
+forwards each argument exactly as received; the unquoted `$@`
+and the `"$*"` form both mangle arguments that contain spaces
+and are almost never what you want. Deliberate word-splitting
+(feeding a command a list you built on purpose) exists, but
+until you know exactly why you want it, quote everything. A
+linter enforces this for you: ShellCheck (Chapter 10) flags
+every unquoted expansion, which is reason enough to run it on
+every script.
+:::
+
+## Globs are not regular expressions {.tier-beginner}
+
+The shell expands a handful of wildcard characters into matching
+filenames *before* the command runs. This is **globbing**, and
+it is not the same language as the regular expressions that
+`grep` and `sed` use (Chapter 7 and Chapter 8 draw that line
+carefully). A glob's `*` matches any run of characters in a
+filename, `?` matches exactly one, and `[...]` matches one
+character from a set. Listing the CSV files in a directory is
+the everyday case:
+
+```bash
+$ ls *.csv
+fy 2011.csv
+```
+
+The trap is what happens when a glob matches **nothing**. In
+bash, an unmatched glob is not an error and does not expand to
+empty; it is passed through to the command **literally**, as the
+text you typed:
+
+```bash
+$ ls *.xyz
+ls: cannot access '*.xyz': No such file or directory
+$ echo $?
+2
+```
+
+`ls` received the literal string `*.xyz` and complained about a
+file by that name. This is mostly harmless with `ls`, but put
+the same unmatched glob next to a destructive command and the
+literal pattern becomes an argument you never intended to pass.
+You can make bash expand an unmatched glob to nothing instead,
+with the `nullglob` option:
+
+```bash
+$ shopt -s nullglob
+$ echo "matches:[" *.xyz "]"
+matches:[ ]
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+This is one of the sharpest macOS-versus-Linux differences in
+the book, because it is a difference in the *default* shell, not
+a tool flag. The interactive default on macOS is **zsh**, and
+zsh's default for an unmatched glob is the opposite of bash's:
+zsh treats it as a hard error, aborts the command, and runs
+nothing (its message is "no matches found"). bash passes the
+literal pattern through, as shown above. So the very same line
+behaves differently depending on whose prompt you are sitting
+at, which is why a script should never *rely* on either default;
+quote a pattern you mean literally, and check that a glob
+matched before feeding it to anything that deletes. The behavior
+on both shells, zsh 5.9 (`zsh: no matches found`) and the system
+bash 3.2.57 (literal pass-through), is captured in
+`transcripts/ch06-divergence-mac.txt`.
+:::
+
+## Null-safe file lists: `find -print0` and `xargs -0` {.tier-beginner}
+
+The quoting rule protects a variable you control. A harder case
+is a *list* of filenames generated by another command, where you
+do not get to quote each one by hand. The usual idiom, piping
+`find` into `xargs` to run a command over many files, splits on
+whitespace by default and breaks on exactly the spaced names
+from two sections ago:
+
+```bash
+$ find . -name '*.csv' | xargs wc -l
+0 total
+wc: ./fy: No such file or directory
+wc: 2012.csv: No such file or directory
+wc: ./fy: No such file or directory
+wc: 2011.csv: No such file or directory
+```
+
+`xargs` saw the space inside `fy 2011.csv` as a separator and
+handed `wc` broken fragments. The fix is to separate filenames
+by a character that cannot appear in a filename: the null byte.
+`find -print0` ends each name with a null instead of a newline,
+and `xargs -0` reads null-separated input:
+
+```bash
+$ find . -name '*.csv' -print0 | xargs -0 wc -l
+  181 ./fy 2012.csv
+  181 ./fy 2011.csv
+  362 total
+```
+
+Every name arrives intact, spaces and all. The null byte is the
+only safe separator because it is the one character a Unix path
+can never contain; even a newline can appear in a filename, so
+"split on newlines" (`IFS=$'\n'`) is safer than the default but
+still not safe. Reach for the `-print0` / `-0` pair, or `find
+-exec ... {} +`, whenever a file list is built by a command
+rather than typed by you.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`find -print0` and `xargs -0` are present on both GNU (Linux)
+and BSD (macOS) systems and behave the same way, so the
+null-safe idiom is portable; the macOS run in
+`transcripts/ch06-divergence-mac.txt` (BSD findutils) produces
+the same intact, spaced names. The warning is about the
+*unsafe* version: a naive `find | xargs` breaks identically on
+both platforms (BSD `wc` even reports `open: No such file`), so
+this is not a divergence you can dodge by switching machines. Write the
+null-safe form everywhere. Chapter 8 returns to `find` and `fd`
+for searching; this is the safety half of the same tool.
+:::
+
+## `rm -rf` and the shell with no undo {.tier-beginner}
+
+Now the command this chapter has been circling. `rm` removes
+files. `rm -r` removes directories and everything inside them,
+recursively. `rm -f` forces, suppressing prompts and ignoring
+"no such file." Together, `rm -rf <path>` deletes a whole tree,
+silently and immediately, with no trip to a trash folder and no
+reflog to undo it. On the running example it is the difference
+between deleting a regenerable `output/` directory and deleting
+the one copy of a raw dataset you were licensed not to commit.
+
+The danger is rarely the command you type on purpose. It is the
+path that is not what you think it is. The worst version is an
+**empty variable**: a script builds a path in a variable,
+something goes wrong and the variable is empty, and `rm -rf
+"$BUILD"/` becomes `rm -rf /`. The defense is to make the shell
+refuse an empty value, with the `${VAR:?message}` expansion,
+which aborts the command (printing the message) if `VAR` is
+unset or empty:
+
+```bash
+$ BUILD=''
+$ ( rm -rf "${BUILD:?set BUILD first}"/ )
+bash: BUILD: set BUILD first
+$ echo $?
+1
+```
+
+The `rm` never ran. With a real value, the same line removes
+only the intended subtree and nothing else:
+
+```bash
+$ BUILD='project/output'
+$ rm -rf "${BUILD:?set BUILD first}"
+$ echo $?
+0
+$ find project
+project
+project/data
+project/data/raw.csv
+```
+
+`project/output` is gone; `project/data` is untouched. The habit
+that prevents the disaster is duller than any option: look
+before you delete. Run `ls` on the exact pattern first, read
+what it lists, and only then change `ls` to `rm`. The two
+commands take the same arguments, so the `ls` you just verified
+is the `rm` you are about to run.
+
+::: {.callout-caution .danger title="DANGER"}
+`rm -rf` is the single most destructive command in routine use.
+The catalog of ways it goes wrong is short and worth memorizing:
+an empty variable (`rm -rf "$X"/` with `X` unset expands to `rm
+-rf /`); a stray space (`rm -rf / data` instead of `rm -rf
+/data` makes `/` its own argument); a glob that matched more
+than you expected (`rm -rf /*`); and running it in the wrong
+directory because a `cd` silently failed. Modern GNU `rm`
+refuses a bare `rm -rf /` unless you add `--no-preserve-root`,
+and BSD (macOS) `rm` errors on `/` as well, so literal
+root-deletion is partly guarded now. Never rely on that:
+preserve-root does nothing for `rm -rf /*` (the glob expands to
+each top-level name, none of which is literally `/`) and nothing
+for the far more common disaster, deleting the wrong *non-root*
+directory: your data, your home, this project. Defenses, in
+order of strength: never put `rm -rf` next to an unguarded
+variable; quote every path; guard with `${VAR:?}`; prefer
+removing a *named* subdirectory over a pattern; and on your own
+machine consider a trash-style tool (`trash`, `rip`) for
+interactive deletes so there is a way back. Appendix A collects
+the recovery options for when one of these gets past you.
+:::
+
+::: {.callout-tip .recovery title="RECOVERY"}
+If you have just run a destructive `rm` and caught it: **stop
+typing**. The deleted data is not in a trash folder, but on a
+disk the blocks are often still there until something overwrites
+them, so the worst thing you can do is keep working in that
+directory. The honest recovery, though, is the one you set up
+*beforehand*: a recent commit (for files Git was tracking), a
+backup (Time Machine, `rsync` snapshots, Chapter 13), or the
+seed-based regeneration this book's example relies on, where
+`make` rebuilds a deleted `output/` from code. For an untracked,
+unbacked-up raw file, there may be no recovery at all, which is
+the entire argument for treating `rm` with the caution this
+chapter does.
+:::
+
+## Never pipe a stranger into your shell {.tier-advanced}
+
+Installation instructions on the open web love this one-liner:
+
+```text
+# DANGER: shown to be recognized, never run this as-is
+curl -fsSL https://example.com/install.sh | sh
+```
+
+It downloads a script and pipes it straight into `sh`, which
+runs it immediately, as you, with your permissions, before you
+have read a single line of it. This book runs every other
+command it shows; it will not run this one, because the whole
+point is that you cannot see what you are about to execute.
+
+::: {.callout-caution .danger title="DANGER"}
+`curl ... | sh` executes code you have not read, fetched over a
+network you do not control. Three concrete risks, current as of
+2026: the server can detect that the bytes are being piped
+straight into a shell rather than saved to disk, because a
+shell consumes the stream line by line and pauses to run each
+line (a timing side channel demonstrated publicly since 2016),
+and so can serve harmless code to anyone who downloads the file
+but malicious code to anyone piping it; there is no checksum or
+signature step, so a tampered or man-in-the-middled download
+runs just the same; and the script runs with your full user
+privileges, free to modify your shell startup files, your SSH
+keys, or your `PATH`. A related trap is **PATH-hijacking**: if a
+directory you control sits early on your `PATH` and contains a
+malicious `python` or `make`, a later command silently runs the
+wrong binary. `type -a <name>` shows every match in `PATH`
+order, so you can see which one wins:
+
+```bash
+$ type -a sort
+sort is /usr/bin/sort
+sort is /bin/sort
+```
+
+Verify before you trust: `command -v <name>` confirms what will
+actually run.
+:::
+
+The safe pattern is to separate downloading from executing, so
+there is a moment in between where you can look. Fetch the
+script to a file, read it, verify it against a checksum the
+project publishes over a *different* channel, and only then run
+it:
+
+```text
+# illustrative template; example.com is a placeholder, not run
+curl -fsSL -o install.sh https://example.com/install.sh
+less install.sh            # actually read it
+sha256sum install.sh       # compare to the published hash
+sh install.sh              # only after the first three
+```
+
+The checksum step uses the same `sha256sum` the pipeline uses to
+lock its data hash in Chapter 11; a hash is only as trustworthy
+as the channel that delivered the expected value, so take the
+expected hash from the project's documentation, not from the
+same page that served the script. This is the supply-chain
+thread the book returns to in the setup chapter (Chapter 3,
+verifying installers) and the AI chapter (Chapter 16, where an
+agent that can run shell commands can run exactly this kind of
+line on your behalf).
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5. Do the
+destructive ones in a copy, or in `/tmp`, never in your real
+project.
+
+1. Rebuild the distinct-firm count pipe one stage at a time:
+   run `cut -d, -f1 data/raw/firm_panel.csv` alone, then add
+   `| tail -n +2`, then `| sort -u`, then `| wc -l`, looking at
+   the output after each addition. Explain why dropping the
+   header changes the final count by exactly one.
+
+2. Run the cleaning step and split its streams: send its results
+   to `clean.log` and its diagnostics to `clean.err` in one
+   command. Confirm with `cat` that each file holds only its own
+   stream. Then redo it merging both into one log, and check the
+   redirection order.
+
+3. Turn on `set -o noclobber` and try to overwrite an existing
+   file with `>`. Read the refusal, then overwrite it on purpose
+   with `>|`. Add `set -o noclobber` to your shell startup file
+   if you want it by default (Chapter 17).
+
+4. Make a copy of a data file with a space in its name (`cp
+   factors.csv 'fy 2011.csv'`). Count its lines through an
+   unquoted variable and watch it break, then fix it with
+   quotes. Build a `find ... -print0 | xargs -0 wc -l` that
+   counts every CSV safely, spaced names included.
+
+5. Write `rm -rf "${OUT:?set OUT first}"` with `OUT` empty and
+   confirm it refuses. Set `OUT` to a throwaway subdirectory and
+   confirm it removes only that. Articulate, in one sentence, why
+   the `${OUT:?}` guard is worth the extra characters every time.
+
+6. Find a real "curl pipe sh" install line in the wild (many
+   popular tools publish one). Without running it, fetch the
+   script with `curl -o`, read it with `less`, and locate where
+   it writes to your `PATH` or startup files. Decide whether you
+   would have run it blind.

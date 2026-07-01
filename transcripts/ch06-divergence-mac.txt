@@ -1,0 +1,60 @@
+# transcript
+chapter: 06
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (login default); /bin/bash 3.2.57 (system)
+tool: BSD coreutils/findutils (macOS base)
+date: 2026-06-30
+captured-by: user-mac
+note: macOS/BSD divergences for Ch 6. Unmatched glob: zsh errors, bash passes it literally. All demos run in
+      a mktemp scratch dir, removed on exit.
+---
+
+$ zsh --version; /bin/bash --version | head -1
+zsh 5.9 (arm64-apple-darwin25.0)
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+
+# zsh: unmatched glob is a hard error
+$ ls *.xyz; echo "exit=$?"
+zsh:1: no matches found: *.xyz
+exit=1
+
+# bash 3.2.57: unmatched glob passes through literally
+$ ls *.xyz; echo "exit=$?"
+ls: *.xyz: No such file or directory
+exit=1
+
+# zsh: noclobber refusal message
+$ : >f; set -o noclobber; echo y > f; echo "exit=$?"
+zsh:1: file exists: f
+exit=1
+
+# bash 3.2.57: noclobber refusal message
+$ : >f; set -o noclobber; echo y > f; echo "exit=$?"
+/bin/bash: f: cannot overwrite existing file
+exit=1
+
+# bash 3.2.57: naive find | xargs breaks on spaced names
+$ find . -name '*.csv' | xargs wc -l
+wc: ./fy: open: No such file or directory
+wc: 2012.csv: open: No such file or directory
+wc: ./fy: open: No such file or directory
+wc: 2011.csv: open: No such file or directory
+       0 total
+
+# bash 3.2.57: null-delimited find -print0 | xargs -0 is safe
+$ find . -name '*.csv' -print0 | xargs -0 wc -l
+       2 ./fy 2012.csv
+       2 ./fy 2011.csv
+       4 total
+
+# bash 3.2.57: 2>&1 >file does NOT merge (order matters)
+$ ls . nope 2>&1 > out.log; echo "--- out.log ---"; cat out.log
+ls: nope: No such file or directory
+--- out.log ---
+.:
+f
+fy 2011.csv
+fy 2012.csv
+out.log
+
+captured -> /Users/[account]/projects/social-science-research/source-private/terminal/transcripts/ch06-divergence-mac.txt

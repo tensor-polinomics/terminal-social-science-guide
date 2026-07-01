@@ -8,6 +8,26 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 6, "Pipes, Redirection, and the Danger Chapter" (Phase 2 exemplar 2
+  of 3, drafted; pending gate).** Teaches the three streams (stdin/stdout/
+  stderr), redirection (`>`, `>>`, `2>`, `2>&1`, the order rule, `noclobber`/
+  `>|`), pipes and `pipefail`, and makes DANGER first-class: `>` clobbering,
+  `rm -rf` with the empty-variable `${VAR:?}` guard, and a quarantined (never
+  run) `curl | sh` with the supply-chain and PATH-hijack risks. Quoting (`"$f"`/
+  `"${f}"`), globs-are-not-regex, and null-safe `find -print0 | xargs -0` are
+  taught at BEGINNER tier as mandatory shell safety, not advanced garnish. All
+  Linux/GNU output is real (sandbox transcripts `transcripts/ch06-*`, every
+  destructive demo run in `/tmp`); the macOS/BSD divergences (zsh unmatched-glob
+  error vs bash literal pass-through, noclobber wording, BSD null-safe parity)
+  were captured on the Mac in `transcripts/ch06-divergence-mac.txt` via
+  `transcripts/capture-ch06-mac.sh`. Sources logged in
+  `verification/chapter-06.md`. Validator 0/0 (canonical `uv run` on the Mac);
+  Mac HTML+PDF render clean (Ch 6 = PDF pp. 13-25, no overflow). Codex blind
+  audit received and its findings applied (added `ch06-provenance.txt` +
+  `ch06-path-hijack.txt` so every shown block has a real transcript; corrected
+  the `"$@"` quoting rule; made the `rm -rf /` claim preserve-root-accurate;
+  repointed the `curl|sh` cite to the Internet Archive capture + PoC). Remaining
+  before the subgate closes: human review + commit. Full G2 also waits on Ch 16.
 - **Chapter 11, "Make as Cross-Language Pipeline Glue" (Phase 2 exemplar 1 of 3,
   committed `2dc8bcd`).** First drafted chapter; the reproducibility showcase
   built on the committed `sandbox/asset-pricing/` graph. Teaches the dependency

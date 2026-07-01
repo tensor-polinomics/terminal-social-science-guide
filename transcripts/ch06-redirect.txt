@@ -1,0 +1,30 @@
+# transcript
+chapter: 06
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-06-30
+captured-by: sandbox
+note: > creates/truncates, >> appends. > overwrites with no
+      prompt; noclobber refuses and >| forces. Run in a /tmp
+      copy of the pipeline's data so paths display cleanly.
+---
+$ wc -l data/raw/firm_panel.csv >  counts.txt
+$ wc -l data/raw/factors.csv    >> counts.txt
+$ cat counts.txt
+54001 data/raw/firm_panel.csv
+181 data/raw/factors.csv
+
+$ echo 'first version'  > note.txt
+$ echo 'second version' > note.txt
+$ cat note.txt
+second version
+
+$ set -o noclobber
+$ echo 'third version' > note.txt
+bash: note.txt: cannot overwrite existing file
+$ echo $?
+1
+$ echo 'forced' >| note.txt
+$ cat note.txt
+forced
