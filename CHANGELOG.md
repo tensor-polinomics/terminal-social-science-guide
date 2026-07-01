@@ -8,8 +8,39 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
-- **Chapter 16, "AI in the Terminal" (Phase 2 exemplar 3 of 3; gate cleared,
-  commit from the Mac pending).** The last G2 exemplar, teaching terminal
+- **Chapter 1, "Why the Terminal for Researchers" (Phase 3, Part I,
+  1 of 5; passed the four-step G3 gate 2026-07-01).** The book's
+  opening chapter, and the lightest: pure framing, no executed commands. Motivates the
+  differentiator (a social scientist moving a real pipeline from laptop
+  to remote server needs the terminal, the one interface present on
+  every machine), but makes the laptop-first case just as hard: even
+  before any server, the terminal earns its place because a command is
+  a reproducible record where a click is not, commands travel and
+  clicks do not (teach/share), and batch file work (rename/move/search/
+  extract across many files) is a one-liner instead of a manual
+  afternoon (human-review addition, "The payoff starts on the laptop").
+  Lays out the spine as one continuous motion (laptop
+  -> organize -> script -> Make -> SSH -> tmux -> GPU pod -> bring
+  results back -> reproduce), and draws the boundary around what the
+  shell will not do (it runs commands; it does not version, reproduce
+  environments, or move data by itself, and it can destroy
+  irreversibly). Cross-references the companion Git book's
+  reproducibility argument instead of re-arguing it (PLAN Section 6).
+  Two callouts (REPRODUCIBILITY = the Git-book cross-ref anchor;
+  DIVERGENCE = the portable-baseline / macOS-BSD-zsh vs Linux-GNU-bash
+  promise). One labeled non-runnable `text` roadmap sketch (each command
+  will be taught, with captured output, in its named later chapter; Ch 11
+  drafted, Ch 12/13/14 still stubs). Six numbered content sections
+  (plus an unnumbered Try-it-yourself), tiered lightly (three
+  beginner: the two laptop-value on-ramps and the journey/roadmap;
+  the three conceptual-framing sections are untiered because there
+  is no beginner/advanced distinction to draw). Reflective
+  Try-it-yourself tied to the asset-pricing example. External platform
+  facts (macOS zsh default, WSL2 = full Linux, BSD/GNU split) pinned in
+  `verification/chapter-01.md`; the shell/coreutils split is already
+  transcript-backed from Ch 6. Validator 0/0.
+- **Chapter 16, "AI in the Terminal" (Phase 2 exemplar 3 of 3, committed
+  `bdaa7a1`).** The last G2 exemplar, teaching terminal
   AI agents (Claude Code, OpenAI Codex CLI, Google Gemini CLI) principles-first
   and version-stamped ("current as of 2026-07-01"). Covers the durable spine:
   permission models (the ask / auto-edit / trust-everything axis), the
@@ -41,9 +72,9 @@ are not part of this repo; this file is the repo-visible history.
   runs) though `codex --help` prints only the long form. Cleared the full gate:
   validator 0/0, Mac HTML/PDF render, human review, and five Codex blind-audit
   rounds (PDF-table overflow; stale conflation wording; stale Codex approval enum
-  + `--yolo`; handover consistency; provenance wording), final audit clean. **This
-  clears the G2 style sign-off across Ch 6, 11, and 16;** only the Mac commit of
-  Ch 16 remains.
+  + `--yolo`; handover consistency; provenance wording), final audit clean, then
+  committed + pushed (`bdaa7a1`). **This clears and closes the G2 style sign-off
+  across Ch 6, 11, and 16;** Phase 2 is complete.
 - **Chapter 6, "Pipes, Redirection, and the Danger Chapter" (Phase 2 exemplar 2
   of 3, committed `82b1b0b`).** Teaches the three streams (stdin/stdout/
   stderr), redirection (`>`, `>>`, `2>`, `2>&1`, the order rule, `noclobber`/

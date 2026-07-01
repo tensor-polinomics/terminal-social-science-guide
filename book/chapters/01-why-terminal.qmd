@@ -1,5 +1,335 @@
 # Why the Terminal for Researchers
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 1. Differentiator
-     framing; cross-ref the Git book's reproducibility spine, do not
-     re-argue it. Drafted in Phase 3. -->
+You have an analysis that works. On your laptop, a script reads
+your data, runs a regression, and draws a figure, and it has
+done so reliably for weeks. Then one day it does not fit. The
+dataset is too large for your machine's memory, or the job that
+took two minutes on a sample takes nine hours on the full
+panel, or the data is licensed and has to stay on a server you
+are not allowed to copy it off. The analysis itself has not
+changed. What changed is *where it has to run*. This book is
+about the one tool that carries your work across that gap
+without changing the analysis, and that changes how the work
+runs on the laptop you already have long before you ever reach
+that gap: the terminal.
+
+Most of what you do on a computer happens through a graphical
+interface, and for good reason. Pointing and clicking is fast,
+forgiving, and easy to learn. It also stops at the edge of your
+laptop. A remote Linux server, the kind a university cluster or
+a cloud provider or a rented GPU pod hands you, usually has no
+desktop to click on at all; you reach it by typing. The
+terminal is the interface that is present on every one of these
+machines, on your laptop and on the server both, though it is
+not identical across them; where it differs, this book flags the
+difference rather than papering over it. That is exactly why a
+researcher whose work has outgrown one computer cannot avoid it
+for long. Learning it is not a detour from your
+research. It is the part of the toolkit that lets the research
+move.
+
+This chapter does not teach any commands. It argues why the
+rest of the book is worth your time, sketches the journey it
+will take you on, and draws the boundary around what the shell
+will and will not do. The companion Git book makes the case for
+reproducibility, the discipline of being able to rebuild a
+result from its inputs; this book assumes that case is made and
+shows you the terminal that drives it.
+
+A note on what this chapter runs: nothing. It is pure framing,
+so it has no command blocks and no captured output. That is the
+exception, not the rule. From Chapter 2 onward, every command
+this book shows is really run, in a Linux sandbox or on the
+author's Mac, and its output is pasted from a saved transcript,
+never invented. When you reach those chapters you will see the
+machinery; here you only need the map.
+
+## The payoff starts on the laptop {.tier-beginner}
+
+The running example that threads through this book is a small
+empirical asset-pricing study. It simulates a panel of stock
+returns, sorts firms into a long-short portfolio, runs one
+factor regression, and renders a short report. It is
+deliberately modest, and on a laptop it runs in seconds. Hold it
+in mind as the stand-in for your own work. The dramatic reason
+to learn the terminal is that a project like it eventually
+outgrows the laptop, which is the next section. The everyday
+reason, and for most readers the bigger one, is that the
+terminal is a better way to work even when the work never leaves
+the laptop at all.
+
+Start with the payoff the companion Git book cares about most: a
+command is a record, and a click is not. Clean a dataset by
+editing cells in a spreadsheet, or install a tool by clicking
+through its installer, and you have done the work but kept no
+account of how; a month later you cannot say exactly what you
+did, let alone do it again. Do the same work as shell commands
+and the commands *are* the account, a list you can read back,
+rerun, and hand to someone else to get the same result. The Git
+book argues at length why that reproducibility is now a basic
+research obligation, and this book takes that as settled; the
+point here is narrower and mechanical, that the terminal is
+where the repeatable version of your work lives. You cannot
+reproduce three hundred point-and-clicks you no longer remember.
+You can rerun a script.
+
+The second payoff is that commands travel and clicks do not.
+Sooner or later you have to tell someone else how you did
+something, a coauthor, a replication team, a referee, or
+yourself on a new laptop next year. "Run this line" fits in an
+email, a README, or a chat message, and gives them the exact
+step to run, with the places a different environment would
+change the result flagged explicitly rather than left to bite.
+"Open this menu, then that
+dialog, then check the third box" is painful to write, painful
+to follow, and quietly fragile, because the menu moves between
+versions and the written steps rot. Installing software is the
+clearest case: one line does what a paragraph of GUI steps
+struggles to describe, which is why installation instructions
+almost always start with a command to paste, not a sequence of
+screenshots.
+
+The third payoff is speed on the dull, repetitive work that
+fills a research project. The shell was built to do one
+operation to many things at once, and a surprising amount of
+research computing is exactly that. Renaming three hundred output
+files to a consistent pattern, moving every figure from last
+week's run into a dated archive folder, finding which of two
+hundred scripts still mentions an old variable name, pulling one
+column out of fifty CSV files, converting a folder of tables
+from one format to another, or counting the rows in every raw
+data file to check that none arrived truncated: each of these is
+a single short command or a short loop, and each is a tedious,
+error-prone afternoon by hand. On the asset-pricing example,
+tidying the generated files under `output/` or checking every
+script for a stale path is a one-liner you will meet in Chapters
+4, 7, and 8. Do a task like that twice and the terminal has
+already repaid the time you spent learning it.
+
+None of this needs a server, a cluster, or a GPU. It is the
+return the terminal pays on the laptop you already own, from the
+day you start. The remote-compute climax later in the book is
+these same three habits, keeping a record, sharing exact
+instructions, and doing repetitive work in one shot, carried out
+at a larger scale and across machines. It is one skill; the
+laptop is just where you first cash it in.
+
+## The moment the laptop is not enough {.tier-beginner}
+
+The everyday payoffs above hold on any project, small or large.
+The dramatic one arrives when a project stops being small. A
+real study does not stay in seconds, and sooner or later it hits
+a wall the laptop cannot get past. There are three, and each one
+pushes the same direction, toward a machine you reach by typing.
+
+The first wall is size. A sample fits in memory and the full
+dataset does not, and suddenly the machine that ran your code
+cannot hold your data. The second wall is time. A model that
+trained in a minute on a subset needs a day on everything, or a
+hundred runs for a robustness table, and you want it running
+somewhere other than the laptop you also need for email. The
+third wall is where the data is allowed to live. Licensed data
+from a provider, or confidential microdata from a statistical
+agency, often may not leave the secure server it sits on, so the
+analysis has to travel to the data rather than the reverse.
+
+Every one of these walls has the same shape: the work must move
+to a bigger, faster, or more restricted machine, and that
+machine is reached by typing, not clicking. The terminal is not
+one more thing to learn alongside your research. It is the thing
+that lets the research cross from the laptop it started on to
+wherever it now has to run.
+
+## Why researchers specifically, not just programmers
+
+There are a hundred general introductions to the command line,
+and most of them are written for people building software. This
+one is not, and the difference is the whole reason it exists.
+For a researcher the terminal earns its place not as a
+programming skill but as the connective tissue of a reproducible
+workflow: it is the single place from which you drive all the
+other pieces. It runs the version control the companion Git book
+teaches. It renders the Quarto documents that turn your analysis
+into a paper. It builds the reproducible environments, uv for
+Python and renv for R, that pin your dependencies (Chapter 12).
+It reaches the remote machines where the heavy work happens
+(Chapter 13). And it is where the new generation of AI coding
+agents does its work (Chapter 16). None of these talk to each
+other through a menu. They meet at the shell.
+
+That framing also sets the book's scope. A command or tool earns
+a place here only if a social scientist moving a real pipeline
+from laptop to server needs it, either to get unstuck or to
+avoid destroying something. That test cuts most of what a
+general tutorial would cover and keeps this book pointed at your
+actual problem, which is not "learn Unix" but "get my analysis
+to run, reproducibly and repeatably, on this laptop today and on
+a machine that is not this one tomorrow."
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The reason any of this matters is the argument the companion Git
+book makes at length and this one does not repeat: a result you
+cannot rebuild from its inputs is a claim, not a finding, and,
+as the Git book documents, journals, funders, and referees
+increasingly expect the rebuild.
+Version control is half of that discipline. The terminal is the
+other half, the layer underneath, where the data is actually
+cleaned, the model actually run, and the paper actually
+rendered, each step recorded as a command someone else can run
+again. Think of the two books as a matched pair: the Git book
+argues *why* reproducibility is now a basic research skill and
+how to version your work; this book teaches the shell that
+executes that work, so that "rerun everything from scratch" is a
+single command and not a week of remembering. Where you would
+reach to re-explain reproducibility, cross-reference it instead.
+:::
+
+## The journey this book takes {.tier-beginner}
+
+The book is organized as one continuous motion, the path your
+own project takes as it grows up. You start on the laptop and
+learn to navigate and edit from the shell. You organize the
+project into a sane structure (Chapter 5) so that everything has
+a place. You turn a fragile sequence of steps into a script that
+fails loudly when something is wrong (Chapter 10), and then wire
+the whole study into a single build with `make`, so one command
+rebuilds the paper from the raw inputs (Chapter 11). Then the
+work leaves the laptop: you connect to a remote Linux box over
+SSH (Chapter 13), keep a long job alive after you disconnect
+with tmux (Chapter 14), push one heavy step out to a GPU pod
+(Chapter 13 again), pull the results back, and confirm the whole
+thing still reproduces byte for byte wherever it ran.
+
+Sketched as the commands you will meet, that arc looks like the
+roadmap below. Do not run it or try to understand it yet; it is
+here only to show the shape of where the book is going, and each
+line names the chapter that will teach it.
+
+```text
+# Illustrative roadmap, not run here. Each command below
+# will be taught, with real captured output, in the
+# chapter named beside it; this intro only shows the shape.
+
+make             # rebuild the whole study     (Ch 11)
+ssh lab-server   # hop to a remote Linux box    (Ch 13)
+tmux new -s job  # keep a long job alive        (Ch 14)
+# ... run one heavy step on a GPU pod ...       (Ch 13)
+rsync -a host:out/ out/   # bring results back  (Ch 13)
+make check       # prove it still reproduces    (Ch 11)
+```
+
+Six short lines carry the entire promise of the book: a study
+that rebuilds itself, travels to a machine that can run it, and
+comes home unchanged. Everything between here and there is the
+literacy and the safety that make those six lines trustworthy.
+
+## What the shell will not do for you
+
+It is as important to know what the terminal is not. The shell
+runs commands. That is its whole job, and keeping it that narrow
+is what makes the rest of the book's boundaries clear. Chapter 2
+draws the full mental model, but the short version is worth
+stating now, because a lot of confusion comes from expecting the
+shell to do things it does not do.
+
+The shell does not version your files; that is Git, and it is
+the companion book's entire subject. The shell does not
+reproduce your environment; that is uv and renv, and pinning
+them is Chapter 12. The shell does not, by itself, move your
+data between machines; that is what tools like `rsync` and `scp`
+are for, run *from* the shell but not the same as it (Chapter
+13). Blurring these together is how people end up trusting the
+terminal to do a job it never promised. The shell is the
+operator that invokes each of these tools; it is not any of
+them.
+
+There is one thing the shell does that no menu will warn you
+about, and it is the reason safety is a first-class theme of
+this book rather than an afterthought. The shell will destroy
+data, instantly and without confirmation, if you tell it to,
+including data that Git never saw and cannot recover. There is
+no undo for a mistaken deletion and no trash folder waiting to
+catch it. Chapter 6 is built around that danger and teaches the
+habits that contain it. For now it is enough to carry one
+sentence: the same power that lets the terminal drive your whole
+pipeline lets it erase your whole pipeline, so the caution comes
+bundled with the capability.
+
+## How to read this book
+
+Two conventions will help you place yourself as you go. First,
+technical sections are tiered. A heading marked BEGINNER is
+written to be copied and run with everything explained; a heading
+marked ADVANCED assumes you have the basics and moves faster.
+This chapter is nearly all framing, so it tiers only lightly;
+the technical chapters lean on the split heavily. Read the
+beginner track first and come back for the advanced material
+when you want it.
+
+Second, the book assumes a particular setup and is honest about
+where that assumption bends. The default reader is on a Mac
+laptop. Windows readers should use WSL2, a real Linux running
+inside Windows, which behaves closely enough that the body of
+the book applies with its differences flagged. The remote tier
+is framed as *any Linux box you can SSH to*, a university
+cluster, a cloud virtual machine, a lab server, or a rented GPU
+pod, never an assumption that you personally own a server. Where
+a command genuinely behaves differently across these systems, a
+callout marks it rather than pretending the platforms are
+identical.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The single most common way command-line advice misleads
+researchers is by claiming the platforms behave the same when
+they do not. This book teaches a portable baseline, the commands
+and habits that work the same in the common cases across macOS,
+Linux, and WSL2, and marks every place that portability breaks
+with a DIVERGENCE callout like this one. The recurring split is
+macOS versus Linux: macOS ships the BSD versions of the core
+tools and, by default, the zsh shell, while most Linux servers
+run the GNU versions and bash, and the same command can print
+different output on each. Setup itself is unavoidably
+platform-specific, so it is quarantined to Chapter 3, written as
+parallel macOS, Linux, and WSL2 tracks. Everywhere else the body
+stays portable and the callouts do the honest work of flagging
+where your machine will differ from the one this book ran on.
+:::
+
+Everything from here builds toward the same end: you, at a
+prompt, driving a reproducible study across whatever machines it
+takes, safely, with the terminal as the one interface that
+comes along for the whole trip.
+
+## Try it yourself {.unnumbered}
+
+This chapter has nothing to run, so these are orienting
+exercises. They cost a few minutes and make the chapters that
+follow land better.
+
+1. Name your payoff, then your wall. Take a project you actually
+   have, or the asset-pricing study if you do not yet have one.
+   First decide which everyday laptop payoff would help you most
+   right now: a rerunnable record of your steps, a shareable
+   instruction you can hand to someone else, or one-shot batch
+   work over many files. Then decide which of the three walls in
+   "The moment the laptop is not enough" you are closest to
+   hitting: size, time, or where the data must live. Write both
+   down in a sentence each; together they point at the chapters
+   you will care about first.
+
+2. Open a terminal, and just look. On a Mac it is the Terminal
+   app; on Windows it is your WSL2 shell; on a server it is
+   whatever you SSH into. You do not need to type anything. Note
+   whether the prompt shows a `$` or a `%`, because that small
+   difference (bash versus zsh) is the first DIVERGENCE the next
+   chapters will explain.
+
+3. Read the roadmap sketch again and name the machines. For each
+   of the six lines, say out loud whether it runs on your laptop
+   or on a remote box. If you are not sure, that is the honest
+   starting point, and by Chapter 14 the answer will be obvious.
+
+4. Skim the companion Git book's first chapter if you have it.
+   This book leans on that argument for reproducibility instead
+   of repeating it, so knowing what is over there tells you what
+   this book will deliberately not re-explain.
