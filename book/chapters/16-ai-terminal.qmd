@@ -1,8 +1,518 @@
 # AI in the Terminal
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 16. EXEMPLAR (Phase 2,
-     G2 style). Claude Code / Codex / Gemini CLI; principles-first,
-     version-stamped. Durable spine: permission models, destructive-
-     command boundaries, file/scope boundaries, network access, secrets
-     in prompts, review discipline; what an agent must NEVER run
-     unsupervised; reproducibility implications. -->
+Chapter 15 added a kit of faster, friendlier commands to the
+shell. This chapter adds something different in kind: a program
+that reads your plain-English request and then runs shell
+commands for you. A terminal AI agent, Claude Code, OpenAI's
+Codex CLI, or Google's Gemini CLI, sits at your prompt, proposes
+edits and commands, and, depending on how you have set it up,
+runs them. It is genuinely useful for the work this book is
+about: scaffolding a project, writing a first draft of a
+cleaning script, explaining an error, wiring a new step into a
+Makefile. It is also the most powerful thing you have pointed at
+your files, because it can do, on its own initiative, everything
+the earlier chapters taught you to do carefully.
+
+That is the whole reason this chapter exists, and why it comes
+after the danger chapter and not before. An agent runs the same
+shell you do. It can `rm -rf` the wrong directory, clobber a
+file with `>`, or pipe a stranger's script into `sh`, the exact
+mistakes Chapter 6 spent its length teaching you to fear, except
+now a confident machine can make them faster than you can read.
+So the durable skill is not which agent to install or which
+buttons its current version shows. It is knowing where the
+boundaries are: what the tool will do without asking, what it
+must never do unsupervised, where your secrets can leak, and how
+to keep an agent's help from quietly breaking the reproducible
+pipeline the rest of this book builds. Those boundaries outlast
+any release, and they are the subject here.
+
+A note on where the material comes from, and a warning about its
+shelf life. This is the fastest-aging chapter in the book, so it
+is written principles-first and every tool-specific detail is
+stamped "current as of 2026-07-01" and pinned to the tool's
+official documentation (logged in `verification/chapter-16.md`).
+The exact CLI versions behind that stamp are recorded on the
+author's Mac in `transcripts/ch16-versions-mac.txt`: Claude Code
+2.1.197, OpenAI Codex CLI 0.142.5, and Gemini CLI 0.49.0. The
+permission flags this chapter names are checked against the tools'
+official docs and their captured `--help` output
+(`transcripts/ch16-help-mac.txt`). One nuance worth stating:
+Codex's `--help` prints its full-bypass flag only in the long
+`--dangerously-bypass-approvals-and-sandbox` form, but the shorter
+`--yolo` alias its docs describe is real, a captured
+`codex --yolo --version` is accepted and runs. Almost
+nothing here is a live capture, by deliberate choice: an agent
+session is non-deterministic and costs a real API call, so every
+agent interaction shown below is labeled illustrative and is
+**not** run, on the Mac or in this book's Linux sandbox, exactly
+as Chapter 6 handled the one `curl | sh` it refused to execute.
+The one real, executed demonstration is the `diff` in the review
+section, captured AI-free in the sandbox
+(`transcripts/ch16-review-diff.txt`). Treat every product detail
+as a snapshot to re-verify, and the principles around it as the
+part meant to last.
+
+## What an agent in the terminal actually is {.tier-beginner}
+
+Strip away the chat interface and a terminal agent is a loop:
+it reads your request, decides on an action, and takes it, then
+reads the result and repeats until the task is done. The actions
+it can take are the ones you already know. It edits files. It
+runs shell commands. It may make network requests. There is no
+fourth magic power. Everything an agent does, it does through the
+same file system and the same shell that Chapters 4 through 11
+covered, with your user account's permissions and no others.
+
+Keeping that in view is the whole mental model. The shell runs
+commands (Chapter 2); Git versions files (the companion Git
+book); an agent *decides which commands to run* and then hands
+them to the shell, the same division of labor Make had in
+Chapter 11, except an agent's decisions come from a language
+model reading your prompt rather than from a dependency graph you
+wrote. That difference is the point. A Makefile does exactly what
+its rules say. An agent does what it infers you meant, which is
+powerful when it infers right and dangerous when it infers wrong,
+and either way it reaches the shell through the same door.
+
+Because the door is the shell, the safety questions are not new
+and mysterious; they are the old ones from Chapter 6, asked about
+a new actor. What can it change without asking me? What can it
+reach? Where does what I type end up? The rest of this chapter is
+those questions, one at a time.
+
+## Permission models: ask, allow, and auto {.tier-beginner}
+
+Every terminal agent has a setting that controls how often it
+stops to ask before acting. This is the single most important
+thing to understand about any of these tools, and it is the
+first thing to check after installing one. The names differ by
+product and they change between releases, but the underlying
+axis is stable, and it runs from most oversight to least:
+
+| Posture | Claude Code | Codex CLI | Gemini CLI |
+|---|---|---|---|
+| Read / plan | `plan` | `read-only` | `plan` |
+| Ask | `default` | `on-request` | `default` |
+| Auto-edit | `acceptEdits` | auto preset | `auto_edit` |
+| Trust all | `bypassPermissions` | `--yolo` | `yolo` |
+
+Read the table as one idea in a few settings, not twelve things
+to memorize. At one end the agent may only read and propose; at
+the other it runs whatever it decides to run. In between are the
+two postures you will actually live in: **ask**, where the agent
+pauses for approval before each file edit or command, and
+**auto-edit**, where it applies file edits on its own but still
+stops before running shell commands. The safe default every one
+of these tools ships with sits at the cautious end.
+
+Codex is worth pausing on, because it spreads the same choice
+across two settings you set independently: a *sandbox mode* (what
+it may touch: `read-only`, `workspace-write`, or
+`danger-full-access`) and an *approval policy* (when it must ask:
+`untrusted`, `on-request`, or `never`, with the older `on-failure`
+now deprecated). The Codex column above names the nearest single
+setting for each posture. The two axes matter most at the bottom
+row: `danger-full-access` opens the *sandbox* while a `never`
+policy removes the *prompts*, and Codex bundles turning off both
+into one switch, `--dangerously-bypass-approvals-and-sandbox`
+(alias `--yolo`), which is the true "run anything, anywhere"
+posture the table shows. Opening only one axis is not the same
+thing: `danger-full-access` with approvals still on, or `-a never`
+while the workspace sandbox stays in place, each stops short of
+full trust. For the record, Codex starts a version-controlled
+folder in its auto preset (workspace-write plus on-request) and a
+non-version-controlled folder in read-only, current as of
+2026-07-01.
+
+The one thing worth burning into memory is that you set this
+posture yourself, through a flag or a settings file, and the
+agent cannot talk you out of it or raise its own permissions by
+asking nicely in the chat. In Claude Code you pass
+`--permission-mode` or set `defaultMode` in `settings.json`; in
+Codex you pass `--sandbox` and `--ask-for-approval`; in Gemini
+you pass `--approval-mode`. What an ask-mode prompt looks like is
+the same everywhere in spirit:
+
+```text
+# illustrative Claude Code ask-mode prompt, not run here.
+# Shape only; current as of 2026-07-01, re-verify against
+# the tool you actually use.
+Claude wants to run:  rm -rf data/clean/
+  1. Yes
+  2. Yes, and don't ask again this session
+  3. No, and tell Claude what to do differently
+```
+
+Option 2 is the one to notice: it widens the agent's standing
+permission for the rest of the session. That is convenient and it
+is how oversight quietly erodes over a long task, which is why
+the auto end of the table deserves its own caution later in this
+chapter.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The divergence in this chapter is not macOS versus Linux; it is
+tool versus tool, and version versus version. Each tool has a
+one-flag "run without asking" switch, and they do not share a
+name: `bypassPermissions` (or `--dangerously-skip-permissions`) in
+Claude Code, `--yolo` (its alias for
+`--dangerously-bypass-approvals-and-sandbox`) in Codex, and
+`--yolo` / `yolo` in Gemini CLI. Codex is the one that *also*
+exposes the two underlying axes separately, a sandbox mode and an
+approval policy, so there `-a never` alone still leaves the
+workspace sandbox in place. All are current as of 2026-07-01 and
+all are likely to be renamed or resplit before long. This is why
+the chapter teaches the posture, not the keyword: when you sit down
+at any agent, the first task is to find which setting controls
+approvals, and for Codex also which controls the sandbox, from
+that tool's own `--help` and docs, not from memory or from this
+table. A setting you assume rather than check is the one that
+surprises you.
+:::
+
+## The destructive-command boundary {.tier-beginner}
+
+An agent in ask mode is safe in the way a careful colleague is
+safe: it shows you each command before running it. The danger
+lives in what it can run *without* showing you, and that set is
+larger than beginners expect the moment you move off the strict
+default. Claude Code's `acceptEdits` mode, for instance,
+auto-approves not just file edits but a list of common filesystem
+commands, `mkdir`, `touch`, `mv`, `cp`, and `rm` among them,
+inside the working directory, current as of 2026-07-01. That is a
+reasonable convenience and it is also exactly the command from
+Chapter 6 with no undo. An agent that mis-infers which directory
+is stale can remove a real one, and in auto-edit mode it does not
+stop to ask first.
+
+The tools do build in guard rails, and they are worth knowing
+precisely because they are real but partial. Claude Code never
+auto-approves writes to a set of protected paths, your `.git`
+directory, your shell startup files like `.zshrc`, its own
+configuration, in any mode short of full bypass; and even in
+bypass mode it refuses to start as root and still stops to
+confirm a literal `rm -rf /` or `rm -rf ~`, current as of
+2026-07-01. Codex keeps `.git` read-only inside its writable
+workspace. These are helpful, and they are not a safety net you
+can lean on, for the same reason Chapter 6 gave: preserve-root
+guards the literal `/`, but nothing guards the wrong *project*
+directory, the deletion that is syntactically ordinary and
+semantically a disaster.
+
+::: {.callout-caution .danger title="DANGER"}
+An agent running with approvals turned off can run every
+destructive command in Chapter 6, on its own reading of what you
+meant. The catalog is unchanged: `rm -rf` on a path built from a
+wrong assumption; `>` clobbering a file it meant to append to; a
+`git reset --hard` or `git checkout .` that discards uncommitted
+work an agent judged irrelevant. The new element is speed and
+initiative, an agent can issue the command before you have parsed
+its intent, and confidence, the explanation preceding a wrong
+command is often perfectly plausible. Two rules keep this bounded.
+First, do not run an agent with its approvals turned off (Claude
+Code's `bypassPermissions`, Gemini's `yolo`, or Codex's `--yolo`,
+which disables both its sandbox and approvals) anywhere that
+holds data you cannot regenerate or have not committed; these
+settings trade away exactly the pause that protects such data,
+and the later section on what an agent must never run
+unsupervised takes up how each tool frames the risk. Second, keep
+the irreplaceable out of reach entirely, the raw data you are
+licensed not to lose, covered in the scope section next.
+Appendix A's recovery options apply to an agent's
+`rm` exactly as to your own.
+:::
+
+## File and scope boundaries {.tier-advanced}
+
+The second question, after "what can it do without asking," is
+"where can it do it." Every one of these tools is built around a
+working directory and treats the folder you launched it in as its
+sandbox. Codex, current as of 2026-07-01, enforces this at the
+operating-system level in its default `workspace-write` mode:
+the agent can read broadly but write only inside the active
+workspace, and it holds `.git`, `.agents`, and `.codex` read-only
+even there. Gemini CLI can run tools inside a Docker, Podman, or
+macOS Seatbelt sandbox, though, notably, its sandbox is *off* by
+default and only switches on automatically when you engage its
+yolo mode. The scoping is real, but its default strength varies
+by tool, which is the first thing to check.
+
+The scope you should care about maps onto the project layout the
+companion Git book locks in, and it has two halves that are easy
+to run together but are not the same. What an agent can *write* is
+the tightly bounded one: in a workspace-scoped mode it changes
+only files under the directory you launched it in. What it can
+*read* is usually wider, a tool like Codex reads broadly while
+writing only inside the workspace, and included-directory settings
+widen it further. So launching the agent from the project
+directory bounds what it can change to the project, but does not by
+itself keep it from reading files elsewhere. The
+reproducible-pipeline discipline still gives you a concrete
+boundary to enforce: keep raw, licensed, or confidential data out
+of the project tree entirely (referenced, not committed, as in
+Chapter 11's synthetic-data argument), so that neither the write
+scope nor the broader read scope can reach it, whether to delete
+it in a cleanup or to pull it into a prompt.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+An agent's scope is the directory you start it in, so starting it
+in the wrong directory quietly hands it the wrong scope. Launch
+one from your home directory to "just ask a quick question" and,
+in a writing or auto mode, its working directory is now your
+entire home folder, dotfiles, SSH keys, every project at once.
+The habit that prevents this is dull and reliable: `cd` into the
+specific project first, confirm with `pwd`, and only then start
+the agent, the same look-before-you-act rule Chapter 6 applied to
+`rm`. If a tool offers a way to add directories to its scope
+(Claude Code's `additionalDirectories`, Gemini's
+`--include-directories`), treat each addition as widening the
+blast radius and add the minimum.
+:::
+
+## Network access and the supply chain {.tier-advanced}
+
+The third question is what the agent can reach beyond your disk.
+An agent that can make network requests can download and run
+code, which is the Chapter 6 supply-chain problem wearing a new
+coat: the blind `curl | sh` this book refuses to run is a line an
+agent can compose and execute on your behalf, fetching a script
+over a network you do not control and running it with your
+permissions before you have read it. The exposure runs the other
+way too. An agent that reads a web page or a file and then acts on
+what it read can be steered by text planted in that content, a
+prompt injection, into fetching and following instructions that
+were never yours.
+
+This is why the cautious posture is to keep the agent off the
+network unless a task needs it, and the tools lean that way.
+Codex, current as of 2026-07-01, runs with network access turned
+off unless you enable it explicitly in its workspace-write
+configuration, and its own documentation warns that turning on
+network access or web search exposes the agent to prompt
+injection. Claude Code, in its default mode, treats a network
+request as an action it stops to prompt you for rather than one it
+takes silently. Whatever your tool's default, enable network
+access only for a specific task that genuinely needs it, prefer a
+tool's allowlist of trusted destinations over blanket access, and
+remember that an agent fetching a dependency is subject to the
+same verify-the-installer, check-the-checksum discipline Chapter 6
+laid out for you, precisely because it is doing the fetch as you.
+
+::: {.callout-caution .danger title="DANGER"}
+Giving an agent network access plus a trust-everything approval
+mode is the highest-risk configuration in this chapter, and it is
+one setting away from the pipe-a-stranger-into-your-shell hazard
+of Chapter 6. In that combination an agent can fetch a script and
+run it with no pause, and it can be induced to do so by content it
+reads rather than by anything you asked. If a task needs the
+network, keep approvals on for the commands that use it, so the
+fetch-and-run step surfaces for your review the way a `curl | sh`
+would if you typed it yourself. Network on and approvals off, on a
+machine with your real credentials, is the arrangement the vendors
+reserve for disposable sandboxes, and so should you.
+:::
+
+## Secrets in prompts {.tier-beginner}
+
+Chapter 9 taught that a secret leaks not only through Git but
+through shell history, logs, and screenshots. An agent adds a new
+and easy-to-forget channel: the prompt itself. Everything you
+type to an agent, and much of what it reads to answer you, may be
+sent to a model provider, written to a local log, and kept in a
+session transcript. Paste an API key, a database password, or a
+row of confidential data into the chat to "give it context," and
+you have copied that secret into at least one place you did not
+intend and possibly several.
+
+The mechanics are concrete, not hypothetical. Gemini CLI has a
+`telemetry.logPrompts` setting that, when on, writes the content
+of your prompts to its logs, and it keeps a per-project shell-
+command history under `~/.gemini/tmp/`, both current as of
+2026-07-01. Other tools may retain session transcripts or history
+of their own, so check each tool's behavior rather than assuming.
+None of that is malicious; it is ordinary logging, and it is
+exactly why a secret you paste does not simply vanish when the
+session ends.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Treat an agent's prompt as a public channel, the same way
+Chapter 9 treats your shell history. Never paste a credential,
+token, or confidential data value into a chat; instead point the
+agent at the *mechanism*, "read the key from the `API_KEY`
+environment variable," "the data is in `data/raw/`, which is
+git-ignored," so it wires up the reference without ever seeing the
+value. Keep secrets in environment variables or a secrets manager
+(Chapter 9), keep confidential data out of the agent's scope (the
+section above), and if a tool offers prompt logging or telemetry,
+know its default and turn off what you do not want retained. A key
+that reaches a transcript should be rotated, not hoped over.
+:::
+
+## Review discipline: diff before you accept {.tier-beginner}
+
+The habit that makes agent assistance safe is the one the
+companion Git book already argues for human collaborators: read
+the change before you accept it. An agent's edit is a diff, and a
+diff is exactly what you know how to review. The reproducible
+pipeline gives this teeth, because a one-line edit can silently
+change a result. Suppose you ask an agent to "tidy up the
+portfolio script" and it decides, helpfully, to switch the
+long-short sort from deciles to quintiles. Copied out of the real
+`scripts/02_portfolio.py` and edited in a scratch directory, the
+change it proposes is one line:
+
+```bash
+$ diff -U 0 -L a/02_portfolio.py -L b/02_portfolio.py \
+    02_portfolio.py.orig 02_portfolio.py
+--- a/02_portfolio.py
++++ b/02_portfolio.py
+@@ -23 +23 @@
+-N_PORT = 10  # deciles
++N_PORT = 5  # quintiles
+```
+
+That is a perfectly reasonable-looking edit and it would change
+the study. The locked long-short alpha this book reproduces
+comes from a decile sort; redefine the portfolios and every
+number downstream moves. Read as a diff, the change is obvious in
+two seconds. Accepted unread because the agent's explanation
+sounded sensible, it becomes a result that no longer matches the
+method you think you ran. The review is not bureaucratic; it is
+the difference between those two outcomes.
+
+::: {.callout-tip .recovery title="RECOVERY"}
+If you accepted an agent's change and something downstream looks
+wrong, the recovery is the review you skipped, run after the fact.
+For anything the companion Git book had you commit, `git diff` and
+`git restore` show and undo exactly what changed, which is the
+strongest argument for committing a clean baseline *before* you
+turn an agent loose on a file: a tracked file makes any edit,
+yours or an agent's, reviewable and reversible. Run an agent in
+auto-edit rather than full-trust mode so its edits accumulate as
+reviewable diffs instead of already-run commands, and commit in
+small steps so the diff you review is small. For an untracked file
+an agent overwrote, the recovery story is the same bleak Chapter 6
+described: there may not be one.
+:::
+
+## Reproducibility of agent-run commands {.tier-advanced}
+
+An agent is fast, which tempts you to let it *do* things rather
+than *record* things, and that temptation is the quiet enemy of
+the workflow this book is about. A command an agent ran in a chat
+session, and that you approved with a keystroke, has left no trace
+in your project once the session scrolls away. If it was a step
+that matters, generating a file, transforming data, producing a
+result, then a month later you have an output and no committed
+record of how it was made. That is precisely the "I think the
+paper matches the data" state Chapter 11 built the Makefile to
+escape.
+
+The resolution is to make the agent serve the pipeline rather
+than bypass it. When an agent works out the command that cleans a
+file or builds a figure, the durable move is not to let it run
+that command loose; it is to have it write the command *into* the
+Makefile or a numbered script, where it becomes a reviewable,
+version-controlled, re-runnable part of the graph. The agent is
+then doing what it is genuinely good at, drafting the automation,
+while the automation, not the chat transcript, remains the source
+of truth.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+An agent-run command that is not written into your scripts or
+Makefile is a step that vanishes when the session ends, and a
+pipeline with vanished steps is not reproducible, however good the
+agent was. The test is the one from Chapter 11: could someone
+clone the repository and rebuild your result with `make`, with no
+agent involved? Keep it true by treating an agent as an author of
+automation, not a substitute for it, every command that matters
+lands in a tracked file, and `make check` still re-derives the
+locked data hash and alpha to catch any drift an agent's edit
+introduced. The agent speeds up writing the pipeline; it does not
+get to be the pipeline.
+:::
+
+## What an agent must never run unsupervised {.tier-beginner}
+
+Most of an agent's work is low-stakes and reversible, and for
+that work a looser posture is a reasonable trade. A short list of
+actions is neither, and these should never run without a human
+looking at the specific command first, no matter how much you
+trust the agent's track record on ordinary edits:
+
+- Anything that deletes broadly or irreversibly: `rm -rf` on a
+  path outside a throwaway build directory, a `git reset --hard`
+  or `git clean -fd` that discards uncommitted work, a mass delete
+  on cloud storage.
+- Anything that fetches and runs remote code: `curl | sh`, an
+  install script, a `pip`/`npm` install from an unpinned or
+  unfamiliar source (Chapter 6).
+- Anything that touches credentials or access: writing to
+  `~/.ssh`, editing shell startup files, changing file
+  permissions broadly with `chmod -R`, printing a secret into the
+  terminal or a file (Chapter 9).
+- Anything that leaves your machine irreversibly: a `git push
+  --force`, a deploy, a database migration, sending data to an
+  external endpoint.
+
+That these are dangerous for an *agent* is not a special rule;
+they are the same operations this book flags for *you*, which is
+the point. An agent has no more standing to run them blind than
+you do.
+
+::: {.callout-caution .danger title="DANGER"}
+The trust-everything modes remove exactly the pause that would
+catch the actions above, and the vendors are blunt about the risk,
+though each frames it differently, current as of 2026-07-01.
+Claude Code's `bypassPermissions` is documented for use only in
+isolated containers or VMs. Codex's full bypass,
+`--dangerously-bypass-approvals-and-sandbox` (alias `--yolo`), is
+labeled in its own docs as dangerous and meant only for
+environments that are already externally sandboxed. Gemini's
+`yolo` auto-approves every tool call but turns its own sandbox on
+by default, a different trade that is still no substitute for
+review.
+If you ever have a reason to run one, put it behind a sandbox that
+cannot reach anything you care about, and never on the laptop that
+holds your keys and your only copy of a dataset. The convenience
+of never being asked is not worth one unreviewed command from the
+list above.
+:::
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5 and the
+pipeline from Chapter 11. Do them with an agent set to ask or
+auto-edit mode, never full trust, and on a copy or a committed
+tree so every change is reversible.
+
+1. Find the approval setting. Open your agent's `--help` and its
+   official docs and locate the flag that controls approvals and
+   its current values. Write down, in one line, what your default
+   posture is and what the trust-everything value is called in
+   *your* version. This is the check the DIVERGENCE callout says
+   to run every time.
+
+2. Set the scope on purpose. `cd` into the asset-pricing project,
+   confirm with `pwd`, and start the agent there. Ask it what it
+   can write versus what it can read. Confirm its *write* scope is
+   bounded to the project, and note whether its read scope reaches
+   wider, so you know which boundary keeps data out of reach.
+
+3. Review a real diff. Ask the agent to make one small change to
+   `scripts/02_portfolio.py` (for example, add a comment). Before
+   accepting, read the diff the way the review section did.
+   Accept it, then run `git diff` to confirm the change on disk is
+   exactly what you reviewed.
+
+4. Make it reproducible. Ask the agent to add a `.PHONY` target to
+   the Makefile that runs `make check`, rather than running the
+   check for you in the chat. Confirm the new target is a tracked,
+   reviewable line in the Makefile and that `make check` still
+   re-derives the locked data hash and alpha.
+
+5. Practice the refusal. Ask the agent to delete the `data/clean/`
+   directory. Watch the approval prompt appear, read it, and
+   decline. Articulate, in one sentence, why you would not want
+   this exact prompt auto-approved, and connect it to Chapter 6's
+   rule about `rm -rf`.

@@ -8,8 +8,44 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 16, "AI in the Terminal" (Phase 2 exemplar 3 of 3; gate cleared,
+  commit from the Mac pending).** The last G2 exemplar, teaching terminal
+  AI agents (Claude Code, OpenAI Codex CLI, Google Gemini CLI) principles-first
+  and version-stamped ("current as of 2026-07-01"). Covers the durable spine:
+  permission models (the ask / auto-edit / trust-everything axis), the
+  destructive-command boundary (an agent runs the same shell, so it can issue the
+  Chapter 6 `rm -rf` / `>` / `curl | sh` lines), file and scope boundaries,
+  network access and supply-chain/prompt-injection risk, secrets in prompts
+  (cross-ref Chapter 9), review discipline (diff before you accept), the
+  reproducibility of agent-run commands (an agent authors the Makefile, it does
+  not replace it), and the short list an agent must never run unsupervised. All
+  five callouts present; DIVERGENCE is reframed as tool-vs-tool / version drift:
+  each tool has a one-flag trust-all switch (Claude Code `bypassPermissions`;
+  Codex `--yolo`, alias for `--dangerously-bypass-approvals-and-sandbox`; Gemini
+  `--yolo`), and Codex additionally exposes two independent axes (sandbox mode vs
+  approval policy). Deliberately
+  document-and-quarantine heavy: live agent sessions are non-deterministic and
+  API-costing (all three CLIs are installed on the Mac, but running them is a
+  choice not made here), so every agent interaction is a labeled illustrative
+  `text` block and the weight is on version-stamping + source-pinning
+  (three official docs fetched clean, no Internet-Archive fallback; logged in
+  `verification/chapter-16.md`). The one executed block is an AI-free `diff` of a
+  decile->quintile edit to `02_portfolio.py` (`transcripts/ch16-review-diff.txt`,
+  sandbox /tmp), shown byte-faithful. Validator 0/0. Mac version anchor captured
+  for all three tools (Claude Code 2.1.197, Codex 0.142.5, Gemini CLI 0.49.0; help
+  output confirms the permission/sandbox flags, incl. Gemini `--yolo` / `--sandbox`
+  / `--approval-mode` default/auto_edit/yolo/plan). The kickoff premise that Gemini
+  CLI was not installed was wrong (it is at `/opt/homebrew/bin/gemini`; the user has
+  since logged it in), so all three CLIs are quarantined by deliberate choice, not
+  absence. Codex `--yolo` is docs- and capture-backed (`codex --yolo --version`
+  runs) though `codex --help` prints only the long form. Cleared the full gate:
+  validator 0/0, Mac HTML/PDF render, human review, and five Codex blind-audit
+  rounds (PDF-table overflow; stale conflation wording; stale Codex approval enum
+  + `--yolo`; handover consistency; provenance wording), final audit clean. **This
+  clears the G2 style sign-off across Ch 6, 11, and 16;** only the Mac commit of
+  Ch 16 remains.
 - **Chapter 6, "Pipes, Redirection, and the Danger Chapter" (Phase 2 exemplar 2
-  of 3, drafted; pending gate).** Teaches the three streams (stdin/stdout/
+  of 3, committed `82b1b0b`).** Teaches the three streams (stdin/stdout/
   stderr), redirection (`>`, `>>`, `2>`, `2>&1`, the order rule, `noclobber`/
   `>|`), pipes and `pipefail`, and makes DANGER first-class: `>` clobbering,
   `rm -rf` with the empty-variable `${VAR:?}` guard, and a quarantined (never
@@ -26,8 +62,8 @@ are not part of this repo; this file is the repo-visible history.
   audit received and its findings applied (added `ch06-provenance.txt` +
   `ch06-path-hijack.txt` so every shown block has a real transcript; corrected
   the `"$@"` quoting rule; made the `rm -rf /` claim preserve-root-accurate;
-  repointed the `curl|sh` cite to the Internet Archive capture + PoC). Remaining
-  before the subgate closes: human review + commit. Full G2 also waits on Ch 16.
+  repointed the `curl|sh` cite to the Internet Archive capture + PoC).
+  Human-reviewed and committed (`82b1b0b`); part of the cleared G2 sign-off.
 - **Chapter 11, "Make as Cross-Language Pipeline Glue" (Phase 2 exemplar 1 of 3,
   committed `2dc8bcd`).** First drafted chapter; the reproducibility showcase
   built on the committed `sandbox/asset-pricing/` graph. Teaches the dependency
@@ -37,8 +73,8 @@ are not part of this repo; this file is the repo-visible history.
   illustrative-only Stata/EViews recipes, and a `just`/Snakemake aside. All shown
   output is real (Mac + sandbox transcripts under `transcripts/ch11-*`); sources
   logged in `verification/chapter-11.md`. Cleared the Ch 11 exemplar subgate
-  (validator 0/0, HTML+PDF render, Codex blind audit, human review); full G2
-  still waits on Ch 6 and Ch 16.
+  (validator 0/0, HTML+PDF render, Codex blind audit, human review) and committed
+  (`2dc8bcd`); part of the cleared G2 sign-off across Ch 6, 11, and 16.
 - **Phase 1 running-example pipeline (G1 cleared)** in `sandbox/asset-pricing/`: a seeded
   synthetic FF5 study wired as one `make` graph. Python (`00_make_data.py` ->
   `01_clean.py` -> `02_portfolio.py` -> `03_figure.py`) generates, cleans,
