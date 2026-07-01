@@ -1,0 +1,23 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (env, wc)
+date: 2026-07-01
+captured-by: sandbox
+note: a shell variable is invisible to child processes until
+      exported; export copies it into every child's environment
+      from then on. The ${DATASET:-unset} form prints "unset"
+      when the variable is absent, so the child's view is
+      visible either way.
+---
+$ env | wc -l
+38
+
+$ DATASET=panel_v2
+$ bash -c 'echo "child sees: ${DATASET:-unset}"'
+child sees: unset
+
+$ export DATASET
+$ bash -c 'echo "child sees: ${DATASET:-unset}"'
+child sees: panel_v2

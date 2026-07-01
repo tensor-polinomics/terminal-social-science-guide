@@ -1,0 +1,29 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (ls)
+date: 2026-07-01
+captured-by: sandbox
+note: run in sandbox/asset-pricing (relative paths). $? holds
+      the exit status of the most recent command only: the
+      second echo $? reports the status of the first echo $?
+      (which succeeded), not the failed ls. GNU ls uses exit
+      status 2 for "serious trouble" such as a missing
+      argument.
+---
+$ ls data/raw
+factors.csv
+firm_panel.csv
+
+$ echo $?
+0
+
+$ ls nope_dir
+ls: cannot access 'nope_dir': No such file or directory
+
+$ echo $?
+2
+
+$ echo $?
+0

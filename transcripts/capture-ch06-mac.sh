@@ -110,5 +110,9 @@ runb "null-delimited find -print0 | xargs -0 is safe" \
 runb "2>&1 >file does NOT merge (order matters)" \
   'ls . nope 2>&1 > out.log; echo "--- out.log ---"; cat out.log'
 
-echo "" | tee -a "$out"
-echo "captured -> $out" | tee -a "$out"
+# Trailer goes to the terminal ONLY. The original tee -a wrote
+# the absolute path (with the user's account name) into the
+# transcript itself, which is how a personal path reached the
+# public repo (found at the Ch 2 G3 audit; masked there per the
+# transcripts/README scrub convention). Never tee the trailer.
+echo "captured -> $out"

@@ -1,0 +1,34 @@
+# transcript
+chapter: 02
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD coreutils (macOS base); zsh builtins
+date: 2026-07-01
+captured-by: user-mac
+note: zsh's which is a shell builtin (Linux runs an
+      external /usr/bin/which); login zsh puts
+      /opt/homebrew/bin early on PATH via ~/.zprofile;
+      BSD ls rejects the GNU-style --help long option.
+      The PATH line is trimmed after the system entries
+      (marked [...]): the removed tail held only
+      user-specific tool directories (editor, TeX, venv),
+      scrubbed for the public repo per transcripts/README.
+---
+
+$ zsh -c 'type -a sort'
+sort is /usr/bin/sort
+
+$ zsh -c 'which which'
+which: shell built-in command
+
+$ zsh -c 'type -a which'
+which is a shell builtin
+which is /usr/bin/which
+
+$ zsh -lc 'echo $PATH'   # login zsh: brew shellenv ran
+/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:[...]
+
+$ /bin/ls --help; echo "exit=$?"
+ls: unrecognized option `--help'
+usage: ls [-@ABCFGHILOPRSTUWXabcdefghiklmnopqrstuvwxy1%,] [--color=when] [-D format] [file ...]
+exit=1

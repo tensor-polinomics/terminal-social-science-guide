@@ -1,0 +1,22 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-01
+captured-by: sandbox
+note: PATH is a colon-separated list searched left to right;
+      the first match wins. type -a lists every match in PATH
+      order (on this box /usr/bin and /bin both hold sort;
+      /usr/bin comes first so it wins). Matches the type -a
+      sort output already shown in Ch 6.
+---
+$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+$ command -v python3
+/usr/bin/python3
+
+$ type -a sort
+sort is /usr/bin/sort
+sort is /bin/sort

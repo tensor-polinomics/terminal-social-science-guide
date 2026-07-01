@@ -44,3 +44,19 @@ $ <command exactly as run>
 - Scrub secrets/paths before a transcript is committed (PUBLIC repo). Raw or
   unscrubbed captures go under `transcripts/raw/` or `transcripts/private/`,
   which are gitignored.
+- **Personal-data mask (added at the Ch 2 G3 audit, 2026-07-01):** no
+  user-specific data in committed transcripts: account/home paths, personal
+  file or directory names, usernames, hostnames or machine identifiers,
+  emails, or any other identifying value. Mask with bracket placeholders
+  that keep the teaching point (`/Users/[account]`, `/home/[account]`,
+  `[hostname]`, `[account]`); truncate machine-specific list tails (e.g.
+  the login PATH's user tool directories) with a marked `[...]`. Every
+  mask is documented in the transcript's `note:` header; everything else
+  stays byte-verbatim, and a quoted chapter block must stay byte-identical
+  to its (masked) transcript. **Capture scripts must apply the mask at
+  capture time** (see `capture-ch02-mac.sh`'s `mask` helpers) so a rerun
+  cannot reintroduce personal data; output the user pastes back by hand is
+  masked on ingestion, before it is written to any file. Script trailers
+  ("captured -> ...") must never be written into the transcript itself.
+  Upstream third-party metadata (e.g. package-author emails in
+  `renv.lock`) is not user data and is left untouched.

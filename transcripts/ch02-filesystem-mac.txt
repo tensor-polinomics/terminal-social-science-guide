@@ -1,0 +1,37 @@
+# transcript
+chapter: 02
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD coreutils (macOS base)
+date: 2026-07-01
+captured-by: user-mac
+note: run from the user's home directory; one rooted
+      tree on macOS too, with homes under /Users. The
+      account segment of home paths is masked to
+      /Users/[account] (public-repo scrub convention,
+      transcripts/README); output is otherwise verbatim.
+---
+
+$ cd; pwd
+/Users/[account]
+
+$ echo $HOME
+/Users/[account]
+
+$ ls /
+Applications
+Library
+System
+Users
+Volumes
+bin
+cores
+dev
+etc
+home
+opt
+private
+sbin
+tmp
+usr
+var

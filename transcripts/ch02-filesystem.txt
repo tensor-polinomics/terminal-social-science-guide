@@ -1,0 +1,54 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-01
+captured-by: sandbox
+note: absolute vs relative paths name the same file. Setup lines
+      (cd/mkdir/touch) are included for reproducibility; the
+      chapter quotes only pwd and the two ls forms. The ls / here
+      shows the sandbox's root, which carries a few nonstandard
+      container mounts (sessions, smol, workspace) on top of the
+      stock Linux set; the chapter does not quote it and the
+      macOS root listing comes from the Mac capture instead.
+---
+$ cd /tmp
+$ mkdir ch02-fs
+$ cd ch02-fs
+$ mkdir project
+$ cd project
+$ touch notes.txt
+
+$ pwd
+/tmp/ch02-fs/project
+
+$ ls /tmp/ch02-fs/project/notes.txt
+/tmp/ch02-fs/project/notes.txt
+
+$ ls notes.txt
+notes.txt
+
+$ ls /
+bin
+boot
+dev
+etc
+home
+lib
+lost+found
+media
+mnt
+opt
+proc
+root
+run
+sbin
+sessions
+smol
+srv
+sys
+tmp
+usr
+var
+workspace

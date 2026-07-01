@@ -6,7 +6,10 @@ tool: BSD coreutils/findutils (macOS base)
 date: 2026-06-30
 captured-by: user-mac
 note: macOS/BSD divergences for Ch 6. Unmatched glob: zsh errors, bash passes it literally. All demos run in
-      a mktemp scratch dir, removed on exit.
+      a mktemp scratch dir, removed on exit. Account segment
+      of home paths masked to /Users/[account] (public-repo
+      scrub added at the Ch 2 G3 audit; the capture script's
+      trailer no longer writes into the transcript).
 ---
 
 $ zsh --version; /bin/bash --version | head -1

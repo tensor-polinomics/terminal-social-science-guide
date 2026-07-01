@@ -1,0 +1,81 @@
+% ======================================================================
+% fig-ch02-layers.tex
+% Chapter 2 (The mental model), the book's ONE Ch 2 figure.
+% Concept: what happens between a keystroke and a result. You type
+% into a terminal; the shell reads the line, expands it, and finds
+% the program on PATH; the kernel starts a process (PID, working
+% directory, a copy of the environment, three streams); output
+% flows back to the terminal and the exit code back to the shell.
+%
+% Semantic palette (core three + neutral, per the design system):
+%   blue  = the shell, the decision-making main path
+%   green = the running process, where the work happens
+%   amber = the exit-code report back (status/check)
+%   slate = the inert layers (you, terminal, kernel)
+%
+% Build:  scripts/render.sh fig-ch02-layers.tex
+% ======================================================================
+\documentclass[tikz,border=8pt]{standalone}
+\input{preamble.tex}
+
+\begin{document}
+\begin{tikzpicture}[
+  layer/.style = {tbcard={#1}{center}, text width=52mm,
+    minimum width=60mm, minimum height=15mm, inner sep=5pt,
+    font=\sffamily\fontsize{8.5}{10.5}\selectfont,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  elabel/.style = {font=\sffamily\fontsize{7.5}{9}\selectfont,
+    text=tbMute, fill=white, inner sep=1.5pt, align=center},
+]
+
+% ------------------------------------------------ the downward spine
+\node[layer={tbNeut}] (you) at (0, 0)
+  {\tbhead{keyboard}{You}\\[2pt]
+   \tbdetail{type one line and press return}};
+
+\node[layer={tbNeut}] (term) at (0, -30mm)
+  {\tbhead{monitor}{Terminal}\\[2pt]
+   \tbdetail{a window that draws text and passes
+   your keystrokes on; it runs nothing itself}};
+
+\node[layer={tbPrim}, tbstrong] (shell) at (0, -62mm)
+  {\tbhead{square-terminal}{Shell (bash, zsh)}\\[2pt]
+   \tbdetail{reads the line, expands variables and globs,
+   finds the program on PATH, then asks the kernel
+   to run it}};
+
+\node[layer={tbNeut}] (kern) at (0, -94mm)
+  {\tbhead{cog}{Operating system kernel}\\[2pt]
+   \tbdetail{creates and supervises processes; owns the
+   filesystem, memory, and devices}};
+
+\node[layer={tbData}, tbstrong] (proc) at (0, -128mm)
+  {\tbhead{cpu}{Your command, running: a process}\\[2pt]
+   \tbdetail{PID $\cdot$ working directory $\cdot$ a copy of the
+   environment $\cdot$ three streams: stdin, stdout, stderr}};
+
+% ------------------------------------------------ downward edges
+\draw[tbedge thick] (you) -- (term)
+  node[elabel, midway] {keystrokes};
+\draw[tbedge thick] (term) -- (shell)
+  node[elabel, midway] {the line you typed};
+\draw[tbedge thick] (shell) -- (kern)
+  node[elabel, midway] {run this program with these arguments};
+\draw[tbedge thick] (kern) -- (proc)
+  node[elabel, midway] {starts};
+
+% ------------------------------------------------ return edges
+% stdout/stderr flow back up to the terminal (right side).
+\draw[tbedge, draw=tbDataLine]
+  (proc.east) .. controls +(22mm,0) and +(22mm,0) .. (term.east)
+  node[elabel, text=tbDataText, pos=0.5, xshift=1.5mm, anchor=west]
+  {stdout and stderr\\ (what you see\\ printed)};
+
+% exit code reports back to the shell (left side, feedback dash).
+\draw[tbback]
+  (proc.west) .. controls +(-20mm,0) and +(-20mm,0) .. (shell.west)
+  node[elabel, text=tbStopText, pos=0.5, xshift=-1.5mm, anchor=east]
+  {exit code\\ (0 = success)};
+
+\end{tikzpicture}
+\end{document}

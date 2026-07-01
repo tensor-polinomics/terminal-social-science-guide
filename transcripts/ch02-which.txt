@@ -1,0 +1,19 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU/Debian which (external program)
+date: 2026-07-01
+captured-by: sandbox
+note: on Linux/bash, which is an ordinary external program
+      found on PATH, so it knows nothing about shell builtins,
+      aliases, or functions. The zsh side (which as a shell
+      builtin) is captured on the Mac
+      (ch02-divergence-mac.txt).
+---
+$ type -a which
+which is /usr/bin/which
+which is /bin/which
+
+$ which which
+/usr/bin/which

@@ -8,8 +8,51 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 2, "The Mental Model" (Phase 3, Part I, 2 of 5; drafted
+  2026-07-01, validator 0/0; G3 gate pending: Codex blind audit +
+  human review).** The conceptual spine the later chapters lean on:
+  terminal vs shell vs OS, the one rooted filesystem tree and working
+  directories, processes and PIDs (and why `cd` must be a builtin,
+  the chapter's one ADVANCED section), environment inheritance and
+  `export`, PATH search with first-match-wins, the three standard
+  streams introduced in the abstract (mechanics stay in Ch 6), exit
+  codes and `$?`, and a help/discovery ladder (`--help`, `man`,
+  `tldr`, with `type`/`command -v` taught in the PATH section). Nine
+  content sections (8 beginner, 1 advanced) plus unnumbered Try-it
+  tied to the asset-pricing example. Delivers the division-of-labor
+  contract Ch 6/11/16 forward-referenced ("the shell runs commands";
+  Git versions, Make orchestrates, uv/renv and rsync routed forward
+  with contract language to still-stub Ch 12/13). The book's FIRST
+  figure: an authored TikZ diagram (terminal -> shell -> kernel ->
+  process, streams and exit code returning), built with the
+  textbook-diagrams design system, committed as source + PDF + SVG
+  under `book/assets/figures/ch02/` (HTML/PDF render check on the
+  Mac still pending at draft time). Twelve new transcripts: nine
+  sandbox (`ch02-*.txt`) and three Mac (`ch02-*-mac.txt` via
+  `capture-ch02-mac.sh`), including real BSD `--help` rejection,
+  zsh-builtin `which`, Homebrew PATH ordering, a real `tldr` run
+  (tealdeer 1.8.1, version-stamped), and the sandbox's own stripped
+  man pages as the minimized-server example. Callouts: 2 DIVERGENCE,
+  2 PITFALL (one of them, `$?` consumed by the next command, was
+  demonstrated by the chapter's own first capture attempt), 1
+  REPRODUCIBILITY (PATH decides which interpreter runs); no DANGER
+  by design, nothing here destroys anything. Sources pinned in
+  `verification/chapter-02.md`. Codex blind-audit round 1
+  (2026-07-01): render + validator + backing checks all confirmed
+  clean; one blocker (the Mac capture script could re-emit the
+  full login PATH on rerun) fixed with capture-time masking. Same
+  day, personal-data policy set (governance rule in CLAUDE.md +
+  `transcripts/README.md`): ALL user-specific data (account/home
+  paths, personal file names, usernames, hostnames) is masked with
+  bracket placeholders, e.g. `/Users/[account]`, across all tracked
+  transcripts and quoted blocks (masks documented in transcript
+  notes and the chapter provenance note; pasted-back Mac output is
+  masked on ingestion, and capture scripts mask at capture time),
+  and the Ch 6 capture script's tee-trailer bug that originally
+  wrote a personal path into a committed transcript is fixed.
 - **Chapter 1, "Why the Terminal for Researchers" (Phase 3, Part I,
-  1 of 5; passed the four-step G3 gate 2026-07-01).** The book's
+  1 of 5; passed the four-step G3 gate 2026-07-01; committed
+  `eccd3f5`).** The book's
   opening chapter, and the lightest: pure framing, no executed commands. Motivates the
   differentiator (a social scientist moving a real pipeline from laptop
   to remote server needs the terminal, the one interface present on

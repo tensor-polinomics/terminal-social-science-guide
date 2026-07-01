@@ -7,7 +7,9 @@ date: 2026-06-30
 captured-by: user-mac
 note: Final G1 Mac-side verification after Codex found the original sandbox
       invariant did not reproduce on the Mac. Prompt styling omitted; command
-      output preserved from the user's VS Code terminal paste.
+      output preserved from the user's VS Code terminal paste. Account
+      segment of home paths masked to /Users/[account] (public-repo
+      scrub added at the Ch 2 G3 audit); otherwise verbatim.
 ---
 $ cd /Users/[account]/projects/social-science-research/source-private/terminal/sandbox/asset-pricing
 

@@ -1,0 +1,23 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: bash builtins (type); GNU coreutils 8.32
+date: 2026-07-01
+captured-by: sandbox
+note: cd is a builtin (a child process could not change its
+      parent shell's working directory); ls is an external
+      program. echo exists as both, and type -a shows the
+      builtin shadowing the files: the shell uses its builtin
+      first.
+---
+$ type cd
+cd is a shell builtin
+
+$ type ls
+ls is /usr/bin/ls
+
+$ type -a echo
+echo is a shell builtin
+echo is /usr/bin/echo
+echo is /bin/echo

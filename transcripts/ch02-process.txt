@@ -1,0 +1,26 @@
+# transcript
+chapter: 02
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: procps-ng 3.3.17 (ps)
+date: 2026-07-01
+captured-by: sandbox
+note: the shell is itself a process; each command it launches is
+      a new child process with a fresh PID. PIDs are small here
+      because the sandbox runs in its own PID namespace; on a
+      laptop expect much larger numbers. The two successive
+      child shells get different PIDs: a process ID names one
+      run, not one program.
+---
+$ echo $$
+5
+
+$ ps -o pid,ppid,comm -p $$
+    PID    PPID COMMAND
+      5       2 bash
+
+$ bash -c 'echo $$'
+7
+
+$ bash -c 'echo $$'
+8

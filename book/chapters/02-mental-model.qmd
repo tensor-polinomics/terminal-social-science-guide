@@ -1,6 +1,700 @@
 # The Mental Model
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 2. Shell vs terminal
-     vs OS; processes, filesystem, PATH, environment, exit codes,
-     stdin/stdout/stderr; one diagram. + Help/discovery (man, --help,
-     type, command -v, tldr). Drafted in Phase 3. -->
+Chapter 1 promised that this chapter draws the full mental
+model, and that is all it does. Nothing here is a trick or a
+technique. It is a small set of ideas, maybe an afternoon's
+worth, that the rest of the book stands on: what the shell
+actually is, what happens when you press return, where your
+files live, how a command gets found, and how a running
+command talks back to you. Skip it and the later chapters
+still work, but they work like incantations. Read it and they
+become predictable, which is the difference between copying
+commands and using a tool.
+
+The payoff for a researcher is specific. When a script that
+works on your laptop fails on a server, the failure is almost
+always one of this chapter's five nouns: the process, the
+working directory, the environment, the PATH, or the exit
+code. The error message will assume you know what those words
+mean. After this chapter you will.
+
+A note on where the output comes from. From here on, every
+command this book shows is really run, and its output is
+pasted from a saved transcript, never invented. The portable
+GNU/Linux demonstrations in this chapter ran in the book's
+Linux sandbox (Ubuntu 22.04, GNU bash 5.1, GNU coreutils
+8.32; the `ch02-*` transcript files), some of them inside the
+asset-pricing project this book threads throughout, and some
+in a throwaway `/tmp` directory. The macOS side, zsh, the BSD
+tools, and Homebrew's PATH, was captured on the author's Mac
+(macOS 26.5.1, zsh 5.9; `transcripts/ch02-*-mac.txt`,
+produced by `capture-ch02-mac.sh`) and is quoted where the
+platforms genuinely differ. One deliberate mask: in Mac
+output, the account segment of home paths reads
+`/Users/[account]`, a documented scrub for this public book;
+everything else in every block is verbatim from its
+transcript. The one figure in this chapter is an authored
+diagram, not captured output.
+
+## Terminal, shell, operating system {.tier-beginner}
+
+Three different programs cooperate every time you type a
+command, and the words for them are used interchangeably in
+casual speech, which is where a lot of early confusion comes
+from. This book keeps them apart.
+
+The **terminal** is the window. It draws text, and it sends
+what you type onward. It runs no commands itself; Terminal on
+a Mac, the WSL2 window on Windows, and the console you see
+after SSH-ing to a server are all just this thin layer.
+The **shell** is the program running inside that window, and
+it is the actual subject of this book. It prints the prompt,
+reads the line you typed, expands any variables and wildcard
+patterns in it, works out which program you are asking for,
+and asks the operating system to run that program. bash and
+zsh are the two shells this book cares about; they are close
+relatives, and Chapter 3 will sort out which one you have and
+why. The **operating system kernel** is the layer underneath
+both: the only thing that actually creates processes, reads
+and writes the disk, and moves bytes on the network. The
+shell is not the machine's engine. It is the machine's
+dispatcher, and everything it dispatches runs at the kernel's
+pleasure.
+
+![The layers between a keystroke and a result. The terminal
+passes your line to the shell; the shell finds the program
+and asks the kernel to run it; the kernel starts the process;
+output flows back up to the terminal while the exit code
+reports back to the
+shell.](../assets/figures/ch02/fig-ch02-layers){#fig-ch02-layers
+fig-alt="A vertical diagram of five boxes: You, Terminal,
+Shell, Operating system kernel, and a running process. Arrows
+flow downward from typing to the running process; a green
+arrow returns stdout and stderr from the process to the
+terminal, and a dashed amber arrow returns the exit code from
+the process to the shell." width="5.2in" fig-pos="H"}
+
+Keep one sentence from this section if you keep nothing else:
+**the shell runs commands.** That is its whole job, and the
+division of labor around it is the map of your toolkit. Git
+versions files; that discipline is the companion Git book's
+entire subject. Make decides *which* commands need to run and
+in what order, then hands them to the shell (Chapter 11). uv
+and renv, which the Git book introduces and Chapter 12 will
+teach operationally, reproduce the package environment your
+commands run inside. Tools like `rsync`, run from the shell,
+will move your data between machines in Chapter 13. And the
+AI agents of Chapter 16 decide which commands to run and hand
+them to this same shell. Every one of those tools is a
+customer of the same narrow service, and when something
+breaks, the first diagnostic question is always: which layer
+failed, the tool, the shell that launched it, or the system
+underneath?
+
+## One tree of files {.tier-beginner}
+
+Everything the shell touches lives in a single tree of
+directories that starts at the **root**, written `/`. There
+is no C: drive and no separate disk letters; every disk,
+folder, and file hangs somewhere off that one root. A
+**path** names a location in the tree, and it comes in two
+forms. An **absolute path** starts with `/` and spells out
+the location from the root; it means the same thing no matter
+where it is used. A **relative path** starts anywhere else
+and is interpreted relative to the **working directory**, the
+place in the tree a program is currently standing.
+
+Every running program has a working directory, and `pwd`
+prints your shell's. In a scratch directory in the sandbox,
+holding one empty file `notes.txt`, the same file answers to
+both kinds of name:
+
+```bash
+$ pwd
+/tmp/ch02-fs/project
+$ ls /tmp/ch02-fs/project/notes.txt
+/tmp/ch02-fs/project/notes.txt
+$ ls notes.txt
+notes.txt
+```
+
+The two `ls` calls name the identical file; the second is
+shorter only because the shell is already standing in
+`/tmp/ch02-fs/project`. This is why an instruction like "run
+`ls data/raw`" carries a silent precondition: it works from
+the project's top directory and fails from anywhere else,
+because the relative path is resolved against wherever you
+happen to be standing. When a later chapter's command fails
+with "No such file or directory" on a file you can see in a
+window, the working directory is the first suspect. Moving
+around the tree, and the file operations that go with it, is
+Chapter 4's subject; here you only need the model.
+
+Two locations get shorthand names. Your **home directory** is
+where your login starts and where your own files live; the
+shell abbreviates it `~`. On the author's Mac, home is under
+`/Users`, and the top of the tree looks like this:
+
+```bash
+$ echo $HOME
+/Users/[account]
+$ ls /
+Applications
+Library
+System
+Users
+Volumes
+bin
+cores
+dev
+etc
+home
+opt
+private
+sbin
+tmp
+usr
+var
+```
+
+A Linux server puts homes under `/home` instead, and its root
+holds a slightly different set of system directories, but the
+shape is the same: one rooted tree, your territory a few
+levels down. The project layout discipline for what goes
+where *inside* your territory is the companion Git book's
+canonical-layout argument; Chapter 5 will build that layout
+from the shell.
+
+## A command becomes a process {.tier-beginner}
+
+When the shell runs a program, the kernel creates a
+**process**: one running instance of that program, with its
+own identity and its own copy of everything it needs. The
+identity is a number, the **process ID** or PID. The shell
+itself is a process; the special variable `$$` holds its PID,
+and `ps` will report on it:
+
+```bash
+$ echo $$
+5
+$ ps -o pid,ppid,comm -p $$
+    PID    PPID COMMAND
+      5       2 bash
+```
+
+The shell here is PID 5, and the PPID column names its
+**parent**, the process that started it. (PIDs this small are
+a quirk of the book's sandbox, which numbers its processes
+from scratch; on your laptop expect a much larger number.)
+Every process has a parent, so the system is a family tree: the
+terminal starts a shell, the shell starts your commands, and
+each command is a **child process** of the shell. Ask a child
+shell for *its* PID and you get a different number each time,
+because each run is a fresh process:
+
+```bash
+$ bash -c 'echo $$'
+7
+$ bash -c 'echo $$'
+8
+```
+
+`bash -c` starts a new bash (a child), hands it the quoted
+command, and waits for it to finish. Same program, two runs,
+two processes, two PIDs: a process is one *run*, not one
+program. That distinction is why you can run two copies of
+the same script side by side, and it is what makes the
+remote-compute chapters possible at all: a long job is just a
+process that must be kept alive, which is exactly what tmux
+will do for you in Chapter 14. Managing processes you have
+started, pausing them, backgrounding them, stopping them, is
+Chapter 9's subject.
+
+## Why `cd` is not a program {.tier-advanced}
+
+Most commands are separate programs on disk. A few are not,
+and the reason is the process model from the last section.
+`type` asks the shell how it would interpret a name:
+
+```bash
+$ type cd
+cd is a shell builtin
+$ type ls
+ls is /usr/bin/ls
+```
+
+`ls` is an external program, a file the kernel runs as a new
+child process. `cd` is a **builtin**, a command the shell
+performs itself, in its own process, without starting a
+child. It has to be. A child process gets its own *copy* of
+the working directory and the environment, and nothing a
+child does to its copies can reach back and change the
+parent. If `cd` were an external program, it would
+dutifully change its own working directory and then exit,
+leaving your shell exactly where it started. Any command
+whose whole point is to change *the shell's own state*
+(`cd`, `export` from the next section, `set` and friends)
+must therefore be a builtin.
+
+A name can be both. `echo` is a builtin in bash *and* a
+program on disk, and `type -a` lists every interpretation in
+the order they would be tried:
+
+```bash
+$ type -a echo
+echo is a shell builtin
+echo is /usr/bin/echo
+echo is /bin/echo
+```
+
+The shell uses its builtin first. Which of several same-named
+files would win, and how the shell finds files at all, is the
+PATH question, two sections ahead. The practical takeaway is
+diagnostic: when a command behaves differently from what its
+manual says, `type` tells you whether you are even running
+the thing whose manual you read.
+
+## The environment: what a process inherits {.tier-beginner}
+
+Besides a working directory, every process carries a set of
+named strings called **environment variables**: `HOME` is
+your home directory, `PATH` is the next section's subject,
+`LANG` picks a language, and so on. By convention the names
+are uppercase. The `env` command lists your shell's
+environment; even in this book's spartan sandbox there are a
+few dozen entries:
+
+```bash
+$ env | wc -l
+38
+```
+
+(The `| wc -l` counts the lines instead of printing them;
+the pipe machinery is Chapter 6's subject.) The environment
+matters because of how it moves: when the shell starts a
+child process, the child inherits a **copy** of the shell's
+environment. That is the mechanism by which your settings
+reach your programs. It is also a one-way street, parent to
+child, at the moment the child starts. Changes made in the
+child never propagate back up, and changes made in the parent
+afterward never reach a child already running.
+
+There is one catch, and it bites researchers constantly. A
+variable you assign in the shell is, by default, a private
+**shell variable**, not part of the environment at all. The
+child cannot see it until you `export` it:
+
+```bash
+$ DATASET=panel_v2
+$ bash -c 'echo "child sees: ${DATASET:-unset}"'
+child sees: unset
+$ export DATASET
+$ bash -c 'echo "child sees: ${DATASET:-unset}"'
+child sees: panel_v2
+```
+
+The `${DATASET:-unset}` form prints the variable's value, or
+the word `unset` when there is none, so the child's view is
+visible either way. Before the `export`, the child shell,
+and it could just as well be your Python or R process, has
+no idea `DATASET` exists.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+"I set the variable, but my script does not see it" is the
+classic environment bug, and the cause is almost always one
+of two things: the variable was assigned but never exported,
+as above, or it was exported in one shell and the script ran
+in a different one (a new terminal window, a job on a
+server), which inherited nothing from the first. A shell's
+exported variables die with it unless a startup file
+recreates them; wiring settings so they exist in every new
+shell, and understanding why a script run by `cron` or over
+SSH sees a much smaller environment than your terminal does,
+is Chapter 17's subject. When in doubt, make the process
+print its own view, as the `bash -c` probe above does; what
+*it* sees is the only thing that counts.
+:::
+
+The environment is also quietly a reproducibility surface:
+variables like `LC_ALL` and `TZ` change how tools sort text
+and parse dates, which can change results between machines.
+Chapter 10 will pin them in scripts. And because environment
+variables are so convenient for configuration, they are a
+favorite place to put secrets like API keys, which makes them
+a leak surface too; keeping keys out of the environment and
+your shell history is part of Chapter 9's job, alongside the
+Git book's rules for keeping them out of repositories.
+
+## How the shell finds a command: `PATH` {.tier-beginner}
+
+When you type `python3`, the shell has to turn that word into
+a file to execute, and it does not search the whole disk. It
+walks one environment variable, `PATH`, a colon-separated
+list of directories, left to right, and runs the **first**
+match it finds. The sandbox's PATH is the stock server
+layout:
+
+```bash
+$ echo $PATH
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+$ command -v python3
+/usr/bin/python3
+```
+
+`command -v` answers the only question that matters when
+something misbehaves: *which file will actually run when I
+type this name?* Its more talkative cousin `type -a` shows
+every candidate in search order:
+
+```bash
+$ type -a sort
+sort is /usr/bin/sort
+sort is /bin/sort
+```
+
+Two entries because both `/usr/bin` and `/bin` are on the
+PATH and Ubuntu makes them point at the same files; the first
+one listed wins. First-match-wins is the rule to internalize,
+because everything interesting about PATH follows from it.
+"Command not found" means no directory on the PATH contains
+that name, not that the tool is absent from the machine; a
+freshly installed tool that "does not work" usually landed in
+a directory the PATH does not list; and two installed
+versions of the same tool means the earlier directory
+silently decides which one you get. First-match-wins is also
+what makes an *attacker-controlled* early directory
+dangerous, the PATH-hijacking risk that Chapter 6 pairs with
+`curl | sh` and Chapter 16 revisits for AI agents. Where
+PATH itself gets set, and how to change yours safely, is
+startup-file territory: Chapter 3 will set you up and Chapter
+17 will make it stick.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+`command -v python3` is the one-line answer to a question
+that has burned real papers: *which Python just produced my
+results?* A Mac with Homebrew, a course-installed Anaconda,
+and a project virtual environment can easily carry three or
+four interpreters at once, each with different package
+versions, and PATH order alone decides which one the word
+`python3` means today. A result that depends on "whichever
+interpreter happened to be first on PATH" is not reproducible
+in any useful sense. The cure is to make the choice explicit
+and portable: project environments (uv for Python, renv for
+R), which put a known interpreter first on the PATH while a
+project is active and pin its packages. The companion Git
+book introduces those tools; Chapter 12 will drive them from
+the shell. Until then, the habit is the diagnostic: when a
+result surprises you, ask `command -v` before you ask
+anything else.
+:::
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+On a Mac the same machinery runs with two twists, both real,
+neither deep. First, Homebrew, the standard macOS package
+manager, installs everything under `/opt/homebrew` on Apple
+Silicon (Homebrew's documented default prefix; Intel Macs
+used `/usr/local`), and its setup puts `/opt/homebrew/bin` at
+the *front* of your PATH. On the author's Mac the login PATH
+begins `/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:`
+and only then reaches the system's `/usr/bin` and `/bin`
+(`transcripts/ch02-divergence-mac.txt`; the line's personal
+tail of user tool directories is trimmed there, marked
+`[...]`). That
+front position is the whole point, Homebrew's newer tools
+must beat the older system copies, but it means macOS
+answers to "which `sort` runs?" depend on what you have
+brewed. Second, the popular `which` command is not one thing
+across platforms: on Linux it is an external program that
+knows nothing about builtins or aliases, while in zsh it is
+itself a builtin with fuller knowledge. Asked about `which`,
+each platform confesses:
+
+```bash
+$ type -a which
+which is /usr/bin/which
+which is /bin/which
+```
+
+on the sandbox's bash, but on the Mac's zsh:
+
+```bash
+$ zsh -c 'type -a which'
+which is a shell builtin
+which is /usr/bin/which
+```
+
+The portable habit: use `command -v` (POSIX-specified,
+works everywhere) or your shell's `type`, and treat `which`
+as the one to distrust in instructions you find online.
+:::
+
+## Three streams, in the abstract {.tier-beginner}
+
+Every process is born with three communication channels
+already open, and the names recur in every error message and
+every later chapter, so meet them here. **Standard input**
+(stdin) is where a process reads from; at an interactive
+prompt it is your keyboard. **Standard output** (stdout) is
+where it writes its results. **Standard error** (stderr) is
+where it writes complaints and progress reports. Results and
+complaints get separate channels on purpose, so that one can
+be saved or passed onward while the other still reaches you.
+
+On a plain terminal you cannot *see* the seam, because both
+output streams land on the same screen. But it is there. Ask
+`wc -l` to count lines in one file that exists and one that
+does not, inside the asset-pricing project:
+
+```bash
+$ wc -l data/raw/factors.csv missing.csv
+  181 data/raw/factors.csv
+wc: missing.csv: No such file or directory
+  181 total
+```
+
+Three lines, two channels: the count and the total went to
+stdout, the complaint went to stderr, and the terminal
+interleaved them. (`wc` still prints a total for what it
+*could* read, which is exactly the kind of polite
+partial-success that hides missing inputs from you; the exit
+code in the next section is the honest witness.) Keeping the
+two output streams apart is what will let you, in Chapter 6,
+save clean results to a file while errors still print, or
+chain commands into pipelines without the diagnostics
+polluting the data. That chapter owns all the mechanics of
+re-pointing these streams; this section only needs you to
+know the three channels exist, are distinct, and are wired
+to every process the kernel starts.
+
+## Exit codes: how a command reports back {.tier-beginner}
+
+Output is for you; the **exit code** is for the machinery.
+Every process, when it ends, hands the kernel one small
+integer, and the shell delivers it to the special variable
+`$?`. The convention is universal: **zero means success,
+anything else means failure.** Still inside the project:
+
+```bash
+$ ls data/raw
+factors.csv
+firm_panel.csv
+$ echo $?
+0
+$ ls nope_dir
+ls: cannot access 'nope_dir': No such file or directory
+$ echo $?
+2
+```
+
+The successful listing reported 0; the failed one reported 2,
+which GNU `ls` documents as "serious trouble" (1 would be
+minor trouble, such as an unreadable subdirectory). Beyond
+zero-versus-nonzero, the specific numbers are each tool's
+private vocabulary, documented in its manual; do not assume
+one tool's 2 means another's.
+
+Exit codes look redundant next to error messages, but they
+are the only signal the *machinery* can act on. A human reads
+"No such file or directory"; a Makefile, a script, or an AI
+agent reads `$?`. Everything this book builds later stands on
+this convention: Make stops a build when a recipe exits
+nonzero (Chapter 11), scripts will stop on the first failure
+via `set -e` (Chapter 10), and pipelines have a whole trap of
+their own with `pipefail`, which Chapter 6 demonstrates. A
+tool that lies about its exit code, and some do, breaks every
+one of those layers at once, which is why Chapter 10 will
+teach you to check what your own scripts report.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+`$?` holds the exit code of the **most recent** command,
+full stop, and reading it is not a free action if anything
+runs in between. Continue the session above:
+
+```bash
+$ echo $?
+0
+```
+
+The failure is gone. This third `echo $?` reports on the
+*second* one, which printed `2` successfully and thereby
+reset the status to 0. Anything you run between a command
+and your check of `$?`, another `echo`, an `ls` to look
+around, overwrites the evidence. Check `$?` immediately, or
+save it first (`rc=$?`) if you need it later. This chapter's
+own capture process tripped exactly this trap on its first
+attempt, an `echo` slipped between the failing command and
+the check and reported a clean 0, so treat it as a when,
+not an if. In scripts, `set -e` (Chapter 10) will remove
+the need to babysit `$?` by hand.
+:::
+
+## Getting unstuck: `--help`, `man`, and `tldr` {.tier-beginner}
+
+The mental model's last piece is knowing where the answers
+live, because nobody memorizes options. There are three
+levels, from quickest to deepest, and a researcher wants all
+three within reach.
+
+The first level is the tool itself. Nearly every GNU tool
+answers `--help` with a usage summary on stdout:
+
+```bash
+$ ls --help | head -6
+Usage: ls [OPTION]... [FILE]...
+List information about the FILEs (the current directory by default).
+Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.
+
+Mandatory arguments to long options are mandatory for short options too.
+  -a, --all                  do not ignore entries starting with .
+```
+
+(The `| head -6` keeps the first six lines so the page fits
+here; run it bare and you get the whole summary.) The second
+level is the **manual page**: `man ls` opens the full
+reference in a scrolling viewer, arrow keys to move, `q` to
+quit. On the author's Mac, trimmed the same way for print:
+
+```bash
+$ man ls | col -b | head -12
+LS(1)			    General Commands Manual			 LS(1)
+
+NAME
+     ls – list directory contents
+
+SYNOPSIS
+     ls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when]
+	[-D format] [file ...]
+
+DESCRIPTION
+     For each operand that names a file of a type other than directory, ls
+     displays its name as well as any requested, associated information.  For
+```
+
+(The `col -b` strips the pager's typesetting so the excerpt
+prints cleanly; at your own prompt, plain `man ls` is all you
+need.) The `(1)` after the name is the manual's section
+number, section 1 being ordinary commands; you can ignore
+sections until a tool and a config-file format share a name.
+The man page is the authority for *your* system, which is
+exactly its value on a platform split: this page is the BSD
+`ls` that macOS actually ships, not the GNU `ls` a random web
+tutorial assumes.
+
+The third level is `tldr`, a community-maintained collection
+of worked examples, one screenful per command, showing the
+half-dozen invocations people actually use. It is a separate
+install (Chapter 3 will handle it; the client captured here
+is tealdeer 1.8.1, current as of 2026-07-01):
+
+```bash
+$ tldr tar | head -14
+
+  Archiving utility.
+  Often combined with a compression method, such as `gzip` or `bzip2`.
+  More information: <https://www.gnu.org/software/tar/manual/tar.html>.
+
+  [c]reate an archive and write it to a [f]ile:
+
+      tar cf path/to/target.tar path/to/file1 path/to/file2 ...
+
+  [c]reate a g[z]ipped archive and write it to a [f]ile:
+
+      tar czf path/to/target.tar.gz path/to/file1 path/to/file2 ...
+
+  [c]reate a g[z]ipped (compressed) archive from a directory using relative paths:
+```
+
+Examples first, prose never: for the daily "what was that
+flag again," it is usually the fastest of the three. Its
+pages are community-written simplifications, though, so when
+precision matters, or `tldr` is not installed on the server
+you just landed on, the man page remains the authority.
+
+Two honest caveats complete the toolkit. First, the three
+levels plus `type`/`command -v` from earlier compose into a
+diagnostic ladder: *what will run* (`command -v`), *what can
+it do* (`--help`), *what exactly does this option mean*
+(`man`), *how do people actually use it* (`tldr`). Second,
+do not assume the ladder is fully present everywhere:
+
+```bash
+$ man grep
+No manual entry for grep
+```
+
+That is this book's own sandbox, a minimized Ubuntu image
+that ships a real `man` command but strips most of the pages
+to save space, as slimmed-down server and container images
+often do. The `--help` level, living inside the tools
+themselves, survives everywhere the tool does.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`--help` itself is a GNU habit, not a law of nature. The BSD
+tools that macOS ships mostly do not implement it; they
+answer with an error and a terse usage line:
+
+```bash
+$ /bin/ls --help; echo "exit=$?"
+ls: unrecognized option `--help'
+usage: ls [-@ABCFGHILOPRSTUWXabcdefghiklmnopqrstuvwxy1%,] [--color=when] [-D format] [file ...]
+exit=1
+```
+
+Note the exit code: asking a BSD tool for help is itself a
+failing command. The usage line it grudgingly prints is
+real information, but for anything more on a Mac you go
+straight to `man`. The same command name, `ls`, thus carries
+different flags, different help behavior, and different
+documentation on the two platforms this book spans, which is
+the BSD/GNU divergence Chapter 1 promised in miniature. When
+a web tutorial's flag "does not exist" on your Mac, suspect
+the platform before you suspect yourself.
+:::
+
+## Try it yourself {.unnumbered}
+
+These run anywhere and destroy nothing. Use the asset-pricing
+project from your copy of the book's repository if you have
+it; only exercises 1 and 4 need it.
+
+1. Stand in the project's top directory and run `pwd`. Write
+   down the absolute path of `data/raw/factors.csv` by
+   combining the two, then verify with `ls` that both the
+   absolute path and the relative path name the same file.
+   Then `cd` to your home directory and confirm the relative
+   form now fails while the absolute form still works.
+
+2. Run `echo $$`, then `bash -c 'echo $$'` three times. Say
+   in one sentence why the first number repeats and the
+   other three all differ. Then run `type cd` and explain,
+   in terms of parents and children, why `cd` could not do
+   its job as an external program.
+
+3. Ask `command -v python3` and `type -a python3` on your
+   machine. Is the interpreter that answers the one you
+   thought you were using? If you have R, repeat for `R`.
+   Keep the answer somewhere; when Chapter 12 introduces
+   project environments, rerun both and watch the answer
+   change while a project is active.
+
+4. In the project, rerun this chapter's failing count,
+   `wc -l data/raw/factors.csv missing.csv`, and check `$?`
+   immediately. Then check `$?` again and explain the value
+   you got the second time. Finally, rerun the count and put
+   an `ls` between the command and your first check; predict
+   what `$?` will say before you look.
+
+5. Reproduce the inheritance experiment with your own
+   variable name: assign without `export` and probe with
+   `bash -c`, then export and probe again. Then open a *new*
+   terminal window and probe once more, and explain what the
+   result tells you about where exported variables live and
+   when they die.
+
+6. Pick a command you half-know, `sort` is a good choice,
+   and climb the ladder on your platform: `sort --help` (or
+   `man sort` first on a Mac), then the man page, then
+   `tldr sort` if you have it. Note one flag you did not
+   know. If you are on a Mac, compare `man sort`'s header
+   with the web page for GNU sort and confirm they document
+   different implementations.

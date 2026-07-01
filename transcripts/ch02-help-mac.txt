@@ -1,0 +1,49 @@
+# transcript
+chapter: 02
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: man (macOS base); tldr client if installed
+date: 2026-07-01
+captured-by: user-mac
+note: man page excerpt (col -b strips overstrike
+      formatting). tldr is captured ONLY if already
+      installed; if the lines below say 'not installed',
+      the chapter documents + quarantines tldr instead
+      of showing a run.
+---
+
+$ man ls | col -b | head -12
+LS(1)			    General Commands Manual			 LS(1)
+
+NAME
+     ls – list directory contents
+
+SYNOPSIS
+     ls [-@ABCFGHILOPRSTUWabcdefghiklmnopqrstuvwxy1%,] [--color=when]
+	[-D format] [file ...]
+
+DESCRIPTION
+     For each operand that names a file of a type other than directory, ls
+     displays its name as well as any requested, associated information.  For
+
+$ command -v tldr
+/opt/homebrew/bin/tldr
+
+$ tldr --version
+tealdeer 1.8.1
+
+$ tldr tar | head -14
+
+  Archiving utility.
+  Often combined with a compression method, such as `gzip` or `bzip2`.
+  More information: <https://www.gnu.org/software/tar/manual/tar.html>.
+
+  [c]reate an archive and write it to a [f]ile:
+
+      tar cf path/to/target.tar path/to/file1 path/to/file2 ...
+
+  [c]reate a g[z]ipped archive and write it to a [f]ile:
+
+      tar czf path/to/target.tar.gz path/to/file1 path/to/file2 ...
+
+  [c]reate a g[z]ipped (compressed) archive from a directory using relative paths:
