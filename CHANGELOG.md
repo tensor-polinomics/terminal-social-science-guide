@@ -9,8 +9,8 @@ are not part of this repo; this file is the repo-visible history.
 ### Added
 
 - **Chapter 2, "The Mental Model" (Phase 3, Part I, 2 of 5; drafted
-  2026-07-01, validator 0/0; G3 gate pending: Codex blind audit +
-  human review).** The conceptual spine the later chapters lean on:
+  2026-07-01, passed the chapter gate, committed `7f849b1`).** The
+  conceptual spine the later chapters lean on:
   terminal vs shell vs OS, the one rooted filesystem tree and working
   directories, processes and PIDs (and why `cd` must be a builtin,
   the chapter's one ADVANCED section), environment inheritance and
@@ -26,8 +26,8 @@ are not part of this repo; this file is the repo-visible history.
   figure: an authored TikZ diagram (terminal -> shell -> kernel ->
   process, streams and exit code returning), built with the
   textbook-diagrams design system, committed as source + PDF + SVG
-  under `book/assets/figures/ch02/` (HTML/PDF render check on the
-  Mac still pending at draft time). Twelve new transcripts: nine
+  under `book/assets/figures/ch02/` (HTML/PDF render check passed on
+  the Mac at the gate). Twelve new transcripts: nine
   sandbox (`ch02-*.txt`) and three Mac (`ch02-*-mac.txt` via
   `capture-ch02-mac.sh`), including real BSD `--help` rejection,
   zsh-builtin `which`, Homebrew PATH ordering, a real `tldr` run
@@ -52,7 +52,7 @@ are not part of this repo; this file is the repo-visible history.
   wrote a personal path into a committed transcript is fixed.
 - **Chapter 1, "Why the Terminal for Researchers" (Phase 3, Part I,
   1 of 5; passed the four-step G3 gate 2026-07-01; committed
-  `eccd3f5`).** The book's
+  `e3bad9d`).** The book's
   opening chapter, and the lightest: pure framing, no executed commands. Motivates the
   differentiator (a social scientist moving a real pipeline from laptop
   to remote server needs the terminal, the one interface present on
@@ -83,7 +83,7 @@ are not part of this repo; this file is the repo-visible history.
   `verification/chapter-01.md`; the shell/coreutils split is already
   transcript-backed from Ch 6. Validator 0/0.
 - **Chapter 16, "AI in the Terminal" (Phase 2 exemplar 3 of 3, committed
-  `bdaa7a1`).** The last G2 exemplar, teaching terminal
+  `7571ab2`).** The last G2 exemplar, teaching terminal
   AI agents (Claude Code, OpenAI Codex CLI, Google Gemini CLI) principles-first
   and version-stamped ("current as of 2026-07-01"). Covers the durable spine:
   permission models (the ask / auto-edit / trust-everything axis), the
@@ -116,10 +116,10 @@ are not part of this repo; this file is the repo-visible history.
   validator 0/0, Mac HTML/PDF render, human review, and five Codex blind-audit
   rounds (PDF-table overflow; stale conflation wording; stale Codex approval enum
   + `--yolo`; handover consistency; provenance wording), final audit clean, then
-  committed + pushed (`bdaa7a1`). **This clears and closes the G2 style sign-off
+  committed + pushed (`7571ab2`). **This clears and closes the G2 style sign-off
   across Ch 6, 11, and 16;** Phase 2 is complete.
 - **Chapter 6, "Pipes, Redirection, and the Danger Chapter" (Phase 2 exemplar 2
-  of 3, committed `82b1b0b`).** Teaches the three streams (stdin/stdout/
+  of 3, committed `22eec6c`).** Teaches the three streams (stdin/stdout/
   stderr), redirection (`>`, `>>`, `2>`, `2>&1`, the order rule, `noclobber`/
   `>|`), pipes and `pipefail`, and makes DANGER first-class: `>` clobbering,
   `rm -rf` with the empty-variable `${VAR:?}` guard, and a quarantined (never
@@ -137,9 +137,9 @@ are not part of this repo; this file is the repo-visible history.
   `ch06-path-hijack.txt` so every shown block has a real transcript; corrected
   the `"$@"` quoting rule; made the `rm -rf /` claim preserve-root-accurate;
   repointed the `curl|sh` cite to the Internet Archive capture + PoC).
-  Human-reviewed and committed (`82b1b0b`); part of the cleared G2 sign-off.
+  Human-reviewed and committed (`22eec6c`); part of the cleared G2 sign-off.
 - **Chapter 11, "Make as Cross-Language Pipeline Glue" (Phase 2 exemplar 1 of 3,
-  committed `2dc8bcd`).** First drafted chapter; the reproducibility showcase
+  committed `5b58eee`).** First drafted chapter; the reproducibility showcase
   built on the committed `sandbox/asset-pricing/` graph. Teaches the dependency
   model, rule anatomy + the TAB trap, automatic variables, the one-command
   cross-language build (Python + R + Quarto), incremental rebuilds, the macOS
@@ -148,7 +148,7 @@ are not part of this repo; this file is the repo-visible history.
   output is real (Mac + sandbox transcripts under `transcripts/ch11-*`); sources
   logged in `verification/chapter-11.md`. Cleared the Ch 11 exemplar subgate
   (validator 0/0, HTML+PDF render, Codex blind audit, human review) and committed
-  (`2dc8bcd`); part of the cleared G2 sign-off across Ch 6, 11, and 16.
+  (`5b58eee`); part of the cleared G2 sign-off across Ch 6, 11, and 16.
 - **Phase 1 running-example pipeline (G1 cleared)** in `sandbox/asset-pricing/`: a seeded
   synthetic FF5 study wired as one `make` graph. Python (`00_make_data.py` ->
   `01_clean.py` -> `02_portfolio.py` -> `03_figure.py`) generates, cleans,
@@ -171,6 +171,11 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **History rewritten on 2026-07-01 after Ch 2 landed.** Rewrote the
+  public Git history with `git filter-repo` so historical transcript
+  blobs use the same `/Users/[account]` mask as the current tree.
+  New history was force-pushed after a bundle backup; current reachable
+  history greps clean for the pre-mask home path.
 - **`tools/validate_book.py` width check (option A, Ch 11).** The ~64-char rule
   now applies only to typed command lines (`$ `/`> `) and authored code listings;
   verbatim tool output inside a terminal-session block is exempt, so real
