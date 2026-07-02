@@ -1,4 +1,725 @@
 # Navigation and File Operations
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 4. The daily loop;
-     portable baseline; first DIVERGENCE callouts. Drafted in Phase 3. -->
+Chapter 3 got you a working shell on your platform. Chapter 2
+drew the map it runs on: one tree of files, a working
+directory you are always standing in, and the difference
+between an absolute path that names a place from the root and
+a relative path read against wherever you happen to be. This
+chapter is where you start to move. It is the daily loop every
+terminal session is built from, walking through the tree,
+looking at what is in it, and moving files around, made
+operational on top of that model.
+
+The commands are few and you will use them every day: `pwd`
+and `ls` to see where you are and what is here, `cd` to move,
+`mkdir` and `rmdir` to make and clear directories, and `cp`
+and `mv` to copy and move files. What turns them from a list
+into a skill is a single habit that runs through the chapter:
+look before you leap. Copying and moving can overwrite an
+existing file silently, with no prompt and no undo, so the
+cheap insurance is to `ls` the target first and read what is
+really there before you change it. The outright destructive
+commands, `rm -rf` and clobbering a file with `>`, are
+Chapter 6's subject; this chapter teaches the safe copy and
+move habits and points there for the parts that cannot be
+undone.
+
+A note on where the output comes from. The portable commands
+run in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash
+5.1.16, GNU coreutils 8.32; the `ch04-*.txt` transcript
+files), in a clean copy of the asset-pricing project placed at
+`/tmp/asset-pricing` and in throwaway `/tmp` scratch
+directories for the demos that create and overwrite files.
+This is also the first chapter to hit real BSD-versus-GNU
+divergences on everyday commands, where the macOS tools behave
+differently from the Linux baseline; those are captured on the
+author's Mac (`transcripts/capture-ch04-mac.sh`, the
+`ch04-*-mac.txt` files) and quoted where they bite. The
+deliberate masks, as in Chapter 2: a home path reads
+`/Users/[account]`, and because this chapter is the first to
+show `ls -l`, whose owner and group columns print an account
+name, that name is masked to `[account]` as well; the brackets
+are a placeholder your own machine fills in. The Mac
+transcripts carry one further scrub the chapter never displays
+but the capture records: the macOS per-account temp directory
+that `readlink -f` and `realpath` resolve paths into
+(`/private/var/folders/<hash>/...`) has its identifying folder
+hash masked to `/private/var/folders/[tmpdir]`.
+
+## Where you are and what is here: `pwd` and `ls` {.tier-beginner}
+
+Every session starts with the same two questions: where am I
+standing, and what is in front of me. `pwd` (print working
+directory) answers the first, and `ls` (list) answers the
+second. Standing at the top of the asset-pricing project, the
+pair sketches the whole layout:
+
+```bash
+$ pwd
+/tmp/asset-pricing
+$ ls
+Makefile
+README.md
+data
+output
+pyproject.toml
+report.qmd
+scripts
+```
+
+`pwd` prints the absolute path of where the shell is standing,
+the working directory Chapter 2 named. `ls` with no argument
+lists that same directory: the project's files and its
+subdirectories, sorted alphabetically. Give `ls` a path and it
+lists *that* place instead, which is how you look into a
+subdirectory without moving into it:
+
+```bash
+$ ls data/raw
+factors.csv
+firm_panel.csv
+```
+
+The two raw inputs the running example starts from are there:
+`factors.csv` and `firm_panel.csv`. The argument `data/raw` is
+a relative path, read against the working directory `pwd` just
+printed, so this exact command depends on standing at the
+project top. That silent precondition, the one Chapter 2
+flagged behind "run `ls data/raw`," is the first thing the
+next section makes concrete.
+
+## Moving through the tree: `cd` {.tier-beginner}
+
+`cd` (change directory) moves the shell to another place in
+the tree. Give it a relative path and it moves down from where
+you are; `..`, the special name for the parent directory,
+moves back up. Walking into `data/raw` and back out shows both:
+
+```bash
+$ pwd
+/tmp/asset-pricing
+$ cd data/raw
+$ pwd
+/tmp/asset-pricing/data/raw
+$ ls
+factors.csv
+firm_panel.csv
+$ cd ..
+$ pwd
+/tmp/asset-pricing/data
+```
+
+`cd data/raw` followed a relative path two levels down; `cd
+..` climbed one level back to `data`. An absolute path (one
+starting with `/`) moves you to that exact place from anywhere,
+no matter where you are standing, and `cd -` is a convenience
+that jumps back to the directory you were in just before, the
+way a "back" button toggles between two places:
+
+```bash
+$ cd /tmp/asset-pricing/output
+$ pwd
+/tmp/asset-pricing/output
+$ cd -
+/tmp/asset-pricing/data
+$ pwd
+/tmp/asset-pricing/data
+```
+
+The absolute `cd` jumped straight to `output` from an
+unrelated directory; `cd -` then flipped back to `data` and
+printed where it landed. One more shorthand completes the set:
+`~` stands for your home directory, so `cd ~` (or just `cd`
+with no argument) returns you home from anywhere. On the
+author's Mac, home is under `/Users`:
+
+```bash
+$ echo $HOME
+/Users/[account]
+$ echo ~
+/Users/[account]
+```
+
+A Linux server puts homes under `/home` instead, but the
+shorthand is the same everywhere: `~` is your own corner of
+the tree, and `cd ~` is how you get back to it.
+
+One detail from Chapter 2 explains why `cd` behaves the way it
+does. `cd` is a shell builtin, not a separate program, because
+its whole job is to change *the shell's own* working
+directory; an external program could only change its own and
+then exit, leaving your shell where it started. That is why
+there is no output on a successful `cd`: it quietly moves the
+shell you are sitting in.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+A relative path means nothing without knowing where you are
+standing, so the same command succeeds from one directory and
+fails from another. Watch `ls data/raw` work from the project
+top and then fail one directory away:
+
+```bash
+$ pwd
+/tmp/asset-pricing
+$ ls data/raw
+factors.csv
+firm_panel.csv
+$ cd /tmp
+$ ls data/raw
+ls: cannot access 'data/raw': No such file or directory
+```
+
+Nothing about `data/raw` changed; only the working directory
+did, and `/tmp` has no `data/raw` beneath it. This is the most
+common cause of a "No such file or directory" error on a file
+you can plainly see in a file-browser window: the shell is
+standing somewhere else. `pwd` is the first thing to check
+when a relative path fails, and running `pwd` (or `ls`) before
+a command that matters is the habit that prevents it. When a
+script must not depend on where it was launched from, it uses
+absolute paths or `cd`s to a known directory first, a
+discipline Chapter 10 will build into scripts that fail loudly.
+:::
+
+## Looking closely: `ls -l`, `-a`, and `stat` {.tier-beginner}
+
+Bare `ls` gives names. Its options give detail, and three of
+them earn a place in the daily loop. `-l` (long) prints one
+file per line with its metadata; `-a` (all) includes hidden
+files; and `-h` (human-readable), used with `-l`, prints sizes
+in kilobytes and megabytes instead of raw bytes. Listing the
+project the long way:
+
+```bash
+$ ls -l
+total 28
+-rw-r--r-- 1 [account] [account] 2671 Jul  2 12:08 Makefile
+-rw-r--r-- 1 [account] [account] 3446 Jul  2 12:08 README.md
+drwxr-xr-x 4 [account] [account] 4096 Jul  2 12:08 data
+drwxr-xr-x 4 [account] [account] 4096 Jul  2 12:08 output
+-rw-r--r-- 1 [account] [account]  935 Jul  2 12:08 pyproject.toml
+-rw-r--r-- 1 [account] [account] 1556 Jul  2 12:08 report.qmd
+drwxr-xr-x 2 [account] [account] 4096 Jul  2 12:08 scripts
+```
+
+Each line reads left to right: the first character is the type
+(`-` for a regular file, `d` for a directory), the next nine
+are the permissions (who may read, write, or execute it,
+decoded just below), then the link count, the owner and group,
+the size in bytes, the last-modified date, and the name. The
+`data`,
+`output`, and `scripts` lines start with `d`, so they are
+directories; the rest are files. This is the view you reach
+for constantly, because it answers "how big is this, when did
+it change, and may I write to it" in one line.
+
+The permission block repays a closer look, because you read it
+constantly and it is less cryptic than it seems. The ten
+characters are a type character followed by three triples.
+Take `-rw-r--r--`: the leading `-` is the type (a regular
+file), then `rw-` is the **owner** (may read and write, not
+execute), `r--` is the **group** (read only), and the last
+`r--` is **everyone else** (read only). Each triple is always
+in the order read, write, execute, with a letter when the
+permission is granted and a `-` when it is not. A directory
+reads `drwxr-xr-x`: `d` for directory, then `rwx` for the
+owner and `r-x` for group and others, where the execute bit on
+a directory means permission to *enter* it (to `cd` in and
+reach what is inside). That is enough to answer "may I change
+this file, and who else can see it." Changing permissions with
+`chmod`, the octal shorthand like `644` and `755`, and who
+owns a file are Chapter 9's subject; here you only need to
+read what `ls -l` already shows.
+
+The `-a` option reveals what plain `ls` hides: names beginning
+with a dot, the Unix convention for configuration and
+housekeeping files that would otherwise clutter every listing:
+
+```bash
+$ ls -a
+.
+..
+.gitignore
+Makefile
+README.md
+data
+output
+pyproject.toml
+report.qmd
+scripts
+```
+
+Two of those entries are always present: `.` is the current
+directory and `..` is the parent, the same `..` that `cd`
+climbs. The `.gitignore` is a real hidden file, the one the
+companion Git book relies on; you would never see it without
+`-a`, which is exactly why a directory that looks empty to
+plain `ls` may not be. Adding `-h` to a long listing makes the
+sizes legible, which matters the moment a data file is large:
+
+```bash
+$ ls -lh data/raw
+total 2.6M
+-rw-r--r-- 1 [account] [account]  12K Jul  2 12:08 factors.csv
+-rw-r--r-- 1 [account] [account] 2.6M Jul  2 12:08 firm_panel.csv
+```
+
+`12K` and `2.6M` are far easier to size up than `12046` and
+`2684212`, and on a server where a stray file can fill a disk,
+`ls -lh` is how you spot the offender.
+
+When you want the full record for one file, `stat` prints
+everything the filesystem knows about it:
+
+```bash
+$ stat data/raw/factors.csv
+  File: data/raw/factors.csv
+  Size: 11506     	Blocks: 24         IO Block: 4096   regular file
+Device: 10302h/66306d	Inode: 34106       Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 1169/[account])   Gid: ( 1169/[account])
+Access: 2026-07-02 12:08:41.812001269 -0400
+Modify: 2026-07-02 12:08:41.813001269 -0400
+Change: 2026-07-02 12:09:44.604001299 -0400
+ Birth: 2026-07-02 12:08:41.812001269 -0400
+```
+
+That is more than a daily listing needs, but the three
+timestamps matter later: the modification time is what `make`
+compares to decide whether a step needs rerunning (Chapter
+11), so knowing how to read it by hand is worth the one
+command. `stat` also takes a format string, `-c`, to print
+just the fields you want:
+
+```bash
+$ stat -c '%n %s bytes, perms %A, modified %y' \
+    data/raw/factors.csv
+data/raw/factors.csv 11506 bytes, perms -rw-r--r--, modified 2026-07-02 12:08:41.813001269 -0400
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`ls -l` looks nearly identical on macOS and Linux, but two
+real differences hide in it. First, the `total` line at the
+top is a count of disk blocks, and the block unit differs: GNU
+`ls` (Linux) counts in 1-kilobyte blocks while BSD `ls`
+(macOS) counts in 512-byte blocks, so the same directory
+prints a different `total` on each platform (the macOS run in
+`transcripts/ch04-ls-mac.txt` shows the smaller-unit count).
+It is not a file count and never was, so do not read meaning
+into the number matching across machines. Second, and nastier,
+`-G` is a *false friend*: it does opposite jobs on the two
+platforms. On GNU `ls` it suppresses the group column in a
+long listing (`-G` is short for `--no-group`), so `ls -lG`
+drops the second name:
+
+```bash
+$ ls -lG data/raw
+total 2644
+-rw-r--r-- 1 [account]   11506 Jul  2 12:08 factors.csv
+-rw-r--r-- 1 [account] 2695102 Jul  2 12:08 firm_panel.csv
+```
+
+On BSD `ls` (macOS) the same `-G` instead turns on colored
+output, so the exact same `ls -lG` colorizes the listing and
+keeps the group. Both platforms *do* accept `--color=when`
+(macOS's own usage line lists it, as Chapter 2's captured
+`ls` usage shows), so color is not the divergence; the trap is
+that the short flag `-G` means one thing on your Mac and
+another on the Linux server. This is Chapter 2's split in
+miniature: macOS ships the BSD tools, so the same flag can do
+a different job, and `--help` (a GNU habit) still fails there.
+:::
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`stat` is the sharper split, because the two versions disagree
+on the flag *and* the format language. GNU `stat` (Linux) uses
+`-c` with `%s` for size, `%n` for name, `%y` for modification
+time, as shown above. BSD `stat` (macOS) uses `-f` with a
+different set of specifiers, `%z` for size, `%N` for name,
+`%Sm` for the modification time, so the portable-looking `stat
+-c '%s'` prints nothing useful on a Mac. The macOS equivalent
+of the format above, captured on a two-byte scratch file in
+`transcripts/ch04-stat-mac.txt`, produces the same kind of
+line from an entirely different flag and syntax:
+
+```bash
+$ stat -f '%N %z bytes, perms %Sp, modified %Sm' \
+    proj/data/raw/factors.csv
+proj/data/raw/factors.csv 2 bytes, perms -rw-r--r--, modified Jul  2 13:45:42 2026
+```
+
+When a script needs one file's size or timestamp portably, the
+honest options are to branch on the platform or to reach for a
+tool that behaves the same everywhere (`wc -c` for a byte
+count, or Python's `os.stat`); do not assume one `stat`
+invocation runs on both.
+:::
+
+## Making and clearing directories: `mkdir` and `rmdir` {.tier-beginner}
+
+`mkdir` (make directory) creates a directory; `rmdir` (remove
+directory) removes an empty one. The wrinkle worth learning on
+day one is what happens when you ask for a nested path whose
+middle pieces do not exist yet. Plain `mkdir` refuses, because
+it makes exactly one directory:
+
+```bash
+$ mkdir results
+$ mkdir results/2026/figures
+mkdir: cannot create directory ‘results/2026/figures’: No such file or directory
+$ echo $?
+1
+```
+
+`results` was created, but `results/2026/figures` failed:
+there was no `results/2026` for `figures` to go inside, and
+`mkdir` will not invent the missing parent. The `-p` (parents)
+option fixes exactly this, creating every directory in the
+chain that does not yet exist, and staying silent if the whole
+path is already there:
+
+```bash
+$ mkdir -p results/2026/figures
+$ echo $?
+0
+$ ls -R results
+results:
+2026
+
+results/2026:
+figures
+
+results/2026/figures:
+```
+
+`ls -R` (recursive) walks the tree it built: `results`
+contains `2026`, which contains `figures`. Because `mkdir -p`
+does not complain when a directory already exists, it is the
+form you want in scripts, where a run should not fail just
+because a folder is already there. Chapter 5 will lean on it to
+scaffold the whole project layout in one line.
+
+`rmdir` is the deliberately safe way to remove a directory: it
+removes one *only if it is empty*, and refuses otherwise. It
+cannot, by design, delete your files:
+
+```bash
+$ rmdir results/2026/figures
+$ rmdir results
+rmdir: failed to remove 'results': Directory not empty
+```
+
+Removing the empty `figures` succeeded; removing `results`
+failed, because `results/2026` was still inside it. That
+refusal is a feature, not an obstacle. Clearing out a
+directory that still has contents means removing those contents
+first, and doing *that* recursively in one command is `rm -r`,
+which has no such guard rail and no undo. That command, and the
+care it demands, is Chapter 6's territory; `rmdir` is the tool
+for the safe, everyday case of tidying up an empty folder.
+
+## Copying and moving: `cp` and `mv` {.tier-beginner}
+
+`cp` (copy) duplicates a file; `mv` (move) relocates one, and
+because relocating within a directory is the same as renaming,
+`mv` is also how you rename. Duplicating a raw input and
+checking the result:
+
+```bash
+$ ls data/raw
+factors.csv
+$ cp data/raw/factors.csv data/raw/factors_backup.csv
+$ ls data/raw
+factors.csv
+factors_backup.csv
+```
+
+`cp` on its own copies a single file. To copy a whole
+directory and everything under it, add `-r` (recursive), the
+same recursive idea as `ls -R`:
+
+```bash
+$ cp -r data data_snapshot
+$ ls data_snapshot/raw
+factors.csv
+factors_backup.csv
+```
+
+`mv` both renames and relocates. Renaming is a move whose
+destination is a new name in the same directory; relocating is
+a move whose destination is another directory:
+
+```bash
+$ mv data/raw/factors_backup.csv data/raw/factors_2026.csv
+$ ls data/raw
+factors.csv
+factors_2026.csv
+$ mv data/raw/factors_2026.csv archive/
+$ ls archive
+factors_2026.csv
+```
+
+The first `mv` renamed the backup in place; the second moved it
+into `archive/`, leaving `data/raw` with just the original.
+Both commands did their work silently, which is convenient
+until the destination already exists. Then the quiet becomes
+dangerous: copying or moving onto an existing file **replaces
+it**, with no prompt and no copy left behind.
+
+```bash
+$ printf 'keep me\n' > results.csv
+$ printf 'different\n' > new.csv
+$ ls results.csv
+results.csv
+$ cp new.csv results.csv
+$ cat results.csv
+different
+```
+
+`results.csv` held `keep me`; after one `cp` it holds
+`different`, and the original is gone. This is where the
+chapter's habit earns its keep: look before you leap. The
+`ls results.csv` above already told you the target existed, so
+the overwrite should have been no surprise. When you would
+rather the shell ask, the `-i` (interactive) option makes `cp`
+and `mv` prompt before replacing anything. Recreate a
+`keep me` file first, in the same scratch, so the contrast is
+clean:
+
+```bash
+$ printf 'keep me\n' > results.csv
+$ cp -i new.csv results.csv
+cp: overwrite 'results.csv'?
+$ cat results.csv
+keep me
+```
+
+The prompt was answered `n` here (type `n` and press return to
+leave the file alone, `y` to replace it), so `results.csv`
+still reads `keep me`, where the plain `cp` a moment ago
+replaced it without asking. Many people alias `cp` and `mv` to
+their `-i` forms in their shell startup file (Chapter 17) so
+the prompt is always on.
+
+::: {.callout-caution .danger title="DANGER"}
+`cp` and `mv` overwrite an existing destination silently and
+irreversibly. There is no trash folder and no undo: the moment
+`cp new.csv results.csv` runs, the old `results.csv` is gone.
+This is the same hazard `>` carries in Chapter 6, which owns
+the destructive commands in full (`rm -rf`, clobbering with
+`>`); the point here is that a plain copy or move belongs on
+the same watch list. Three habits contain it: `ls` the
+destination before you copy or move onto it, so you know
+whether you are about to replace something; use `cp -i` / `mv
+-i` (or their aliases) when you want the shell to stop and ask;
+and never point a copy or move at a path built from an unset
+variable, the empty-variable trap Chapter 6 guards with
+`${VAR:?}`. Appendix A collects the recovery options for when
+one of these gets past you.
+:::
+
+::: {.callout-tip .recovery title="RECOVERY"}
+If you have just overwritten a file with `cp` or `mv`, the
+original is not in a trash folder, so recovery depends entirely
+on what you set up beforehand. If the file was committed, the
+companion Git book's `git restore` brings it back, which is one
+more reason to commit early and often. If it was a generated
+artifact, regenerate it: on the asset-pricing example a
+clobbered `output/` file rebuilds from the seeded scripts with
+one `make` (Chapter 11), which is the whole point of making
+outputs reproducible rather than precious. For an untracked,
+unbacked-up raw file, there may be no recovery at all, the same
+hard truth Chapter 6 draws for `rm`, and the reason the
+look-before-you-leap habit is cheaper than the alternative.
+:::
+
+## Symbolic links: `ln -s` {.tier-advanced}
+
+A **symbolic link** (symlink) is a small file that points at
+another path by name, a stable alias for something whose real
+location or version changes. `ln -s` creates one, naming the
+target first and the link second:
+
+```bash
+$ ln -s data/raw/factors.csv latest_factors.csv
+$ ls -l latest_factors.csv
+lrwxrwxrwx 1 [account] [account] 20 Jul  2 12:10 latest_factors.csv -> data/raw/factors.csv
+```
+
+The `ls -l` line marks it plainly: the type character is `l`
+(link), and the name is printed as `latest_factors.csv ->
+data/raw/factors.csv`, the arrow showing what it points at.
+For a researcher the everyday use is a stable name in front of
+a moving target: a `latest/` link that always points at the
+newest dated results folder, or a link to a large dataset that
+lives outside the repository so scripts can open a predictable
+path without copying gigabytes. `readlink` prints the target a
+link stores:
+
+```bash
+$ readlink latest_factors.csv
+data/raw/factors.csv
+```
+
+To resolve a link all the way to the absolute path of the real
+file, GNU offers `readlink -f` and `realpath`, which agree:
+
+```bash
+$ readlink -f latest_factors.csv
+/tmp/asset-pricing/data/raw/factors.csv
+$ realpath latest_factors.csv
+/tmp/asset-pricing/data/raw/factors.csv
+```
+
+One choice, independent of platform, decides how well a link
+travels: whether its stored target is relative or absolute.
+The link above stores a *relative* target,
+`data/raw/factors.csv`, which is resolved against the
+directory the link sits in, not against wherever you happen to
+be standing. That has a useful consequence for research work:
+if you move or copy the whole project tree, link and target
+travel together and the relative path still points at the
+right file, on your laptop or on a server whose paths look
+nothing like yours. It breaks only if you move the link *by
+itself*, away from the directory that gives its relative path
+meaning. An *absolute* target (`ln -s
+/Users/you/proj/data/raw/factors.csv ...`) is the opposite
+trade: it survives moving the link on its own, but breaks the
+moment the project lives at a different path, which is exactly
+what happens when the same repository is checked out on
+another machine. For a project meant to move between machines,
+the book's whole premise, a relative target inside the tree is
+usually the more portable choice; reach for an absolute target
+only when the link must point at something fixed and outside
+the project (a shared dataset at a stable system path).
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+Creating a link with `ln -s` and reading it with plain
+`readlink` behave the same on macOS and Linux. Fully
+*resolving* a link to an absolute path is where the history
+gets uneven. `readlink -f` and `realpath` began as GNU
+features, and older macOS shipped neither a `readlink` that
+took `-f` nor a `realpath` at all. Recent macOS has caught up:
+on the author's Mac (macOS 26.5.1) both `readlink -f` and
+`realpath` resolve the link exactly as GNU does, exit status
+zero, recorded in `transcripts/ch04-symlink-mac.txt`. The
+catch is that "recent" is doing real work in that sentence: a
+script that must also run on an older Mac, or on a bare BSD,
+cannot assume either flag exists. So the portable habit for
+anything meant to travel is to rely only on plain `readlink`
+(the target as stored) and, when you truly need an absolute
+path, to resolve it in a way you know works everywhere (a `cd`
+into the directory followed by `pwd` is crude but portable),
+rather than to lean on `readlink -f` or `realpath` and hope
+the target machine is new enough.
+:::
+
+## When names collide: case sensitivity {.tier-advanced}
+
+Whether `Foo.txt` and `foo.txt` are two files or one is a
+property of the *filesystem*, not the shell, and it is one of
+the sharpest quiet differences between a Mac and a Linux
+server. On Linux, filenames are case-sensitive, so the two are
+distinct:
+
+```bash
+$ touch Foo.txt
+$ touch foo.txt
+$ ls
+Foo.txt
+foo.txt
+$ printf 'upper\n' > Foo.txt
+$ printf 'lower\n' > foo.txt
+$ cat Foo.txt
+upper
+$ cat foo.txt
+lower
+```
+
+Two names, two files, two different contents. The default
+macOS filesystem (APFS) is case-*insensitive* but
+case-*preserving*: it remembers the capitalization you typed
+but treats names that differ only in case as the **same file**,
+so the same sequence there produces one file, and writing
+`foo.txt` overwrites `Foo.txt`. That side is captured on the
+Mac in `transcripts/ch04-case-mac.txt`.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+This bites in one direction and it is the expensive one. A
+project created on a case-insensitive Mac can contain a script
+that opens `data/Panel.csv` while the file on disk is
+`panel.csv`, and it works fine on the Mac because the two names
+collide into one. Move that project to a case-sensitive Linux
+server, the usual remote-compute target, and the same script
+fails with "No such file or directory," because now the case
+must match exactly. It can also surprise Git: two files that
+differ only in case are distinct in a repository built on
+Linux but cannot coexist in a working copy checked out on a
+Mac. The defense is a convention, not a command: pick one
+casing for names (lowercase is the common choice) and use it
+consistently, so your code never depends on a case-folding
+your server will not do. Chapter 10 will return to this
+alongside the locale and line-ending settings that similarly
+shift behavior between machines.
+:::
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from your copy of the
+book's repository. Items 1 to 3 only look and destroy nothing,
+so run them in the project itself. Items 4 to 6 create files,
+directories, and links, so make a throwaway copy under `/tmp`
+first and work only in there, never in your real project. The
+setup is the same two commands each time, with your own project
+path in place of the placeholder:
+
+```text
+# illustrative setup (placeholder path; not a captured run):
+cp -r <your-project> /tmp/ch04-play
+cd /tmp/ch04-play
+# then do items 4 to 6 in there, not in your real project
+```
+
+When you are done you can delete the whole `/tmp/ch04-play`
+copy; removing a directory tree is `rm -r`, which Chapter 6
+covers along with the care it demands, and `/tmp` is cleared
+on reboot in any case.
+
+1. Orient yourself. From the project top, run `pwd`, then `ls`
+   and `ls -l`. Read one line of the `ls -l` output aloud:
+   name the type character, say whether the owner may write to
+   it, and read its size and modification date. Then `ls -lh`
+   the two files in `data/raw` and note which is larger.
+
+2. Walk the tree with `cd`. Move into `data/raw`, confirm with
+   `pwd`, list it, then `cd ..` back to `data`. Jump to
+   `output` with an absolute path, use `cd -` to flip back, and
+   finish with `cd ~` to go home. Predict each `pwd` before you
+   run it.
+
+3. Trip the working-directory pitfall on purpose. From the
+   project top, run `ls data/raw` and watch it succeed; `cd`
+   to your home directory and run the identical command; read
+   the error and explain, in one sentence, why the same
+   command now fails.
+
+4. Build and clear a directory. Make `output/scratch/tmp` in
+   one command with `mkdir -p`, confirm with `ls -R output`,
+   then remove the two directories you made with `rmdir` from
+   the bottom up. Try `rmdir` on a directory that still has
+   something in it and read the refusal.
+
+5. Copy, then clobber, in a throwaway copy. Copy `data` to
+   `data_copy` with `cp -r`. Inside it, `cp` one file onto
+   another existing file and confirm with `cat` that the
+   target was silently replaced. Redo it with `cp -i` and
+   decline the prompt. Say in one sentence what would have
+   brought the file back if it had been committed to Git.
+
+6. Make a symlink and resolve it, inside `/tmp/ch04-play`.
+   Create `latest_factors.csv` pointing at
+   `data/raw/factors.csv` with `ln -s`, inspect it with `ls -l`
+   and `readlink`, then run `readlink -f` and `realpath` and
+   note whether each resolves on your platform (on a recent Mac
+   both do; on an older one they may not). Then create `Foo.txt`
+   and `foo.txt` and check whether `ls` shows one file or two,
+   which tells you whether your filesystem is case-sensitive.

@@ -1,0 +1,31 @@
+# transcript
+chapter: 04
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD ls (macOS base)
+date: 2026-07-02
+captured-by: user-mac
+note: BSD `ls -l`. The `total` line counts 512-byte blocks
+note: on macOS, not GNU's 1K, so the number differs from the
+note: Linux capture for the same files. The `-G` flag is a
+note: false friend: on macOS it COLORIZES (and keeps the group
+note: column), while GNU `-G` = --no-group suppresses the
+note: group. `ls -lG` here shows macOS keeping the group;
+note: both platforms also accept `--color=when`. Owner masked
+note: to [account]; the group `staff` is a standard macOS
+note: group, not user data. Plain `ls -G` output is color
+note: escapes with no stable text, so only its exit is recorded.
+---
+
+$ ls -l proj/data/raw
+total 16
+-rw-r--r--@ 1 [account]  staff  2 Jul  2 13:45 factors.csv
+-rw-r--r--@ 1 [account]  staff  2 Jul  2 13:45 firm_panel.csv
+
+$ ls -lG proj/data/raw
+total 16
+-rw-r--r--@ 1 [account]  staff  2 Jul  2 13:45 factors.csv
+-rw-r--r--@ 1 [account]  staff  2 Jul  2 13:45 firm_panel.csv
+
+$ ls -G proj/data/raw; echo "exit=$?"
+exit=0

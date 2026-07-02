@@ -8,9 +8,64 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 4, "Navigation & file operations" (Phase 3,
+  Part I, 4 of 5; drafted 2026-07-02; validator 0/0 in the
+  sandbox; Mac captures reconciled 2026-07-02; Codex blind
+  audit and human review passed after fixes; commit hash to be
+  filled in the next chapter commit).**
+  The daily navigation loop made operational on top of Ch 2's
+  model. Seven content sections (5 beginner, 2 advanced) plus
+  unnumbered Try-it: where you are and what is here (`pwd`,
+  `ls`, `ls <dir>`); moving through the tree (`cd` relative /
+  `..` / absolute / `cd -` / `~`, and the `cd`-is-a-builtin
+  callback) with a PITFALL on a relative path run from the
+  wrong directory; looking closely (`ls -l`/`-a`/`-h`, `stat`,
+  and reading the permission string as type + owner/group/other
+  rwx triples; `chmod`/`chown` stay Ch 9); making and clearing
+  directories (`mkdir -p`, `rmdir` as the
+  safe empties-only remove); copying and moving (`cp`, `cp -r`,
+  `mv` for rename+move) with the silent-overwrite hazard, the
+  look-before-you-leap habit, and `cp -i`/`mv -i`; symbolic
+  links (`ln -s`, `readlink`); and case sensitivity. Carries
+  the book's FIRST inline BSD-vs-GNU DIVERGENCE callouts on
+  everyday commands: `ls -l` `total` block units (512-byte BSD
+  vs 1K GNU) + the `-G` false friend (GNU `-G` = --no-group
+  suppresses the group column, BSD `-G` colorizes; both accept
+  `--color=when`); `stat -c` (GNU) vs
+  `stat -f` (BSD); `readlink -f`/`realpath` recent macOS
+  parity with older-BSD caution; and the macOS
+  case-INSENSITIVE default filesystem vs Linux case-sensitive
+  (`Foo.txt` vs `foo.txt`). Callouts: 4 DIVERGENCE, 1 DANGER
+  (short: `cp`/`mv` silently clobber, points to Ch 6 + App A),
+  1 PITFALL, 1 RECOVERY (honest recovery after a clobber:
+  `git restore`, `make` regeneration, or none). No figure
+  (none earned). Scope held to the daily loop: no `rm -rf`
+  (routed to Ch 6), no project-layout tour (routed to Ch 5),
+  no `find`/`grep` searching (routed to Ch 7/8). Real output:
+  the portable/GNU side runs in the sandbox in a clean
+  `/tmp/asset-pricing` copy and `/tmp` scratch dirs
+  (`ch04-*.txt`, all shown blocks byte-diffed to their
+  transcripts incl. `stat`'s literal tabs); the BSD divergences
+  are captured on the user's Mac by the new read-only
+  `transcripts/capture-ch04-mac.sh` (one `mktemp -d` scratch
+  removed on exit, installs nothing, masks `$HOME` + the
+  account name that `ls -l`/`stat` owner columns now expose,
+  plus the `$TMPDIR` folder hash the symlink resolvers reveal).
+  Sources/provenance in `verification/chapter-04.md`. Mac
+  captures reconciled 2026-07-02 (macOS 26.5.1): the key
+  uncertainty resolved, both `readlink -f` and `realpath` work
+  on recent macOS, so the symlink DIVERGENCE was rewritten to
+  "recent parity, older systems may lack them, prefer plain
+  `readlink`"; the real BSD `stat -f` output was added. Gate
+  checks included the canonical `uv run` validators, Quarto
+  HTML/PDF render checks, Codex blind-audit rounds, and human
+  review. The Ch 4 commit also carries the pending post-push
+  CHANGELOG hash-line touch that fills in Ch 3's own `d2b173b`
+  (a commit cannot contain its own hash).
 - **Chapter 3, "Setup: the platform-specific zone" (Phase 3,
   Part I, 3 of 5; drafted 2026-07-01; validator 0/0; Mac captures
-  reconciled 2026-07-01; Codex blind audit passed after fixes).**
+  reconciled 2026-07-01; Codex blind audit passed after fixes;
+  committed + pushed `d2b173b`).**
   The one chapter
   where platform-specifics run free, as parallel macOS / Linux /
   WSL2 tracks. Seven content sections (5 beginner, 2 advanced)
@@ -37,9 +92,12 @@ are not part of this repo; this file is the repo-visible history.
   PowerShell sidebar are documented + quarantined, version-stamped
   "current as of 2026-07-01" and pinned (Homebrew, Microsoft
   Learn, Ubuntu docs) in `verification/chapter-03.md`. No
-  installer is run on any machine. This commit also carries the
-  pending post-push CHANGELOG hash-line touch from the Ch 1-2
-  polish (`5f07b30`).
+  installer is run on any machine. The Ch 3 commit (`d2b173b`)
+  also carried, and thereby resolved, the pending post-push
+  CHANGELOG hash-line touch left over from the Ch 1-2 polish
+  (`5f07b30`). Its own `d2b173b` hash line, added here after the
+  push, is the new pending touch and rides with the Ch 4 commit
+  (a commit cannot contain its own hash).
 - **Ch 1 + Ch 2 post-gate polish from human review (2026-07-01,
   seven fixes; committed `5f07b30`).** Reader-facing gaps found in human
   review after the Ch 2 gate: (1) the `$`-prompt reading convention
