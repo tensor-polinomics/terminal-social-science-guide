@@ -1,0 +1,30 @@
+# transcript
+chapter: 03
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: GNU bash 5.1.16 (invoked explicitly)
+tool: util-linux ps; GNU bash; /etc/os-release
+date: 2026-07-01
+captured-by: sandbox
+note: Linux/WSL2-track identification for Ch 3. The sandbox's
+      interactive login shell is a container artifact (/bin/sh),
+      so bash is invoked explicitly to show the version a Linux
+      or WSL2 reader actually runs; the chapter does not show a
+      misleading sandbox `echo $SHELL`. In `ps -p $$` the
+      trailing `; true` stops bash from exec-replacing itself
+      with ps when ps is the only command (a single-command
+      optimization), so $$ still names the bash process; at an
+      interactive prompt a reader types just `ps -p $$`. No
+      personal data appears; nothing masked.
+---
+
+$ uname -sm
+Linux aarch64
+
+$ . /etc/os-release && echo "$NAME $VERSION_ID ($VERSION_CODENAME)"
+Ubuntu 22.04 (jammy)
+
+$ bash --version | head -1
+GNU bash, version 5.1.16(1)-release (aarch64-unknown-linux-gnu)
+
+$ ps -p $$ -o comm=; true
+bash

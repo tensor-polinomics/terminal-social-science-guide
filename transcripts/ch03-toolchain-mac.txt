@@ -1,0 +1,30 @@
+# transcript
+chapter: 03
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: xcode-select; Apple git; shasum; tldr if installed
+date: 2026-07-01
+captured-by: user-mac
+note: the Command Line Tools supply git and the compilers
+      on macOS; `xcode-select -p` prints their path.
+      `shasum -a 256` is the BSD-side checksum tool; the
+      literal 'hello' digest matches the sandbox's GNU
+      sha256sum (ch03-checksum-linux.txt) byte for byte,
+      only the command name differs. tldr is recorded
+      ONLY if already installed (nothing is installed for
+      this script); if absent, the chapter documents +
+      quarantines the install recipe instead. $HOME
+      masking applied; paths here are under /Library.
+---
+
+$ xcode-select -p
+/Library/Developer/CommandLineTools
+
+$ git --version
+git version 2.53.0
+
+$ printf 'hello\n' | shasum -a 256
+5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  -
+
+$ tldr --version
+tealdeer 1.8.1

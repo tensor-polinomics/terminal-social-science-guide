@@ -8,8 +8,40 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 3, "Setup: the platform-specific zone" (Phase 3,
+  Part I, 3 of 5; drafted 2026-07-01; validator 0/0; Mac captures
+  reconciled 2026-07-01; Codex blind audit passed after fixes).**
+  The one chapter
+  where platform-specifics run free, as parallel macOS / Linux /
+  WSL2 tracks. Seven content sections (5 beginner, 2 advanced)
+  plus unnumbered Try-it: opening a terminal per OS (Windows ->
+  WSL2 Ubuntu shell, not PowerShell); which shell you have
+  (`echo $SHELL`, `ps -p $$`, zsh/bash, $ vs %) with the macOS
+  bash-3.2 floor as a DIVERGENCE; package managers (Homebrew vs
+  APT, with the tldr install Ch 2 deferred); the Apple Silicon
+  `/opt/homebrew` PATH note (`brew shellenv`, persistence routed
+  to Ch 17); installing safely (the real Homebrew `curl`-into-bash
+  one-liner shown NOT run, a DANGER that extends rather than
+  contradicts Ch 6, the fetch-read-run habit, and the
+  `sha256sum`-vs-`shasum -a 256` checksum DIVERGENCE); `/mnt/c`
+  and the WSL2 boundary; and the four-point PowerShell sidebar
+  (PLAN Section 5). Callouts: 3 DIVERGENCE, 1 DANGER, 1 PITFALL
+  (installed-but-PATH-can't-see-it). No figure (none in scope).
+  Delivers the Ch 1/2/6 promises (parallel tracks; which shell
+  and why; how to open a terminal per OS; WSL2-over-PowerShell;
+  PATH setup; /mnt/c in practice; tldr install; verifying
+  installers). Real output: the Linux track from the sandbox
+  (`ch03-linux-*.txt`); the macOS facts read-only from the user's
+  Mac via `capture-ch03-mac.sh` (`ch03-*-mac.txt`). WSL2, the
+  `apt` install commands, the Homebrew installer, and the
+  PowerShell sidebar are documented + quarantined, version-stamped
+  "current as of 2026-07-01" and pinned (Homebrew, Microsoft
+  Learn, Ubuntu docs) in `verification/chapter-03.md`. No
+  installer is run on any machine. This commit also carries the
+  pending post-push CHANGELOG hash-line touch from the Ch 1-2
+  polish (`5f07b30`).
 - **Ch 1 + Ch 2 post-gate polish from human review (2026-07-01,
-  seven fixes, commit pending).** Reader-facing gaps found in human
+  seven fixes; committed `5f07b30`).** Reader-facing gaps found in human
   review after the Ch 2 gate: (1) the `$`-prompt reading convention
   is now an explicit convention in Ch 1's "How to read this book"
   (three conventions, was two), with a first-use reminder at Ch 2's

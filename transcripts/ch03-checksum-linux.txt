@@ -1,0 +1,20 @@
+# transcript
+chapter: 03
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: GNU bash 5.1.16
+tool: GNU coreutils 8.32 (sha256sum)
+date: 2026-07-01
+captured-by: sandbox
+note: GNU (Linux) side of the checksum divergence in Ch 3's
+      supply-chain section. The same bytes hashed on macOS with
+      `shasum -a 256` (ch03-toolchain-mac.txt) produce the same
+      digest; only the command name differs. The `-` in the
+      output is sha256sum's label for standard input. No personal
+      data; nothing masked.
+---
+
+$ printf 'hello\n' | sha256sum
+5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  -
+
+$ sha256sum --version | head -1
+sha256sum (GNU coreutils) 8.32

@@ -1,0 +1,28 @@
+# transcript
+chapter: 03
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: GNU bash 5.1.16
+tool: APT 2.4.14; dpkg 1.21.1
+date: 2026-07-01
+captured-by: sandbox
+note: Linux/WSL2-track package-manager identification for Ch 3.
+      These are inspection commands only; the sandbox has no root
+      ("no new privileges"), so `sudo apt install ...` cannot run
+      here and is documented + quarantined in the chapter, pinned
+      to the Debian/Ubuntu docs. `command -v git` shows git is
+      already on the PATH (the chapter uses it as the "confirm a
+      tool is present" check, not `git --version`, keeping git
+      unrun in the sandbox per the build rules). No personal data;
+      nothing masked.
+---
+
+$ apt --version
+apt 2.4.14 (arm64)
+
+$ dpkg --version | head -1
+Debian 'dpkg' package management program version 1.21.1 (arm64).
+
+$ command -v apt-get git bash
+/usr/bin/apt-get
+/usr/bin/git
+/usr/bin/bash

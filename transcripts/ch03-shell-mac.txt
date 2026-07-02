@@ -1,0 +1,29 @@
+# transcript
+chapter: 03
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: zsh; macOS system /bin/bash
+date: 2026-07-01
+captured-by: user-mac
+note: macOS's login shell is zsh (SHELL=/bin/zsh), whose
+      prompt ends in % not $. `ps -p $$` is run under
+      zsh with a trailing `; true` so zsh does not
+      exec-replace itself with ps (single-command
+      optimization); a reader at the prompt types just
+      `ps -p $$`. /bin/bash is the macOS SYSTEM bash,
+      frozen at 3.2.57 (2007) for licensing reasons; this
+      is the bash-3.2 floor Ch 10 returns to. No personal
+      data in these lines; $HOME masking applied anyway.
+---
+
+$ echo $SHELL
+/bin/zsh
+
+$ zsh --version
+zsh 5.9 (arm64-apple-darwin25.0)
+
+$ zsh -c 'ps -p $$ -o comm=; true'
+zsh
+
+$ /bin/bash --version | head -1
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)

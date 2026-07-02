@@ -1,7 +1,481 @@
 # Setup: The Platform-Specific Zone
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 3. macOS / Linux /
-     WSL2 parallel tracks; shells, package managers; zsh-vs-bash;
-     Apple Silicon /opt/homebrew/bin PATH note; PowerShell sidebar.
-     + Supply-chain safety (verify installers, checksums, PATH-hijack).
-     Drafted in Phase 3. -->
+Every other chapter in this book teaches a portable baseline:
+commands and habits that behave the same, in the common cases,
+whether you are on a Mac, inside WSL2 on Windows, or SSH'd into
+a Linux server. This chapter is the deliberate exception. Setup
+cannot be portable, because the whole point of it is to install
+the platform-specific things the rest of the book then treats as
+given. Pretending otherwise would strand a beginner on line one.
+So this is the one place platform-specifics are allowed to run
+free: parallel tracks for macOS, Linux, and WSL2, each said
+plainly, with the divergences flagged rather than smoothed over.
+
+By the end you will have opened a terminal on your platform,
+identified which shell you are running and why it matters,
+learned how to install software through a package manager instead
+of by downloading mystery binaries, and met the supply-chain
+rule that governs the rest: verify before you run. Windows
+readers also get the two things they specifically need, why to
+work inside WSL2 and what will bite them if they try to follow
+this book's instructions in PowerShell instead.
+
+A note on where the output comes from, because this chapter's
+provenance is unusually mixed. The Linux track is real output
+from this book's Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16;
+the `ch03-linux-*.txt` transcripts). The macOS facts are real,
+captured read-only on the author's Mac by
+`transcripts/capture-ch03-mac.sh` (the `ch03-*-mac.txt`
+transcripts). Three kinds of thing are **documented and
+quarantined** rather than run, each labeled where it appears,
+version-stamped "current as of 2026-07-01," and pinned to
+official documentation in `verification/chapter-03.md`: the WSL2
+setup steps (no Windows machine exists to run them here), the
+`apt` install commands (the sandbox has no root, so it cannot
+install), and the PowerShell sidebar. One rule holds across all
+three tracks and is the reason the quarantine is so large: this
+chapter shows the real output of *inspection* commands, but it
+never runs an *installer*, on any machine, for exactly the reason
+Chapter 6 would not run a blind `curl | sh`. One deliberate mask,
+as in Chapter 2: where a Mac path would show the account name it
+reads `/Users/[account]`, a scrub for this public book; the
+brackets are a placeholder your own machine fills in.
+
+## Opening a terminal, and knowing what you are in {.tier-beginner}
+
+Chapter 2 drew the distinction this section rests on: the
+terminal is the window, and the shell is the program running
+inside it that actually reads your commands. To follow this book
+you need to get a shell open, and how you do that is one of the
+few genuinely platform-specific steps.
+
+On a **Mac**, the terminal is an application called Terminal,
+in `Applications/Utilities`; the fastest way to it is Spotlight
+(Command-Space, type "Terminal"). Many researchers later switch
+to iTerm2, a free alternative with more features, but the
+built-in Terminal is enough for everything here. Either one opens
+a shell prompt, and on a modern Mac that shell is zsh.
+
+On **Linux**, if you are working at a desktop the terminal is a
+built-in application (GNOME Terminal, Konsole, and others, opened
+from the applications menu). More often, as a researcher, you
+reach a Linux shell by connecting to a server over SSH, which
+Chapter 13 will cover; when you do, you land at a shell prompt
+directly with no window of your own to open. Either way the
+default shell is almost always bash.
+
+On **Windows**, the short version is: do not use the terminals
+Windows gives you by default (PowerShell and Command Prompt) for
+this book's work. Install WSL2, the Windows Subsystem for Linux,
+which runs a real Linux distribution inside Windows, and work in
+*its* shell instead. Installing it is a single command, run once
+in an Administrator PowerShell window, and it is the one time you
+will touch PowerShell: you use it to escape to Linux (Microsoft
+Learn, "How to install Linux on Windows with WSL," current as of
+2026-07-01):
+
+```text
+# Run ONCE in an ADMINISTRATOR PowerShell, then reboot.
+# Installs WSL2 with Ubuntu by default. Not run here.
+wsl --install
+```
+
+After it finishes and you reboot, you launch the Ubuntu shell
+from the Start menu or, better, from Windows Terminal, and you
+get a real bash prompt on a real Linux system. Everything this
+book does then applies to you the same as to a Linux reader, with
+the divergences flagged. The rest of this chapter's Windows
+guidance assumes you are inside that WSL2 shell; the reasons to
+prefer it over PowerShell are the sidebar at the end.
+
+The terminal application itself, Terminal versus iTerm2 versus
+Windows Terminal, is mostly cosmetic: tabs, colors, fonts, split
+panes. It is worth almost none of your attention right now. What
+runs inside it, the shell, is the thing the next section pins
+down.
+
+## Which shell you have, and why it matters {.tier-beginner}
+
+Chapter 2 promised that this chapter would sort out which shell
+you have. Two commands answer it. `echo $SHELL` prints your
+**login shell**, the one set as your default; `ps -p $$` reports
+the shell **running right now**, which is usually but not always
+the same. On the author's Mac:
+
+```bash
+$ echo $SHELL
+/bin/zsh
+```
+
+The login shell is zsh, which is the macOS default and prints a
+prompt ending in `%`. In the book's Linux sandbox the running
+shell is bash, whose prompt ends in `$`:
+
+```bash
+$ ps -p $$ -o comm=; true
+bash
+$ bash --version | head -1
+GNU bash, version 5.1.16(1)-release (aarch64-unknown-linux-gnu)
+```
+
+(The trailing `; true` is a capture detail: with `ps` as the
+only command, bash would replace itself with `ps` and report
+`ps`; the extra command keeps `$$` naming the shell. At your own
+prompt you type just `ps -p $$`.) That `$`-versus-`%` split is
+the small difference Chapter 1 told you to notice: macOS defaults
+to zsh, while most Linux systems and the WSL2 Ubuntu shell
+default to bash. The two are close relatives, and for interactive
+use the difference rarely matters. It matters for *scripts*, and
+this book takes a firm position that Chapter 10 will act on: write
+scripts for bash, with portable habits, never in zsh-only syntax.
+zsh is fine at the prompt; it is not the target you write
+automation against.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+There is a sharper shell divergence hiding on the Mac, and it is
+about *version*, not name. macOS ships a system bash frozen at
+version 3.2.57, released in 2007, because later bash is licensed
+under the GPLv3, which Apple declines to ship; the author's
+`/bin/bash --version` confirms 3.2.57 (current as of 2026-07-01,
+`transcripts/ch03-shell-mac.txt`). Linux and the WSL2 Ubuntu
+shell run bash 5.x (the sandbox's 5.1.16 above). A script that
+uses a bash-4-or-later feature, associative arrays are the usual
+one, runs fine on Linux and fails on a Mac's `/bin/bash`. This is
+the macOS bash-3.2 floor, and Chapter 10 returns to it when it
+sets the scripting target; the fix is to install a modern bash
+through Homebrew (below) and point your scripts at that, because
+the *system* `/bin/bash` will stay at 3.2 no matter what you
+install. For now, just know which bash your platform hands you by
+default.
+:::
+
+## Package managers: how you install things {.tier-beginner}
+
+The wrong way to install research software is to hunt down a
+website, download a binary, and hope. The right way is a
+**package manager**: one tool that installs, updates, and removes
+software and its dependencies from a curated source, so you can
+say what you want and let it handle the rest. Which package
+manager you use is platform-specific, which is exactly why it
+lives in this chapter.
+
+On **macOS** the de facto standard is **Homebrew**, driven by the
+`brew` command. It is not preinstalled; installing it safely is
+the next section. Once it is in place, `brew install <name>`
+fetches and installs a tool, and on Apple Silicon everything
+lands under the prefix `/opt/homebrew` (the section after next
+returns to why that matters for your PATH).
+
+On **Linux**, and therefore inside the WSL2 Ubuntu shell too, the
+Debian/Ubuntu family uses **APT**, driven by `apt`, which sits on
+top of the lower-level `dpkg`. Both are preinstalled; you can
+confirm they are there without installing anything:
+
+```bash
+$ apt --version
+apt 2.4.14 (arm64)
+$ dpkg --version | head -1
+Debian 'dpkg' package management program version 1.21.1 (arm64).
+```
+
+Installing a package with APT needs administrator rights, so the
+command is prefixed with `sudo`, and it comes in two steps: update
+the local index of what is available, then install. The book's
+sandbox has no root, so it cannot run these, but they are the
+standard Debian/Ubuntu form (Ubuntu Server documentation,
+"Install and manage packages," current as of 2026-07-01):
+
+```text
+# Debian/Ubuntu, incl. the WSL2 Ubuntu shell; needs root.
+# Shown, not run here (this book's sandbox has no root).
+sudo apt update
+sudo apt install tldr
+```
+
+Other Linux families differ: Fedora and RHEL use `dnf`, Arch uses
+`pacman`. This book does not teach them, but the shape is the
+same, and you route to your distribution's manager the way you
+route to your platform's. (Ubuntu's own docs note a wrinkle worth
+carrying to Chapter 10: `apt` is meant for interactive use, and
+`apt-get` is the stable interface to call from scripts.)
+
+That `tldr` above is not a random example. Chapter 2 introduced
+the `tldr` help tool and said its install was a separate step
+this chapter would handle: here it is. On macOS the recipe is
+`brew install tealdeer` (`tealdeer` is a fast `tldr` client); on
+Debian/Ubuntu it is the `sudo apt install tldr` shown above. The
+author's Mac runs tealdeer 1.8.1 (current as of 2026-07-01,
+`transcripts/ch03-toolchain-mac.txt`), the client Chapter 2's
+`tldr` output came from.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The install *command* is one of the least portable things in the
+whole book: `brew install X` on a Mac, `sudo apt install X` on
+Debian/Ubuntu, `dnf`/`pacman` elsewhere. That divergence is
+precisely why setup is quarantined to this chapter. The payoff is
+that once a tool is installed, the book can teach a common
+baseline for it, with the remaining divergences flagged, which is
+what lets the rest of the book stay largely platform-neutral.
+Homebrew muddies
+the line in a useful way: it also runs on Linux and WSL2 (under
+`/home/linuxbrew/.linuxbrew`), so you *can* use `brew` on a server
+to get a newer tool than the system `apt` offers. Use the system
+manager for system things and reach for Homebrew when you need a
+version the distribution does not carry.
+:::
+
+## The Apple Silicon PATH note {.tier-beginner}
+
+Chapter 2's PATH divergence showed that on an Apple Silicon Mac,
+Homebrew's tools sit at the front of your PATH under
+`/opt/homebrew/bin`. This section is the mechanism behind that,
+because it is the piece a new Mac setup most often gets wrong.
+Homebrew's prefix is where it puts everything:
+
+```bash
+$ command -v brew
+/opt/homebrew/bin/brew
+$ brew --prefix
+/opt/homebrew
+```
+
+Installing a tool drops its executable in `/opt/homebrew/bin`, but
+that does nothing until that directory is on your PATH, and ahead
+of the system directories so a brewed tool beats an older system
+copy of the same name (Chapter 2's first-match-wins rule).
+Homebrew arranges this with one line its installer tells you to
+add to your shell configuration,
+`eval "$(/opt/homebrew/bin/brew shellenv)"`. Note the full prefix
+path: on a fresh install `brew` is not on your PATH yet, so you
+cannot rely on the bare `brew` name until this very line has run,
+which is why Homebrew's docs spell out the prefix. It sets up
+Homebrew's environment so that `/opt/homebrew/bin` sits at the
+front of your PATH for every new shell (Homebrew documentation,
+"Installation," current as of 2026-07-01; Chapter 2's captured
+login PATH began exactly `/opt/homebrew/bin:/opt/homebrew/sbin`,
+ahead of the system directories). You do
+not need to understand the startup-file machinery yet, only that
+this line is what connects "I installed it" to "I can run it";
+where that line lives, and the login-versus-interactive shell
+rules that decide when it runs, is Chapter 17's subject.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+The most common setup failure is a tool that installed cleanly but
+the shell cannot find: you type its name and get `command not
+found`. It almost always means the tool's directory is not on your
+PATH. On a Mac it is usually the
+`eval "$(/opt/homebrew/bin/brew shellenv)"` line missing from your
+shell config, so `/opt/homebrew/bin` was never
+added; with tools that install into `~/.local/bin` (many Python
+and Rust tools do) it is that directory missing from PATH. The
+diagnosis is Chapter 2's `command -v <name>`, which tells you
+whether the shell can find it at all; the fix is to put the right
+directory on your PATH, which Chapter 17 will make stick across
+new shells. Add only directories you trust and mind their order:
+an attacker-controlled directory early on PATH is the
+PATH-hijacking risk Chapter 6 raised, and it applies to anything
+you prepend here.
+:::
+
+## Installing safely: verify, do not blind-pipe {.tier-beginner}
+
+Homebrew has to be installed before you can use it, and the way
+its own homepage tells you to do that is, uncomfortably, the exact
+pattern Chapter 6 spent a whole section refusing to run (Homebrew
+homepage, current as of 2026-07-01, shown wrapped to fit; it is a
+single line there):
+
+```text
+# The official Homebrew installer. NOT run here.
+/bin/bash -c "$(curl -fsSL \
+https://raw.githubusercontent.com/Homebrew/\
+install/HEAD/install.sh)"
+```
+
+This downloads a script and pipes it straight into `bash`, which
+runs it as you, with your permissions. Chapter 6's rule was blunt:
+never run code you have not read, fetched over a network you do
+not control. Homebrew is not an anonymous stranger, and that is
+the honest nuance here. It is a well-known project, the download
+is over HTTPS from an official location, and its installer is a
+careful script that prints exactly what it will do and pauses for
+your confirmation before doing it (its own docs say so). That is
+why many careful people run it as printed. But the *mechanism* is
+identical to the one that is dangerous in general, so the maximally
+safe path, and the one this book teaches, is Chapter 6's: separate
+downloading from running, so there is a moment in between to look.
+
+```text
+# fetch, read, then run (never pipe straight to a shell):
+curl -fsSL -o install.sh https://example.com/install.sh
+less install.sh              # read the whole thing
+shasum -a 256 install.sh     # match the published hash
+/bin/bash install.sh         # only after the first three
+```
+
+That third step, the checksum, is how you verify a download was
+not tampered with or swapped in transit. You compute a hash of the
+file and compare it to the hash the project publishes. The same
+bytes always produce the same hash, on any machine, which is the
+whole point. In the Linux sandbox:
+
+```bash
+$ printf 'hello\n' | sha256sum
+5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  -
+```
+
+and on the author's Mac the identical bytes give the identical
+digest, from a differently named tool:
+
+```bash
+$ printf 'hello\n' | shasum -a 256
+5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  -
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The checksum tool has different names on the two platforms, which
+trips people following cross-platform instructions. Linux (and the
+WSL2 Ubuntu shell) ships GNU `sha256sum`; macOS does not, and
+gives you `shasum -a 256` instead (a Perl tool, where `-a 256`
+picks the SHA-256 algorithm). As the two blocks above show, they
+produce byte-identical digests, so a hash a project publishes
+verifies the same either way; only the command you type to compute
+it differs. On a Mac reach for `shasum -a 256`, on Linux for
+`sha256sum`, and Chapter 11's `make check` uses this same hashing
+to lock the running example's data.
+:::
+
+::: {.callout-caution .danger title="DANGER"}
+Piping a fetched script straight into a shell, `curl ... | bash`,
+including the Homebrew one-liner above, runs code you have not read
+with your full user privileges: free to modify your shell startup
+files, your SSH keys, or your PATH. A tampered or
+man-in-the-middled download runs just the same, and the timing
+side channel Chapter 6 described means a server can even serve
+clean code to anyone who saves the file and malicious code to
+anyone piping it. Homebrew earns a measure of trust through its
+official HTTPS source and a script that shows its plan and pauses,
+which is why running it as printed is a defensible choice, not a
+reckless one. But the safe habit generalizes and its exceptions do
+not: prefer fetch-read-run, take the expected checksum from a
+*different* channel than the one that served the download (never
+from the same page), and never pipe an *unfamiliar* project's
+installer into a shell at all. Chapter 6 owns the mechanics of
+this hazard, and Chapter 16 returns to it because an AI agent can
+compose and run exactly this line on your behalf.
+:::
+
+## /mnt/c and the WSL2 boundary {.tier-advanced}
+
+Chapter 2 noted that inside WSL2 you work in one Unix tree with
+the Windows `C:` drive mounted at `/mnt/c`, and promised this
+chapter would say what that means in practice. The practical
+guidance is a single rule with real consequences: **keep your
+project inside the Linux home directory (`~`), not under
+`/mnt/c`.** (This section is documented against Microsoft's docs,
+not run, because no Windows machine exists in this book's build;
+current as of 2026-07-01.)
+
+Two reasons. First, speed: files in the Linux filesystem are far
+faster for Linux tools to read and write than files reached across
+the `/mnt/c` boundary, and a data pipeline that touches many files
+feels the difference sharply; Microsoft's own guidance is to store
+project files in the Linux filesystem when you work on them with
+Linux tools (Microsoft Learn, "Working across Windows and Linux
+file systems"). Second, correctness: the Windows drive carries
+Windows conventions, including CRLF line endings on files created
+by Windows editors, which can quietly break shell scripts and
+throw off the checksums this chapter just taught. `/mnt/c` is
+there for when you genuinely need to reach a Windows file; it is
+not where your repository should live. The line-ending issue
+returns in Chapter 10, which will pin the locale and text settings
+that keep results stable across machines.
+
+## The PowerShell sidebar {.tier-advanced}
+
+This book does not teach PowerShell. Windows researchers should
+work inside WSL2, where the entire book applies. But you will meet
+PowerShell, it is what opens by default on Windows, so here is what
+bites if you try to run this book's Unix instructions in it. Four
+points, then we stop (all current as of 2026-07-01, pinned to
+Microsoft Learn).
+
+First, why WSL2 and not PowerShell: this book's tools, examples,
+and habits are Unix. WSL2 gives you a real Linux shell where they
+work unchanged; PowerShell is a different shell with a different
+model, so following Unix instructions in it means constant
+translation and surprising failures. Use WSL2 and skip the
+translation.
+
+Second, the deepest difference: a PowerShell pipeline passes
+**objects**, not text. Where a Unix pipe sends a stream of
+characters from one command to the next, PowerShell's `|` sends
+structured .NET objects between cmdlets, so `Get-Process | Stop-Process`
+hands an actual process object along, not its printed name
+(Microsoft Learn, `about_Pipelines`). The Unix mental model of
+text flowing through `grep`, `cut`, and `sed` does not transfer,
+because there is no text stream to filter.
+
+Third, the fake-alias trap. PowerShell defines aliases that look
+like Unix commands but are not them: `ls` and `cat` are aliases
+for the cmdlets `Get-ChildItem` and `Get-Content`
+(Microsoft Learn, `about_Aliases`), so the names work but the
+options you know do not. Worse for this book's supply-chain
+theme, Windows PowerShell 5.1, the version preinstalled on
+Windows, aliased `curl` and `wget` to its `Invoke-WebRequest`
+cmdlet, which behaves nothing like the real tools; PowerShell 7
+removed those two aliases. Either way, do not assume `curl` or
+`wget` at a PowerShell prompt is the Unix tool you meant.
+
+Fourth, execution policy and path separators. PowerShell has an
+**execution policy** that can refuse to run scripts; the default
+on Windows clients is `RemoteSigned`, which blocks unsigned
+scripts downloaded from the internet until you unblock or sign
+them (Microsoft Learn, `about_Execution_Policies`). And Windows
+paths use backslashes with a semicolon PATH separator (`C:\...`,
+`;`), against Unix forward slashes and colons (`/...`, `:`), so
+paths copied between the two do not just work. That is the
+sidebar; for everything else, be in WSL2.
+
+## Try it yourself {.unnumbered}
+
+These set up and check the environment the asset-pricing example
+needs. Most only inspect and destroy nothing; the last one
+installs `tldr`, a small helper worth keeping.
+
+1. Identify your shell. Run `echo $SHELL` and `ps -p $$`, and note
+   whether your prompt ends in `$` or `%`. Say in one sentence
+   which shell each command reported and whether they agree, then
+   predict what a friend on the other platform would see.
+
+2. Find your package manager. On a Mac run `brew --version`; on
+   Linux or WSL2 run `apt --version`. Then confirm the tools this
+   book leans on are present with `command -v git` and, for
+   checksums, `command -v shasum` (Mac) or `command -v sha256sum`
+   (Linux). Note anything missing; it is what you would install
+   next.
+
+3. On a Mac, inspect your PATH. Run `brew --prefix` and confirm it
+   is `/opt/homebrew`, then run `echo $PATH` and check that
+   `/opt/homebrew/bin` appears before `/usr/bin`. Explain, using
+   Chapter 2's first-match-wins rule, why that order is what lets a
+   brewed tool win over the system copy.
+
+4. Practice verify-before-run. Pick a real installer that
+   publishes a `curl`-into-shell one-liner (Homebrew's will do).
+   Without running it, fetch the script with `curl -fsSL -o
+   install.sh <url>`, read it with `less install.sh`, and find the
+   lines where it writes to your PATH or shell startup files.
+   Decide whether you would have run it blind.
+
+5. Confirm the pipeline's Python half runs. `cd` into the
+   asset-pricing project and run `python3 --version` and, if you
+   use it, `uv --version`. If `uv` is missing, name the command
+   you would use to install it on your platform; the operational
+   use of uv to pin the environment is Chapter 12's subject, not
+   this chapter's.
+
+6. Install `tldr` and cash in Chapter 2's promise. Use your
+   package manager (`brew install tealdeer`, or `sudo apt install
+   tldr`), then run `tldr tar` and compare it to the output
+   Chapter 2 showed.
