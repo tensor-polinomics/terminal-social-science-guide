@@ -257,16 +257,29 @@ bundled with the capability.
 
 ## How to read this book
 
-Two conventions will help you place yourself as you go. First,
-technical sections are tiered. A heading marked BEGINNER is
-written to be copied and run with everything explained; a heading
+Three conventions will help you place yourself as you go.
+First, the way command examples are printed. From Chapter 2
+onward, examples appear as terminal blocks in which a line
+beginning with `$` is something you type: the `$` itself is
+the **prompt**, a symbol the shell prints to say it is ready,
+and you type only what comes after it, then press return.
+Lines without a leading `$` are the computer's output, shown
+so you can check yours against them. Your own prompt will
+look busier than the book's bare `$` (it usually shows your
+username and folder, and on a Mac's zsh it ends in `%` rather
+than `$`), but the reading rule is the same everywhere: type
+what follows the prompt symbol, never the symbol itself.
+
+Second, technical sections are tiered. A heading marked
+BEGINNER is written to be copied and run with everything
+explained; a heading
 marked ADVANCED assumes you have the basics and moves faster.
 This chapter is nearly all framing, so it tiers only lightly;
 the technical chapters lean on the split heavily. Read the
 beginner track first and come back for the advanced material
 when you want it.
 
-Second, the book assumes a particular setup and is honest about
+Third, the book assumes a particular setup and is honest about
 where that assumption bends. The default reader is on a Mac
 laptop. Windows readers should use WSL2, a real Linux running
 inside Windows, which behaves closely enough that the body of

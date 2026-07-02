@@ -72,6 +72,22 @@ format:
     documentclass: scrreprt
     keep-tex: false
     default-image-extension: pdf
+    # Break long code lines in the PDF instead of running off the
+    # page (the HTML side already wraps via code-overflow). Needed
+    # because verbatim captured output is never hand-wrapped (real-
+    # output contract, option A): e.g. Ch 2's BSD `ls` usage line.
+    # fvextra redefines the highlighted-code environment with
+    # breaklines; breakanywhere handles long unbroken option
+    # strings. A small hooked arrow marks each continuation.
+    include-in-header:
+      text: |
+        \usepackage{fvextra}
+        \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+        \fvset{breaklines=true,breakanywhere=true}
+        % placeins provides \FloatBarrier, used after a figure's
+        % home section so a float can never drift into a later
+        % section's command blocks (Ch 2 figure, review round 3).
+        \usepackage{placeins}
 
 execute:
   freeze: auto

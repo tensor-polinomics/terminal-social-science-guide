@@ -8,6 +8,37 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Ch 1 + Ch 2 post-gate polish from human review (2026-07-01,
+  seven fixes, commit pending).** Reader-facing gaps found in human
+  review after the Ch 2 gate: (1) the `$`-prompt reading convention
+  is now an explicit convention in Ch 1's "How to read this book"
+  (three conventions, was two), with a first-use reminder at Ch 2's
+  first command block; (2) Ch 2's streams section now introduces the
+  running example properly at its first on-page use (where the
+  scripts live, what the two generated CSVs are, the one-portfolio /
+  one-regression / one-figure payload, data regenerated from seed
+  and not stored in the repo), with the full tour still routed to
+  Ch 5/11; (3) the `/Users/[account]` mask is explained as a
+  placeholder the reader's machine replaces with a real account
+  name; (4) "the terminal is the window" now disclaims any relation
+  to the Windows OS; (5) a one-sentence Windows note in "One tree of
+  files": drive letters are Windows-proper, WSL2 mounts `C:` at
+  `/mnt/c` (pinned to Microsoft Learn in
+  `verification/chapter-02.md`); (6) the Ch 2 figure's PDF placement
+  reworked twice: dropping `fig-pos="H"` fixed the stranded
+  whitespace but let the figure land on a float-only page that split
+  the first command block (Codex re-render catch), so the figure is
+  now 4.6in with `fig-pos="!tbp"` plus a `placeins` `\FloatBarrier`
+  at its section boundary, making a split of that block impossible;
+  (7) PDF code blocks now break long
+  lines via fvextra in `_quarto.yml` (HTML already wrapped), fixing
+  the overflowing BSD `ls` usage line without hand-editing verbatim
+  output. Deliberately NOT pulled into Ch 2: platform terminal
+  differences, WSL2-vs-PowerShell, and how to open a terminal per
+  OS (Ch 3's contracted job, now with explicit forward pointers).
+  Counts unchanged (9 sections, 8/1 tiers, 5 callouts); validator
+  0/0; Mac re-render confirmed the figure/command-block placement
+  and BSD `ls` line wrap.
 - **Chapter 2, "The Mental Model" (Phase 3, Part I, 2 of 5; drafted
   2026-07-01, passed the chapter gate, committed `7f849b1`).** The
   conceptual spine the later chapters lean on:

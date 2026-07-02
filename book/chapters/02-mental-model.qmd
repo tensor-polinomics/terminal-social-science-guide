@@ -31,9 +31,11 @@ tools, and Homebrew's PATH, was captured on the author's Mac
 produced by `capture-ch02-mac.sh`) and is quoted where the
 platforms genuinely differ. One deliberate mask: in Mac
 output, the account segment of home paths reads
-`/Users/[account]`, a documented scrub for this public book;
-everything else in every block is verbatim from its
-transcript. The one figure in this chapter is an authored
+`/Users/[account]`, a documented scrub for this public book.
+The brackets are a placeholder, not something a machine
+prints: run the same commands yourself and that segment
+shows your own account name. Everything else in every block
+is verbatim from its transcript. The one figure in this chapter is an authored
 diagram, not captured output.
 
 ## Terminal, shell, operating system {.tier-beginner}
@@ -43,8 +45,10 @@ command, and the words for them are used interchangeably in
 casual speech, which is where a lot of early confusion comes
 from. This book keeps them apart.
 
-The **terminal** is the window. It draws text, and it sends
-what you type onward. It runs no commands itself; Terminal on
+The **terminal** is the window: an ordinary application
+window on your screen, lowercase, no relation to the Windows
+operating system. It draws text, and it sends what you type
+onward. It runs no commands itself; Terminal on
 a Mac, the WSL2 window on Windows, and the console you see
 after SSH-ing to a server are all just this thin layer.
 The **shell** is the program running inside that window, and
@@ -54,7 +58,9 @@ patterns in it, works out which program you are asking for,
 and asks the operating system to run that program. bash and
 zsh are the two shells this book cares about; they are close
 relatives, and Chapter 3 will sort out which one you have and
-why. The **operating system kernel** is the layer underneath
+why, along with how to open a terminal on each platform and
+why Windows readers should work inside WSL2 rather than
+PowerShell. The **operating system kernel** is the layer underneath
 both: the only thing that actually creates processes, reads
 and writes the disk, and moves bytes on the network. The
 shell is not the machine's engine. It is the machine's
@@ -72,7 +78,7 @@ Shell, Operating system kernel, and a running process. Arrows
 flow downward from typing to the running process; a green
 arrow returns stdout and stderr from the process to the
 terminal, and a dashed amber arrow returns the exit code from
-the process to the shell." width="5.2in" fig-pos="H"}
+the process to the shell." width="4.6in" fig-pos="!tbp"}
 
 Keep one sentence from this section if you keep nothing else:
 **the shell runs commands.** That is its whole job, and the
@@ -91,6 +97,8 @@ breaks, the first diagnostic question is always: which layer
 failed, the tool, the shell that launched it, or the system
 underneath?
 
+\FloatBarrier
+
 ## One tree of files {.tier-beginner}
 
 Everything the shell touches lives in a single tree of
@@ -102,10 +110,18 @@ forms. An **absolute path** starts with `/` and spells out
 the location from the root; it means the same thing no matter
 where it is used. A **relative path** starts anywhere else
 and is interpreted relative to the **working directory**, the
-place in the tree a program is currently standing.
+place in the tree a program is currently standing. (Windows
+proper is the exception that uses drive letters, but it is
+not this book's platform: inside WSL2 you work in exactly
+this single Unix tree, with the Windows `C:` drive mounted
+into it at `/mnt/c`, and Chapter 3 will return to what that
+means in practice.)
 
 Every running program has a working directory, and `pwd`
-prints your shell's. In a scratch directory in the sandbox,
+prints your shell's. This is also the book's first command
+block, so recall Chapter 1's reading rule: type only what
+follows the `$`, and expect the unprefixed lines back as
+output. In a scratch directory in the sandbox,
 holding one empty file `notes.txt`, the same file answers to
 both kinds of name:
 
@@ -439,6 +455,25 @@ where it writes its results. **Standard error** (stderr) is
 where it writes complaints and progress reports. Results and
 complaints get separate channels on purpose, so that one can
 be saved or passed onward while the other still reaches you.
+
+Seeing the seam takes a command that writes to both streams
+at once, and that needs real files, so this is also where the
+running example first appears on the page. The asset-pricing
+study Chapter 1 sketched lives in the book's repository under
+`sandbox/asset-pricing/`: a seeded Python script in its
+`scripts/` folder generates the two raw inputs,
+`data/raw/factors.csv` (180 months of simulated factor
+returns) and `data/raw/firm_panel.csv` (a panel of 300 firms
+over those months), and everything the book later does with
+them amounts to one long-short portfolio, one factor
+regression, one table, and one figure in a short rendered
+report. The data files are not stored in the repository;
+because the generator is seeded, running it recreates them
+identically, which is itself a reproducibility lesson.
+That is all the finance you need: Chapter 5 will tour the
+project directory piece by piece, and Chapter 11 rebuilds
+the entire study with one command. Here the files are
+simply realistic material to point commands at.
 
 On a plain terminal you cannot *see* the seam, because both
 output streams land on the same screen. But it is there. Ask

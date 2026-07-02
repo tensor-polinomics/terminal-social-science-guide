@@ -202,6 +202,23 @@ Access date for all web sources below: 2026-07-01.
   install routing to Ch 3 is forward-contract (Ch 3 is a stub)
 - confirmable: yes (page + transcript)
 
+### WSL2 mounts the Windows C: drive at /mnt/c (one Unix tree)
+- chapter/section: "One tree of files" (the parenthetical on
+  Windows drive letters; added at the post-gate human-review
+  polish, 2026-07-01)
+- source: Microsoft Learn, "Working across Windows and Linux
+  file systems"
+  (https://learn.microsoft.com/en-us/windows/wsl/filesystems):
+  "the Windows file system C:\ drive ... will look like this
+  when mounted in a WSL command line: /mnt/c/..."
+- accessed: 2026-07-01 (page fetched and read)
+- verifies: inside WSL2 the reader works in a single Unix tree
+  with the Windows drive mounted at /mnt/c; drive letters are
+  Windows-proper, not the book's platform
+- version note: current as of 2026-07-01; details routed
+  forward to Ch 3 (still a stub) with "will return" language
+- confirmable: yes
+
 ### man page section numbers; man is the per-system authority
 - chapter/section: help section (the "(1)" note; BSD vs GNU
   documentation split)
