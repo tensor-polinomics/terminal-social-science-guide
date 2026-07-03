@@ -1,0 +1,44 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (mkdir, ls)
+date: 2026-07-02
+captured-by: sandbox
+note: run in a throwaway /tmp scratch; no masks needed (no
+      user-specific paths, owners, or hostnames shown). The
+      one-liner is split into three brace groups (not one nested
+      path token) so every typed line stays within the ~64-char
+      width rule; `ls -R` is run from inside the new directory,
+      so its top label is `.:`.
+---
+$ mkdir asset-pricing
+$ cd asset-pricing
+$ mkdir -p data/{raw,clean} scripts output/{figures,tables}
+$ echo $?
+0
+$ ls -R
+.:
+data
+output
+scripts
+
+./data:
+clean
+raw
+
+./data/clean:
+
+./data/raw:
+
+./output:
+figures
+tables
+
+./output/figures:
+
+./output/tables:
+
+./scripts:
+$ echo data/{raw,clean} scripts output/{figures,tables}
+data/raw data/clean scripts output/figures output/tables

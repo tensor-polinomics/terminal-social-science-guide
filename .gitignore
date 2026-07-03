@@ -101,3 +101,5 @@ renv/staging/
 /tmp/
 /scratch/
 *.tmp
+
+**/*.quarto_ipynb

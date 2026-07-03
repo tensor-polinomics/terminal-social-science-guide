@@ -1,0 +1,25 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (touch, ls)
+date: 2026-07-02
+captured-by: sandbox
+note: run in the /tmp scratch scaffold from ch05-scaffold.txt
+      (/tmp/sc/asset-pricing); no masks needed (no user-specific
+      data shown). The typed command is wrapped with a real shell
+      `\` continuation; `>` is the shell's continuation prompt.
+---
+$ touch README.md Makefile report.qmd pyproject.toml \
+>       .gitignore
+$ ls -a
+.
+..
+.gitignore
+Makefile
+README.md
+data
+output
+pyproject.toml
+report.qmd
+scripts

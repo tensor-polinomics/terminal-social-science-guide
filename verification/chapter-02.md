@@ -17,12 +17,35 @@ inside `sandbox/asset-pricing/`; the filesystem demo ran in a
 an authored diagram, not captured output; its source is
 archived beside it.
 
-Forward references: Ch 6, 11, 16 are drafted and are cited in
-present tense. Ch 3, 4, 5, 9, 10, 12, 13, 14, 17 are still
-stubs; every Ch 2 reference to them is a scope statement
-("Chapter 9's subject") or forward-contract language ("will
-be taught / will pin / will handle"), never a claim that they
-already teach, run, or verify anything.
+Human-review addition (2026-07-02): the filesystem-root section
+now pairs the real `ls /` capture with an annotated `/` tree (a
+labeled, non-runnable `text` block giving the role of the common
+system directories home/usr/etc/var/tmp/opt, no `$` prompts).
+This is the annotated-structure-tree house device codified in
+`CLAUDE.md` (introduced in Ch 5). The tree is a schematic, not
+output; the real `ls /` block is unchanged and still matches
+`ch02-filesystem-mac.txt`. Validator 0/0. **The first version
+used Unicode box-drawing glyphs, which Codex's PDF render showed
+dropping out on p.19; the tree was switched to ASCII connectors
+(`|--`, `` `-- ``, `|`), which are font-independent.** This is a
+post-gate edit to a committed chapter. Codex's Mac re-render
+(2026-07-02, quarto 1.9.36, 118-page PDF) confirms the ASCII
+tree renders correctly on Ch 2 PDF p.19; a commit is the only
+step left.
+
+Forward references: Ch 6, 11, 16 are drafted. Since Ch 2 was
+committed, Ch 3 and Ch 4 have also been drafted and committed
+and Ch 5 is drafted (in the G3 gate); Ch 9, 10, 12, 13, 14, 17
+remain stubs. Ch 2's PROSE still uses forward-contract wording
+for the chapters that were stubs when it was written ("will be
+taught / will pin / will handle / will return"); the notes below
+now flag which of those targets have since been drafted, and
+re-finalizing the prose wording to present tense is the tracked
+forward-language pass (see RESUME open flag: "Ch 1 provenance is
+a forward CONTRACT, re-finalize when Ch 12/13/14 exist"), done in
+one batch, not chapter by chapter.
+Either way, no Ch 2 reference claims a later chapter already
+teaches, runs, or verifies anything.
 
 Access date for all web sources below: 2026-07-01.
 
@@ -199,7 +222,9 @@ Access date for all web sources below: 2026-07-01.
   separate-install status, and the real shown output;
   version-stamped "current as of 2026-07-01" in the chapter
 - version note: tealdeer 1.8.1, current as of 2026-07-01;
-  install routing to Ch 3 is forward-contract (Ch 3 is a stub)
+  install routing to Ch 3 is forward-contract (Ch 3 is now
+  drafted + committed; Ch 2's prose keeps the "will install"
+  wording pending the tracked forward-language pass)
 - confirmable: yes (page + transcript)
 
 ### WSL2 mounts the Windows C: drive at /mnt/c (one Unix tree)
@@ -216,7 +241,8 @@ Access date for all web sources below: 2026-07-01.
   with the Windows drive mounted at /mnt/c; drive letters are
   Windows-proper, not the book's platform
 - version note: current as of 2026-07-01; details routed
-  forward to Ch 3 (still a stub) with "will return" language
+  forward to Ch 3 (now drafted + committed; Ch 2's prose keeps
+  the "will return" wording pending the forward-language pass)
 - confirmable: yes
 
 ### man page section numbers; man is the per-system authority

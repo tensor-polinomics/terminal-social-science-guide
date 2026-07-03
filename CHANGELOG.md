@@ -8,11 +8,106 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **House-style device: annotated structure trees (2026-07-02,
+  human-review request).** Codified in `CLAUDE.md` (Writing
+  rules): when a chapter shows a directory/file *layout*, pair a
+  labeled non-runnable `text` tree with the real `ls`/`ls -R`
+  output as the evidence beside it (no `$` prompts, <=64
+  chars/line). **Connectors are ASCII (`|--`, `` `-- ``, `|`),
+  NOT Unicode box-drawing glyphs:** Codex's PDF render showed the
+  box glyphs (`├ │ └`) dropping out on Ch 2 p.19, so both trees
+  and the rule were switched to font-independent ASCII. First
+  used in Ch 5's project-layout tour, then retrofit to Ch 2's
+  filesystem-root section (an annotated `/` tree of the common
+  system directories, home/usr/etc/var/tmp/opt, beside the real
+  `ls /`). Reserved for containment/layout; dependency/data-flow
+  graphs stay arrows (Ch 11's `script -> output` block is
+  unchanged). Flagged in the rule for Ch 12 (`.venv/`/`renv/`),
+  Ch 13 (`~/.ssh/`), and Ch 17 (dotfiles) when those are drafted.
+  Both the Ch 2 and Ch 5 trees are ASCII now (validator 0/0), and
+  Codex's Mac re-render (2026-07-02, quarto 1.9.36, 118-page PDF)
+  confirms they render correctly (Ch 2 p.19, Ch 5 p.56); only the
+  commit remains.
+- **Chapter 5, "Organizing a Project from the Shell" (Phase 3,
+  Part I, 5 of 5, the LAST Part-I chapter; drafted 2026-07-02;
+  validator 0/0 in the sandbox + canonical Mac `uv run`; render
+  passed; no Mac capture needed; Codex blind audit round 1 fixed;
+  human review PENDING; commit will close gate G3 and carries the
+  Ch 4 `3d5a62b` hash-line touch above).**
+  Turns the running example's directory tree into a taught
+  layout, built and toured from the shell. Six content sections
+  (4 beginner, 2 advanced) plus unnumbered Try-it: scaffolding
+  the whole tree in one command (`mkdir -p` with brace
+  expansion, shown as separate brace groups so every typed line
+  stays within the width rule, plus `echo` to demystify the
+  expansion and `touch` for the front-matter files); a tour of
+  the project (opening with an annotated layout-tree map added on
+  human review, a labeled non-runnable `text` block the real
+  `ls -R` output then confirms) naming every home (`data/raw` vs
+  `data/clean`, `scripts/` with the numbered steps,
+  `output/{figures,tables}`, and the tracked root files
+  `Makefile`/`report.qmd`/`README.md`/
+  `pyproject.toml`+`uv.lock`/`renv.lock`/`.gitignore`);
+  directory hygiene (immutable raw input vs regenerated output,
+  the one-directional flow, with the synthetic-data seam noted:
+  `00_make_data.py` generates the raw stand-in, immutable from
+  there on); what Git tracks vs what `make` rebuilds (the ignored
+  data/output dirs are recreated by the scripts on a fresh clone,
+  and the `.gitkeep` caveat that it cannot keep a git-ignored
+  directory); portable naming that survives a case-sensitive
+  server; and the scaffolding tools `copier`/`cookiecutter`. Delivers exactly
+  the layout Chapter 6 opens by assuming ("raw data here,
+  scripts there, output in its own folder") and the scaffold
+  Chapters 1/2/4 promised. Callouts: 1 REPRODUCIBILITY
+  (the layout is the precondition for Chapter 11's one-command
+  rebuild), 2 PITFALL (a space inside the braces silently makes
+  wrong directories; editing raw data in place or mixing
+  generated files into source), 1 DIVERGENCE (case-insensitive
+  Mac names biting the layout on a Linux server, cross-referenced
+  to Chapter 4's capture, not re-shown). No DANGER (nothing here
+  destroys; not forced). The book's SECOND figure: an authored
+  TikZ layout exhibit (`fig-ch05-layout`, textbook-diagrams
+  design system, raw -> scripts -> generated flow with a
+  tracked-root band), built in the sandbox and committed as
+  source + PDF + SVG under `book/assets/figures/ch05/`. Real
+  output: all from the Linux sandbox (`ch05-scaffold.txt`,
+  `ch05-place-files.txt`, `ch05-tour.txt`, `ch05-brace-space.txt`,
+  `ch05-scaffold-tools.txt`), the scaffold and pitfall in
+  throwaway `/tmp` scratch, the tour in a clean copy of the
+  asset-pricing tree; every shown block byte-diffed. No
+  `capture-ch05-mac.sh`: the only platform divergence (case
+  sensitivity) reuses Chapter 4's `ch04-case-mac.txt`.
+  `copier`/`cookiecutter` are version-stamped from a real
+  install (cookiecutter 2.7.1, copier 9.16.0, current as of
+  2026-07-02) but not run, and the one template-invocation block
+  is a labeled illustrative `text` fence. The canonical-layout
+  rationale and the never-commit rule are cross-referenced to
+  the companion Git book, not re-argued. Sources/provenance in
+  `verification/chapter-05.md`. Validator 0/0 in the sandbox and
+  under the canonical `uv run` on the Mac (2026-07-02); the figure
+  PDF placement is confirmed (Codex `quarto render`, 117-page PDF,
+  Ch 5 pp. 53-62, no overflow). Two render fixes landed after:
+  the annotated-tree box glyphs dropped out of the PDF (now ASCII,
+  see the house-device entry above), and Figure 5.1's HTML SVG was
+  broken (`dvisvgm --pdf` emitted a 1-node SVG, near-empty in
+  HTML), rebuilt font-independently (`gs -dNoOutputFonts` +
+  `pdftocairo -svg`, `\usepackage{lmodern}` for the mono labels;
+  durable recipe now in `CLAUDE.md`). Codex's Mac re-render
+  (2026-07-02, quarto 1.9.36) confirms both: `quarto render book`
+  passed, 118-page PDF, ASCII trees on Ch 2 p.19 / Ch 5 p.56 and
+  Figure 5.1 clean on p.58. Codex blind
+  audit round 1 returned 3 blockers + 1 tighten, ALL FIXED (the
+  false `.gitkeep`-in-ignored-dirs workflow rewritten in both the
+  section prose and the Try-it exercise, the latter caught on
+  Codex re-review; a stale mask claim removed; stale gate docs
+  reconciled; the synthetic-data exception added). Gate checks
+  still pending: human review and commit. **When this chapter commits, all of
+  Part I (Ch 1-5) is in and gate G3 is reached.**
 - **Chapter 4, "Navigation & file operations" (Phase 3,
   Part I, 4 of 5; drafted 2026-07-02; validator 0/0 in the
   sandbox; Mac captures reconciled 2026-07-02; Codex blind
-  audit and human review passed after fixes; commit hash to be
-  filled in the next chapter commit).**
+  audit and human review passed after fixes; committed + pushed
+  `3d5a62b`).**
   The daily navigation loop made operational on top of Ch 2's
   model. Seven content sections (5 beginner, 2 advanced) plus
   unnumbered Try-it: where you are and what is here (`pwd`,

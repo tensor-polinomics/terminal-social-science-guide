@@ -173,13 +173,27 @@ usr
 var
 ```
 
-A Linux server puts homes under `/home` instead, and its root
-holds a slightly different set of system directories, but the
-shape is the same: one rooted tree, your territory a few
-levels down. The project layout discipline for what goes
-where *inside* your territory is the companion Git book's
-canonical-layout argument; Chapter 5 will build that layout
-from the shell.
+Most of those are system directories you will rarely touch by
+hand. A handful are worth recognizing, and they mean the same
+thing across Unix systems. Here is the top of a Linux server's
+tree, annotated (macOS is the same shape, with your home under
+`/Users` rather than `/home`):
+
+```text
+/            the root of everything (one tree)
+|-- home/    user home directories (your ~)
+|-- usr/     installed programs and libraries
+|-- etc/     system-wide configuration files
+|-- var/     variable data: logs and caches
+|-- tmp/     temporary files, cleared on reboot
+`-- opt/     optional add-on software
+```
+
+The shape is the same everywhere: one rooted tree, your
+territory a few levels down inside your home. The project
+layout discipline for what goes where *inside* your territory
+is the companion Git book's canonical-layout argument;
+Chapter 5 will build that layout from the shell.
 
 ## A command becomes a process {.tier-beginner}
 

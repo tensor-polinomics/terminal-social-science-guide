@@ -1,6 +1,502 @@
 # Organizing a Project from the Shell
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 5. mkdir -p, scaffold
-     scripts, copier/cookiecutter, directory hygiene; cross-ref Git book
-     for canonical layout. Anchors the running example. Drafted in
-     Phase 3. -->
+Chapter 4 taught you to move through the tree and to make and
+copy files. This chapter is about deciding *where* they should
+go. A research project is not a heap of files in one folder; it
+is a small structure with a place for each kind of thing, so
+that six months from now you, or a stranger running your code,
+can find the raw data, the scripts, and the results without
+asking. The shell is where that structure gets built and
+navigated, and building it well is the difference between a
+project that reproduces and one that only you can run, and only
+this week.
+
+The companion Git book argues at length for *why* a project
+should be laid out this way: the replication crisis, the
+canonical folder structure that separates inputs from code from
+output, and the discipline of a package a stranger can rebuild.
+This chapter does not re-argue any of that. It takes the layout
+as given and shows how to build it, tour it, and keep it clean
+from the terminal: scaffolding the whole tree in one command,
+walking it so every file has an obvious home, keeping immutable
+raw data apart from regenerated output, and naming things so the
+project survives the trip from your Mac to a Linux server. The
+tools are the ones Chapter 4 already gave you, `mkdir` and
+`ls`, plus one habit: decide the structure once, up front, so
+you are never again guessing where a file belongs.
+
+A note on where the output comes from. Every command here runs
+in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16,
+GNU coreutils 8.32; the `ch05-*.txt` transcript files): a fresh
+`/tmp` scratch directory for building a tree from scratch, and
+a clean copy of the asset-pricing project for the tour. This
+chapter needs no separate macOS capture, because the one place
+the platforms diverge, case-insensitive filenames, was captured
+on the author's Mac for Chapter 4 and is cross-referenced here
+rather than shown twice. The scaffolding tools `copier` and
+`cookiecutter` are version-stamped from a real install
+(`ch05-scaffold-tools.txt`) but not run, for a reason the last
+section explains. Nothing in this chapter's output carries
+user-specific data, so unlike Chapter 4 there is nothing to
+mask: the demos use throwaway `/tmp` paths and plain `ls`, which
+prints no account names or home directories.
+
+## Scaffold the whole tree in one move: `mkdir -p` with braces {.tier-beginner}
+
+A project needs the same handful of directories every time: a
+place for raw data, a place for cleaned data, a place for
+scripts, a place for figures, a place for tables. You could
+make them one `mkdir` at a time, but the shell can build the
+whole tree in a single command, and doing it in one line is
+both faster and self-documenting: the command *is* the layout.
+Two features from Chapter 4 combine to do it. `mkdir -p`, which
+creates every missing parent in a path without complaint, and
+**brace expansion**, a shell feature that stamps out a list of
+paths from a compact pattern. Making the project root and then
+building its subtree in one command:
+
+```bash
+$ mkdir asset-pricing
+$ cd asset-pricing
+$ mkdir -p data/{raw,clean} scripts output/{figures,tables}
+$ echo $?
+0
+$ ls -R
+.:
+data
+output
+scripts
+
+./data:
+clean
+raw
+
+./data/clean:
+
+./data/raw:
+
+./output:
+figures
+tables
+
+./output/figures:
+
+./output/tables:
+
+./scripts:
+```
+
+One `mkdir` built five directories at two levels, and `ls -R`
+(recursive, from Chapter 4) walks the result: `data` splits
+into `raw` and `clean`, `output` splits into `figures` and
+`tables`, and `scripts` stands on its own. The work is entirely
+in the braces, and it happens *before* `mkdir` ever runs. The
+shell expands each brace group into a list of plain paths and
+hands that list to `mkdir`; `mkdir` itself never sees a brace.
+You can watch the expansion by handing the same pattern to
+`echo`, which just prints what it is given:
+
+```bash
+$ echo data/{raw,clean} scripts output/{figures,tables}
+data/raw data/clean scripts output/figures output/tables
+```
+
+That is the five paths, spelled out. `{raw,clean}` expands to
+`data/raw` and `data/clean`, `{figures,tables}` expands the same
+way under `output`, and the bare `scripts` passes through
+untouched: each comma-separated piece becomes its own word.
+Because `mkdir -p` makes every parent along the way, `data` and
+`output` are created because their children are. A group can
+even nest inside another (`{data/{raw,clean},scripts}` is
+legal), though separate groups like these read more clearly.
+This one line is the whole scaffold, worth keeping in a
+project's README so anyone can recreate the skeleton before
+dropping in files.
+
+With the directories in place, the top-level files that live at
+the project root can be created as empty placeholders with
+`touch` (Chapter 4), to be filled in later:
+
+```bash
+$ touch README.md Makefile report.qmd pyproject.toml \
+>       .gitignore
+$ ls -a
+.
+..
+.gitignore
+Makefile
+README.md
+data
+output
+pyproject.toml
+report.qmd
+scripts
+```
+
+`ls -a` (all, from Chapter 4) is used deliberately here, because
+one of the files just created, `.gitignore`, begins with a dot
+and is invisible to plain `ls`. These five are the project's
+front matter: a `README.md` that says what the project is and
+how to run it, a `Makefile` that builds it (Chapter 11), a
+`report.qmd` that renders the paper, a `pyproject.toml` that
+pins the Python environment (Chapter 12), and the `.gitignore`
+that tells Git what to leave alone. Naming them now, even empty,
+stakes out where each concern lives.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Brace expansion is strict about spaces: there must be none
+inside the braces. The shell splits a command into words on
+spaces *first*, so a stray space breaks the brace group into
+separate words and the expansion silently does not happen.
+Watch it fail:
+
+```bash
+$ echo data/{raw, clean}
+data/{raw, clean}
+$ mkdir -p data/{raw, clean}
+$ ls
+clean}
+data
+$ ls data
+{raw,
+```
+
+`echo` gives it away: instead of two paths it printed the
+pattern verbatim, braces and all, because the space stopped the
+expansion. Then `mkdir` did something worse than fail. It saw
+two words, `data/{raw,` and `clean}`, and dutifully made a
+directory literally named `data/{raw,` (a `data` folder holding
+a subdirectory called `{raw,`) and a second top-level directory
+named `clean}`. No error, exit status zero, and a tree that is
+quietly wrong. When a brace scaffold produces strange names like
+these, a stray space is almost always the cause; write the
+pattern with no spaces after the commas.
+:::
+
+## A place for everything: a tour of the project {.tier-beginner}
+
+Scaffolding makes the folders; the point of the folders is that
+every file then has one obvious home. The asset-pricing project
+that runs through this book is laid out exactly this way. Here is
+the whole tree at a glance, with each home's job annotated:
+
+```text
+asset-pricing/          the project root
+|-- data/
+|   |-- raw/            immutable inputs (never edited)
+|   `-- clean/          derived data (regenerated)
+|-- scripts/            the code, in run order (00 to 04)
+|-- output/
+|   |-- figures/        generated figures
+|   `-- tables/         generated tables
+|-- Makefile            builds the whole graph (Ch 11)
+|-- report.qmd          the Quarto/LaTeX report
+|-- README.md           what this is and how to run it
+|-- pyproject.toml      Python deps, with uv.lock (Ch 12)
+|-- uv.lock             pinned Python versions
+|-- renv.lock           R deps, pinned (Ch 12)
+`-- .gitignore          what Git leaves untracked
+```
+
+That map is the layout, not an aspiration: walking it with the
+Chapter 4 commands confirms it is really on disk. Standing at the
+project top, plain `ls` gives the shape, and `ls -R` on each
+working directory shows the contents:
+
+```bash
+$ ls
+Makefile
+README.md
+data
+output
+pyproject.toml
+renv.lock
+report.qmd
+scripts
+uv.lock
+$ ls -R data
+data:
+clean
+raw
+
+data/clean:
+analysis.parquet
+portfolio.csv
+portfolio.parquet
+
+data/raw:
+factors.csv
+firm_panel.csv
+$ ls scripts
+00_make_data.py
+01_clean.py
+02_portfolio.py
+03_figure.py
+04_regression.R
+bootstrap_renv.R
+check.py
+$ ls -R output
+output:
+figures
+tables
+
+output/figures:
+cumret.png
+
+output/tables:
+ff5_alpha.tex
+ff5_alpha.txt
+```
+
+The real output matches the annotated map line for line, which
+is the point: the structure is legible at a glance
+(@fig-ch05-layout). The part worth reading closely is the
+three-way split the annotations spell out. `data/raw` holds the
+fixed inputs the pipeline starts from (`factors.csv` and
+`firm_panel.csv`, the synthetic stand-ins for licensed data);
+`data/clean` and `output` hold everything the scripts *derive*
+from those inputs, the cleaned data on one side and the finished
+figure and table on the other; and `scripts` holds the code in
+run order, so the sequence reads off the filenames (`00` through
+`03` in Python, `04` in R, plus the helpers). The root files
+describe and drive the whole thing, the `Makefile` and
+`report.qmd` that build and render it, the `README.md` that
+explains it, and the environment locks that pin the Python and R
+versions (Chapter 12).
+
+![A research project has one home for each kind of file: fixed raw inputs, the code that reads them, and the results the code regenerates. Raw data flows in, scripts transform it, and every output can be rebuilt, so only the inputs and the code are precious.](../assets/figures/ch05/fig-ch05-layout){#fig-ch05-layout fig-alt="A left-to-right diagram. On the left, a neutral card 'data/raw' labeled immutable inputs. An arrow labeled read leads to a blue card 'scripts' in the center, the numbered code. An arrow labeled write leads to two green cards on the right, 'data/clean' and 'output/ (figures, tables)', labeled regenerated. Below, a neutral band lists the tracked root files: Makefile, report.qmd, README.md, pyproject.toml plus uv.lock, renv.lock, and .gitignore." width="5.6in" fig-pos="H"}
+
+Why this shape and not another is the companion Git book's
+argument, in its chapters on the canonical project layout and on
+shipping a replication package; the short version is that
+separating inputs, code, and output is what lets a stranger
+tell, at a glance, what they are allowed to edit and what the
+code will regenerate. The terminal's job, and this chapter's, is
+to build and move around that structure fluently. Everything
+below is about keeping it honest.
+
+## Raw in, generated out {.tier-beginner}
+
+The single most important line in the layout runs between
+`data/raw` and everything else: raw data is an **input**, never
+an output. Nothing your code does should ever write to, edit, or
+delete a file under `data/raw`. The scripts read from it and
+write their results elsewhere, to `data/clean` and to `output`,
+so that the raw inputs stay exactly as they arrived. This is
+what makes the pipeline in the tour a one-directional flow:
+`00_make_data.py` produces the raw panel, and from there every
+later step reads what exists and writes something new, never
+back over its source. One honest wrinkle in this public teaching
+project: `00_make_data.py` *generates* the synthetic raw panel,
+because real licensed data can never ship inside a repository, so
+it stands in for the one-time fetch-or-receive step a real study
+performs by hand. The rule holds from that seam onward: once
+`data/raw` exists, it is immutable input, and nothing downstream
+writes back over it.
+
+That discipline is what makes a project reproducible in the
+sense the companion Git book means. If the raw inputs are fixed
+and everything else is regenerated from them by code, then the
+results are not precious artifacts to be guarded; they are
+disposable, rebuildable at any time from inputs plus scripts. A
+figure that is wrong can be deleted and remade. A cleaned
+dataset that looks off can be traced to the script that wrote it.
+The moment you edit a generated file by hand, or edit raw data
+in place, that chain breaks and you can no longer say where a
+number came from.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The layout encodes a promise: given the contents of `data/raw`
+and `scripts`, everything else can be rebuilt. Chapter 11 makes
+that literal, one `make` command regenerates `data/clean` and
+all of `output` from the raw inputs and the code, so the results
+in the paper are never hand-assembled. Organizing the project
+this way is the precondition for that: outputs live in their own
+directory precisely so they can be wiped and rebuilt without
+touching anything you cannot regenerate. Treat `data/raw` and
+`scripts` as the only things worth protecting; treat `data/clean`
+and `output` as cache.
+:::
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Two everyday habits quietly destroy reproducibility, and both
+are about putting a file in the wrong home. The first is editing
+raw data in place: opening a file in `data/raw`, fixing a typo
+or dropping a bad row by hand, and saving it. Now the raw input
+is something no script produced and no one can reconstruct, and
+the "raw" data silently depends on an edit you will not remember.
+Do the fix in a script that reads `data/raw` and writes
+`data/clean`, so the correction is recorded as code. The second
+is letting generated files leak into `scripts` or the project
+root: saving a `results.csv` or a `plot.png` next to the code
+because it was convenient. Once output is mixed in with source,
+you can no longer delete-and-rebuild safely, because you cannot
+tell by location what is regenerable. Every file that a command
+produces belongs under `data/clean` or `output`, never beside
+the code that made it.
+:::
+
+## What Git tracks and what `make` rebuilds {.tier-beginner}
+
+Because output is regenerable and raw data is treated like
+licensed material that must never be committed, most of the tour
+is *not* stored in Git. The `.gitignore` at the project root
+draws that line, telling Git to leave `data/raw`, `data/clean`,
+and `output` untracked, so the repository holds the code and the
+recipe, not the regenerable products or the raw inputs. The
+details of what belongs in `.gitignore` and why are the
+companion Git book's territory, in its chapter on what must never
+be committed; from the shell, the thing to know is which files
+are the source of truth (the scripts, the `Makefile`, the
+`report.qmd`, the environment locks, the `README.md`) and which
+are cache (`data/clean`, `output`) or protected input
+(`data/raw`).
+
+That split has a consequence worth understanding, because it
+looks like a problem and is actually the design working. Since
+those three directories are ignored, a collaborator who clones
+the repository gets the tracked files but *none* of the data or
+output folders: they are simply not there. In this project that
+is deliberate and self-correcting, because the pipeline recreates
+each directory the moment it needs to write into it.
+`00_make_data.py` creates `data/raw` before writing the raw
+panel, `01_clean.py` creates `data/clean`, and the figure and
+table steps create `output/figures` and `output/tables`. So a
+fresh clone plus one `make` (Chapter 11) rebuilds the whole tree
+from nothing, directories included. There is no empty folder to
+preserve, because the code lays down its own.
+
+This is where a widely-repeated trick goes wrong, and it is worth
+being precise about. Git tracks files, not directories, so a
+genuinely empty directory will not survive a commit on its own,
+and the usual fix is a placeholder file, conventionally named
+`.gitkeep`, that gives the directory something to track. But
+`.gitkeep` only works when the directory is *not* ignored.
+Dropping a `.gitkeep` into `data/raw` here would do nothing:
+`.gitignore` ignores everything beneath that path, the
+placeholder included, so Git never sees it. You cannot keep what
+you have told Git to ignore. In this project, then, you would not
+reach for `.gitkeep` at all; the scripts recreate the ignored
+directories. Reserve `.gitkeep` for the other situation, a
+directory you *do* want in the repository but that happens to
+start empty, such as a tracked `logs/` folder a script writes
+into, and never expect it to resurrect an ignored one.
+
+## Names that survive the trip to the server {.tier-advanced}
+
+A layout is only as portable as the names in it, and names are
+where a project built on a Mac quietly breaks on a Linux server.
+Chapter 4 showed the mechanism: the default macOS filesystem
+treats `Data.csv` and `data.csv` as the same file, while a Linux
+server treats them as two. The layout consequence is concrete. A
+script that reads `data/Raw/panel.csv` while the folder on disk
+is `data/raw` runs fine on the Mac, where the case does not
+matter, and fails with "No such file or directory" the moment
+the project is copied to the case-sensitive server it was always
+meant to run on.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+This is Chapter 4's case-sensitivity divergence seen from the
+project's point of view, and the defense is a naming convention
+rather than a command. Pick one case for every directory and
+file in the layout and never deviate, and let lowercase be that
+case: `data`, not `Data`; `output`, not `Output`. Avoid spaces
+in names too, because a path with a space must be quoted every
+time it appears (`"my data/raw"`), and one forgotten quote splits
+it into two arguments, the same word-splitting that broke the
+brace scaffold earlier; use an underscore or a hyphen instead.
+The rule is small and pays off exactly when it is most expensive
+to debug, after you have SSH'd the project to a server (Chapter
+13) and the pipeline that ran all week on your laptop cannot find
+its own folders. The captured macOS side of this collision is in
+`transcripts/ch04-case-mac.txt`, from the previous chapter.
+:::
+
+## Templating a stable layout: `copier` and `cookiecutter` {.tier-advanced}
+
+Once you have built the same scaffold a few times, the `mkdir -p`
+one-liner starts to feel like something that should be saved.
+Two tools do exactly that: they turn a project layout into a
+reusable template you can stamp out a fresh copy from, with the
+directories, the placeholder files, the `.gitignore`, and even a
+starter `README` already in place. `cookiecutter` is the
+long-standing one; `copier` is a newer alternative whose extra
+trick is that it can *update* an existing project when the
+template later changes. As of 2026-07-02 the current releases are
+`cookiecutter` 2.7.1 and `copier` 9.16.0, both installable from
+PyPI into a Python environment (`ch05-scaffold-tools.txt`).
+
+This book does not run either tool, and the reason is a matter of
+scope rather than difficulty. A template is itself a small
+project with its own syntax, placeholder variables, a
+configuration file, a directory whose name is a substitution
+token, and teaching that syntax would pull the chapter away from
+the terminal and into a tool's templating language. What matters
+here is the idea and when to reach for it: once your layout has
+stabilized across two or three projects, promote it from a
+command you retype to a template you instantiate, so every new
+study starts from the same clean structure. A template invocation
+looks like this, shown only to illustrate the shape, not run:
+
+```text
+# illustrative; not executed in this book.
+# create a new project from a saved template:
+cookiecutter gh:your-org/asset-pricing-template
+# or, with copier:
+copier copy gh:your-org/asset-pricing-template my-new-study
+```
+
+Each command asks a few questions (the project name, the author)
+and writes a complete, correctly-named tree, the whole scaffold
+of this chapter produced in one step. Until your layout has
+settled, though, the `mkdir -p` one-liner is the right tool: it
+is portable, it needs nothing installed, and it keeps the
+structure in plain sight. Reach for a template when you are
+copying the same folders for the third time, not before.
+
+## Try it yourself {.unnumbered}
+
+These build and inspect a project skeleton, so they create
+directories and files. Do them in a throwaway `/tmp` directory,
+never in a real project. Start each session by moving somewhere
+safe to experiment:
+
+```text
+# illustrative setup (placeholder path; not a captured run):
+mkdir -p /tmp/ch05-play
+cd /tmp/ch05-play
+```
+
+Everything below happens in there; `/tmp` is cleared on reboot,
+so nothing you make will linger.
+
+1. Scaffold the whole tree in one line. Using one `mkdir -p`
+   with brace expansion, build `study/` containing `data/raw`,
+   `data/clean`, `scripts`, `output/figures`, and
+   `output/tables`. Confirm with `ls -R study`. Before you run
+   it, predict how many directories the command will create;
+   then check with `echo` on the same brace pattern.
+
+2. Trip the space pitfall on purpose. Run `echo
+   data/{raw, clean}` with a space after the comma and read what
+   prints. Then run the same pattern under `mkdir -p`, list the
+   result, and explain in one sentence why you now have
+   directories named `clean}` and `{raw,`.
+
+3. Place the front-matter files. With one `touch`, create empty
+   `README.md`, `Makefile`, and `.gitignore` at the top of
+   `study/`. List the directory two ways, `ls` and `ls -a`, and
+   say which file appears only under `ls -a` and why.
+
+4. Test the `.gitkeep` boundary. Create a non-ignored empty
+   directory such as `study/logs/`, add `study/logs/.gitkeep`
+   with `touch`, and find it with `find study -name .gitkeep`.
+   Then explain, in one sentence, why you would *not* put a
+   `.gitkeep` under `data/raw`, `data/clean`, or `output` once
+   those paths are listed in `.gitignore`.
+
+5. Sort files into their homes. Imagine three files, a raw
+   `firm_panel.csv`, a script `01_clean.py`, and a generated
+   `cumret.png`. Say which of the five leaf directories each
+   belongs in, and which one of the three you would protect from
+   ever being overwritten because nothing can regenerate it.

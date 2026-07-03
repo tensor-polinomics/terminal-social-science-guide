@@ -1,0 +1,19 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: cookiecutter 2.7.1, copier 9.16.0 (pip, PyPI)
+date: 2026-07-02
+captured-by: sandbox
+note: version evidence only (Ch 16 version-stamp pattern). The
+      tools install from PyPI in the sandbox but the chapter does
+      NOT run a template scaffold (that would teach template
+      syntax, out of scope for Ch 5). Versions read from the
+      packages themselves via `python3 -c` because a
+      `pip install --break-system-packages` console script is not
+      on PATH here; no user-specific data is shown.
+---
+$ python3 -c "import cookiecutter; print('cookiecutter', cookiecutter.__version__)"
+cookiecutter 2.7.1
+$ python3 -c "import copier; print('copier', copier.__version__)"
+copier 9.16.0
