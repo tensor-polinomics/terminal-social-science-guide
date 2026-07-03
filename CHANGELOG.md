@@ -8,6 +8,76 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 7, "Text and Tabular Data as Data" (Phase 4,
+  Part II, 1 of 3; drafted 2026-07-02; Mac captures ingested
+  and reconciled byte-for-byte 2026-07-03; validator 0/0 in
+  the sandbox; all 39 shown blocks transcript-backed; gate G4
+  stays open until Ch 8 and Ch 9 also land).** Treats text and
+  tabular files as data from the shell, in two passes: lines
+  and fields, then tables. Seven content sections (5 beginner,
+  2 advanced) plus unnumbered Try-it: `grep` for content search
+  (`-F`, `-n`, `-c`, and anchoring a pattern to the file's
+  structure); the globs-vs-regex line Chapter 6 explicitly
+  deferred here (shell expands filename globs before the
+  command runs; grep/sed interpret regexes over line content);
+  `sed` as a stream editor (row windows with `-n 'N,Mp'`,
+  header rename redirected to a NEW file per Ch 5's
+  raw-in/generated-out hygiene, and the `sed -i` in-place
+  hazard); the tabular toolkit `cut`/`sort`/`uniq`/`tr`
+  (balance-check via `uniq -c`, ranking via `sort -t, -k2,2gr`
+  with the `-g`-not-`-n` scientific-notation point, CRLF
+  stripping with `tr -d '\r'`); `awk` kept deliberately shallow
+  (fields, a filter with the header-sneaks-past-a-numeric-
+  comparison lesson, a column mean; awk-as-programming is an
+  explicit PLAN cut); `jq` on the project's real `renv.lock`
+  (keys, key path, length, iterate-and-format with `-r`); and
+  the DuckDB CLI as the chapter's climax, real SQL directly
+  over the raw CSVs and the clean Parquet (SELECT, DESCRIBE,
+  aggregate counts, a firm_panel x factors join, a Parquet
+  count), version-stamped (DuckDB CLI v1.5.4 "Variegata",
+  captured on the Mac 2026-07-03) and pinned to duckdb.org
+  docs. Callouts: 2 PITFALL (grep matches
+  anywhere in the line, 3640 vs the anchored 3600; `uniq`
+  collapses only adjacent duplicates), 1 DANGER (`sed -i` on a
+  data file is the `>` clobber wearing an editor's clothes,
+  ties to Ch 5 raw-data immutability), 2 DIVERGENCE (BSD
+  `sed -i` REQUIRES a backup suffix vs GNU optional; macOS BWK
+  awk vs gawk, with the shallow subset portable and `systime()`
+  as the gawk-only trap), 1 REPRODUCIBILITY (locale flips
+  `sort` order and stream checksums; pinning deferred to
+  Ch 10). No figure (none earned). Real output: nine sandbox
+  transcripts (`ch07-grep.txt`, `ch07-regex-glob.txt`,
+  `ch07-sed.txt`, `ch07-sed-inplace.txt`, `ch07-tabular.txt`,
+  `ch07-tr.txt`, `ch07-locale.txt`, `ch07-awk.txt`,
+  `ch07-jq.txt`), all in a clean `/tmp` copy of the
+  asset-pricing project with file-creating demos in throwaway
+  scratch; all 39 shown blocks byte-diffed against them. The
+  eight Mac-backed blocks (BSD `sed -i`, `systime()`, six
+  DuckDB blocks) quote `capture-ch07-mac.sh` output, ingested
+  and reconciled byte-for-byte on 2026-07-03 (DuckDB is REAL
+  Mac capture, not quarantine: the CLI is installed on the Mac
+  but not installable in the sandbox). Reconcile changed three
+  drafted guesses to match reality: the BSD `sed` error text
+  spans a newline (`"factors.csv` then `": invalid command
+  code f`), the DuckDB CLI is v1.5.4 not the placeholder
+  v1.4.1, and `DESCRIBE` prints `NULL` in its
+  null/key/default/extra columns, not empty fields; the
+  `systime()` failure, awk counts, join floats, and Parquet
+  count matched as drafted. The cross-platform locale check
+  came back the opposite of the drafted worry: on the Mac,
+  `sort` under `C` and `en_US.UTF-8` produced byte-identical
+  order and the same two checksums as the sandbox, so the
+  REPRODUCIBILITY callout was rewritten to report that
+  agreement rather than assert a divergence that did not
+  occur. The DuckDB blocks use
+  `-csv` output on purpose: the CLI's default duckbox table
+  draws Unicode box glyphs, the class the book's LaTeX PDF
+  drops (the Ch 5 render lesson). Scope held: no
+  `find`/`fd`/`ripgrep` (Chapter 8), no pipe re-teaching
+  (Chapter 6, cross-referenced), no locale pinning (Chapter
+  10), no environments teaching (Chapter 12; `renv.lock` is
+  used as data only). Sources/provenance in
+  `verification/chapter-07.md`.
 - **House-style device: annotated structure trees (2026-07-02,
   human-review request).** Codified in `CLAUDE.md` (Writing
   rules): when a chapter shows a directory/file *layout*, pair a
@@ -26,8 +96,9 @@ are not part of this repo; this file is the repo-visible history.
   Ch 13 (`~/.ssh/`), and Ch 17 (dotfiles) when those are drafted.
   Both the Ch 2 and Ch 5 trees are ASCII now (validator 0/0), and
   Codex's Mac re-render (2026-07-02, quarto 1.9.36, 118-page PDF)
-  confirms they render correctly (Ch 2 p.19, Ch 5 p.56); only the
-  commit remains.
+  confirms they render correctly (Ch 2 p.19, Ch 5 p.56); both
+  trees are committed in `6d46e79` (the Ch 2 retrofit rode with
+  the Ch 5 commit).
 - **Chapter 5, "Organizing a Project from the Shell" (Phase 3,
   Part I, 5 of 5, the LAST Part-I chapter; drafted 2026-07-02;
   validator 0/0 in the sandbox + canonical Mac `uv run`; render

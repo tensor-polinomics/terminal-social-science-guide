@@ -1,0 +1,36 @@
+# transcript
+chapter: 07
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD sed (macOS base)
+date: 2026-07-03
+captured-by: user-mac
+note: BSD `sed -i` requires a backup-suffix argument; GNU sed
+note: makes it optional. The bare GNU form therefore FAILS on
+note: macOS (recorded with its real error and exit status),
+note: `-i ''` edits with no backup, and `-i.bak` keeps one.
+note: Run on a COPY of factors.csv in a mktemp scratch, never
+note: on the project's raw file. No user data in these lines.
+---
+
+$ head -1 factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+
+$ sed -i 's/mkt_rf/mkt_excess/' factors.csv
+sed: 1: "factors.csv
+": invalid command code f
+$ echo $?
+1
+
+$ sed -i '' 's/mkt_rf/mkt_excess/' factors.csv
+$ head -1 factors.csv
+month,mkt_excess,smb,hml,rmw,cma,rf
+$ ls
+factors.csv
+
+$ sed -i.bak 's/mkt_excess/mkt_rf/' factors.csv
+$ ls
+factors.csv
+factors.csv.bak
+$ head -1 factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf

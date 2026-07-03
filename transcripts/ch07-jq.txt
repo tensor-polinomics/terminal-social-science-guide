@@ -1,0 +1,33 @@
+# transcript
+chapter: 07
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: jq 1.6
+date: 2026-07-02
+captured-by: sandbox
+note: run in a clean copy of the asset-pricing project placed at
+note: /tmp/ap, on the project's real renv.lock (the R lockfile
+note: Chapter 12 will teach). Upstream package metadata inside
+note: renv.lock is third-party data, not user data (mask policy).
+note: No user-specific data is shown, so no masks are applied.
+---
+
+$ jq 'keys' renv.lock
+[
+  "Packages",
+  "R"
+]
+
+$ jq '.R.Version' renv.lock
+"4.5.3"
+
+$ jq '.Packages | length' renv.lock
+36
+
+$ jq -r '.Packages[] | "\(.Package) \(.Version)"' renv.lock \
+    | head -5
+Formula 1.2-5
+R6 2.6.1
+Rcpp 1.1.1-1.1
+base64enc 0.1-6
+bslib 0.11.0

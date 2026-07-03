@@ -1,0 +1,31 @@
+# transcript
+chapter: 07
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: macOS awk (BWK awk, macOS base)
+date: 2026-07-03
+captured-by: user-mac
+note: macOS ships BWK awk (the "one true awk"), not gawk. The
+note: shallow subset Ch 7 teaches (fields, a filter, a sum) is
+note: portable: the same commands on the same deterministic
+note: factors.csv should print the same numbers as the sandbox
+note: gawk run (ch07-awk.txt). A gawk-only extension
+note: (systime()) is then run and recorded honestly, working or
+note: failing. No user data in these lines.
+---
+
+$ awk --version
+awk version 20200816
+
+$ awk -F, 'NR > 1 && $2 > 0.05' data/raw/factors.csv \
+    | wc -l
+      33
+
+$ awk -F, 'NR > 1 {s += $2} END {print s/(NR-1)}' \
+    data/raw/factors.csv
+0.00718315
+
+$ awk 'BEGIN {print systime()}'; echo "exit=$?"
+awk: calling undefined function systime
+ source line number 1
+exit=2

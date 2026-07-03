@@ -1,0 +1,44 @@
+# transcript
+chapter: 07
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD sort (macOS base); shasum -a 256
+date: 2026-07-03
+captured-by: user-mac
+note: The same nine project-root names the sandbox sorted
+note: (ch07-locale.txt), rebuilt in scratch, sorted under
+note: LC_ALL=C and LC_ALL=en_US.UTF-8 on BSD sort. Collation
+note: is defined by each platform's own locale data, so
+note: whichever order appears is recorded honestly and
+note: compared with the sandbox listing. Checksums
+note: via `shasum -a 256` (macOS has no sha256sum, the Ch 3
+note: DIVERGENCE). No user data in these lines.
+---
+
+$ ls | LC_ALL=C sort
+Makefile
+README.md
+data
+output
+pyproject.toml
+renv.lock
+report.qmd
+scripts
+uv.lock
+
+$ ls | LC_ALL=en_US.UTF-8 sort
+data
+Makefile
+output
+pyproject.toml
+README.md
+renv.lock
+report.qmd
+scripts
+uv.lock
+
+$ ls | LC_ALL=C sort | shasum -a 256
+2335b02adba1ce58be51aa40608aeeaeaaf7c9ebf1ec56a974b11b3ccb339b03  -
+
+$ ls | LC_ALL=en_US.UTF-8 sort | shasum -a 256
+544c6e649ab60e0263fb3bb70b7c249fa5ec804261abea3465f4b11b4f5964a6  -

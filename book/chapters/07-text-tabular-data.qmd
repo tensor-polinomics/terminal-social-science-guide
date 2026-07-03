@@ -1,6 +1,802 @@
 # Text and Tabular Data as Data
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 7. grep, sed, awk
-     (shallow), sort, uniq, cut, tr, jq. + DuckDB CLI for CSV/Parquet
-     inspection and joins (preferred over deep awk). Drafted in
-     Phase 4. -->
+Chapter 6 built the plumbing: streams, redirection, and pipes
+that move text from one command to the next. This chapter is
+about what flows through that plumbing, because for a
+researcher the answer is usually your own data. A CSV file is
+just text with commas in it, and that plain fact is a
+superpower: the same shell that lists directories can answer
+real questions about a fifty-thousand-row panel, which month
+had the best market return, whether the panel is balanced,
+what a column is called, without opening a notebook, a
+spreadsheet, or R. The questions take seconds at the prompt,
+and each one is a command you can paste into a script or a
+Makefile later.
+
+The chapter makes two passes over the same idea. The first
+pass treats files as **lines and fields**: `grep` finds lines,
+`sed` edits a stream of them, `cut`, `sort`, `uniq`, and `tr`
+slice and order fields, and `awk` filters and sums them. The
+second pass treats files as **tables**: `jq` for JSON, and the
+DuckDB command-line client, which runs real SQL directly over
+CSV and Parquet files and is where this book sends you the
+moment a question involves a join or a group-by. Along the way
+the chapter draws the line Chapter 6 deferred here: shell
+globs and regular expressions look alike, and are different
+languages for different jobs.
+
+A note on where the output comes from. The `grep`, `sed`,
+`awk`, `cut`, `sort`, `uniq`, `tr`, and `jq` demonstrations
+run in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash
+5.1.16, GNU coreutils 8.32, GNU grep 3.7, GNU sed 4.8, GNU
+Awk 5.1.0, jq 1.6; the `ch07-*.txt` transcript files), in a
+clean copy of the asset-pricing project placed at `/tmp/ap`,
+with every file-creating or in-place demonstration confined to
+a throwaway `/tmp` scratch directory, never the project's own
+data. The macOS/BSD divergences (`sed -i`, awk, `sort` under a
+locale) and the DuckDB session are captured on the author's
+Mac (`transcripts/capture-ch07-mac.sh`, the `ch07-*-mac.txt`
+files) and quoted where they bite. Nothing in this chapter's
+shown output carries user-specific data, so no masks appear in
+the blocks; the capture script still applies the standard
+masks at capture time as a guard.
+
+## Search without opening the file: `grep` {.tier-beginner}
+
+`grep` reads lines and prints the ones that match a pattern.
+That one sentence covers most of its daily use: it is how you
+look something up in a data file without opening it. What did
+the market do in June 2015? Ask the factor file:
+
+```bash
+$ grep '2015-06' data/raw/factors.csv
+2015-06,0.088176,0.034192,-0.050628,-0.007006,-0.000442,0.001629
+```
+
+One command, one line back: the market's excess return that
+month was 8.8 percent (the second field; the header a moment
+ago named it `mkt_rf`). When the thing you are looking for is
+a literal string rather than a pattern, `-F` says so, and it
+is the right habit for values copied out of a data file,
+because it turns off every special character:
+
+```bash
+$ grep -F 'F0000,2011-01' data/raw/firm_panel.csv
+F0000,2011-01,-0.012231,911.6632,41.9506,1387.1572
+```
+
+That is firm `F0000`'s first row in the panel. Two more
+options finish the daily kit. `-n` prints the line number of
+each match, which is how you learn the header is line 1:
+
+```bash
+$ grep -n 'mkt_rf' data/raw/factors.csv
+1:month,mkt_rf,smb,hml,rmw,cma,rf
+```
+
+And `-c` counts matching lines instead of printing them. How
+many panel rows belong to 2011? Anchor the year between the
+comma that ends the firm column and the month's own hyphen,
+and count:
+
+```bash
+$ grep -c ',2011-' data/raw/firm_panel.csv
+3600
+```
+
+Three hundred firms times twelve months is 3,600 rows, so the
+panel's 2011 is complete. The why of that odd-looking pattern,
+with its leading comma and trailing hyphen, is the next
+pitfall.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+`grep` matches **anywhere in the line**, not in a column. A
+CSV row is one line to `grep`, and a pattern that means "the
+year 2011" to you is just four digits to it, free to match
+inside an accounting value like `82011.4`. Drop the anchors
+from the count above and watch the answer change:
+
+```bash
+$ grep -c '2011' data/raw/firm_panel.csv
+3640
+```
+
+Forty phantom rows: lines from other years whose book equity,
+earnings, or assets happen to contain the digits `2011`. The
+anchored pattern `,2011-` pins the match to the panel's
+structure (the comma that closes the firm column, the hyphen
+that continues the month), which is why it returns the correct
+3,600. The habit: when you `grep` a data file, anchor the
+pattern to the file's structure, and when the question is
+really about one column, reach for the column tools later in
+this chapter, which parse fields instead of scanning lines.
+:::
+
+## Globs match filenames, regex matches content {.tier-beginner}
+
+Chapter 6 introduced globbing, the shell's own wildcard
+language, and promised that this chapter would separate it
+from regular expressions. Here is the line. A **glob** is
+expanded by the *shell*, before the command runs, and it
+matches **filenames**. A **regular expression** is interpreted
+by the *command* (`grep` here, `sed` in the next section), and
+it matches **text content**, usually one line at a time. They
+look similar, they even share characters, and the same
+character means different things in each.
+
+Watch the two languages answer lookalike questions about the
+pipeline's clean data directory:
+
+```bash
+$ ls data/clean/*.csv
+data/clean/portfolio.csv
+```
+
+```bash
+$ ls data/clean | grep '\.csv$'
+portfolio.csv
+```
+
+The first line is a glob: the shell expands
+`data/clean/*.csv` into matching *paths* and hands them to
+`ls` as arguments. The second is a regex: `ls` writes every
+name in the directory to its stdout, one per line as Chapter 6
+showed, and `grep` keeps the lines that match. The patterns
+are spelled differently because the languages differ. In the
+glob, `*` alone means "any run of characters" and the dot is
+literal. In the regex, a dot matches *any* character, so it is
+escaped as `\.` to mean a real dot, `$` anchors the match to
+the end of the line, and the glob's `*` has no counterpart
+here at all (a regex `*` means "repeat the previous item," a
+different job entirely). Swap the pattern and the same
+pipeline inspects the other format in the directory:
+
+```bash
+$ ls data/clean | grep '\.parquet$'
+analysis.parquet
+portfolio.parquet
+```
+
+Regular expressions earn their keep on content. The panel's
+firm identifiers run `F0000` through `F0299`, so "the firms
+numbered 10 through 19" is a one-liner, using the regex dot as
+a single-character wildcard between anchors:
+
+```bash
+$ cut -d, -f1 data/raw/firm_panel.csv | grep '^F001.$' \
+    | sort -u
+F0010
+F0011
+F0012
+F0013
+F0014
+F0015
+F0016
+F0017
+F0018
+F0019
+```
+
+`^` pins the match to the start of the line and `$` to the
+end, so the pattern must cover the whole identifier: `F001`
+followed by exactly one character. The `-E` option turns on
+extended syntax, whose most useful addition is alternation
+with `|`. Comparing two Januaries side by side:
+
+```bash
+$ grep -E '^(2015|2016)-01,' data/raw/factors.csv \
+    | cut -d, -f1,2
+2015-01,0.081108
+2016-01,-0.002365
+```
+
+That is as deep as this book goes into regex syntax: literal
+text, `.`, `^`, `$`, character classes like `[0-9]`, and
+`-E`'s alternation cover nearly every data-file question in
+practice. The durable point is the division of labor: globs
+for *which files*, regex for *which lines*. Chapter 8 will
+draw the same line from the other side, when it searches file
+trees and their contents.
+
+## Edit the stream, not the file: `sed` {.tier-beginner}
+
+`sed`, the stream editor, reads lines, applies an edit, and
+writes the result to stdout. Its everyday form is the
+substitution `s/old/new/`, and its everyday virtue is that it
+does **not** touch the input file: the edit happens to the
+stream, and you decide where the stream lands. First, though,
+its simplest trick: `-n` with a line range prints a window of
+a file, like `head` but starting anywhere:
+
+```bash
+$ sed -n '1,3p' data/raw/factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+2011-01,0.001383,-0.028095,0.011202,0.015937,0.008839,0.001464
+2011-02,0.040907,0.02056,0.029508,-0.002205,0.023696,0.000857
+```
+
+`-n` suppresses sed's default print-everything behavior and
+`1,3p` prints lines 1 through 3, a quick look at any slice of
+a file too big to open. Now the substitution. Say a
+collaborator's code expects the market column to be called
+`mkt_excess` instead of `mkt_rf`. The `1s/old/new/` form
+applies the substitution to line 1 only, the header, and the
+result is redirected to a **new file** in scratch, exactly the
+raw-in, generated-out discipline Chapter 5 set for this
+project:
+
+```bash
+$ sed '1s/mkt_rf/mkt_excess/' data/raw/factors.csv \
+    > /tmp/ch07/factors_renamed.csv
+$ head -1 /tmp/ch07/factors_renamed.csv
+month,mkt_excess,smb,hml,rmw,cma,rf
+$ head -1 data/raw/factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+```
+
+The renamed copy exists, the raw input is untouched, and the
+command that produced the copy is a reproducible record of
+what changed. That is the shape almost every `sed` use in a
+research pipeline should take: raw file in, edited file out,
+under a new name in a generated directory.
+
+`sed` also has an in-place mode, `-i`, which rewrites the
+input file itself. It exists because it is sometimes what you
+want (a hundred config files, none of them raw data), and it
+is the sharpest edge in this chapter. Run on a throwaway copy
+in scratch, here is what it does with no backup suffix, under
+GNU sed:
+
+```bash
+$ sed -i 's/mkt_rf/mkt_excess/' factors.csv
+$ head -1 factors.csv
+month,mkt_excess,smb,hml,rmw,cma,rf
+$ ls
+factors.csv
+```
+
+The file was rewritten in place. `ls` shows what did *not*
+happen: no backup, no second file, nothing to restore from.
+Given a suffix, `-i.bak` keeps the previous version beside the
+new one:
+
+```bash
+$ sed -i.bak 's/mkt_excess/mkt_rf/' factors.csv
+$ ls
+factors.csv
+factors.csv.bak
+$ head -1 factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+```
+
+::: {.callout-caution .danger title="DANGER"}
+`sed -i` on a data file is an irreversible overwrite, the same
+hazard as Chapter 6's `>` clobber wearing an editor's clothes.
+Chapter 5's rule is that raw data is immutable: a raw input
+edited in place is a raw input **destroyed**, and the
+provenance chain from the original file to your results is
+broken at its first link, silently. The discipline that avoids
+the edge entirely is the one shown above: write the edit to a
+new file with `>` and leave the input alone. When you truly
+mean in-place (generated files, config, never raw data), use
+the backup form `-i.bak`, check the result, then delete the
+backup yourself. And do not reach for the no-backup form out
+of habit: on a Mac it does not even parse, as the next callout
+shows.
+:::
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+BSD `sed` (macOS) **requires** an argument after `-i`, the
+backup suffix; GNU `sed` (Linux) makes it optional. The bare
+GNU form therefore fails outright on a Mac, captured on the
+author's machine in `transcripts/ch07-sed-mac.txt`:
+
+```bash
+$ sed -i 's/mkt_rf/mkt_excess/' factors.csv
+sed: 1: "factors.csv
+": invalid command code f
+$ echo $?
+1
+```
+
+The error looks baffling until you see the parse: BSD `sed`
+consumed the substitution as the backup *suffix* and then
+tried to run the filename as its edit script. The portable
+spellings are `-i ''` (BSD: empty suffix, no backup; this
+exact form fails on GNU) and, better, `-i.bak` with **no
+space**, which both implementations accept and which leaves a
+backup you can delete once you have checked the result. In a
+script meant for both platforms, write `-i.bak` or avoid `-i`
+altogether and redirect to a new file.
+:::
+
+## Columns from lines: `cut`, `sort`, `uniq`, and `tr` {.tier-beginner}
+
+`grep` selects rows. The natural companion selects columns:
+`cut -d, -f...` splits each line on a delimiter and keeps the
+fields you name. The month and market columns of the factor
+file:
+
+```bash
+$ cut -d, -f1,2 data/raw/factors.csv | head -3
+month,mkt_rf
+2011-01,0.001383
+2011-02,0.040907
+```
+
+Chapter 6 already chained `cut` into a pipe to count distinct
+firms. The same idea with `uniq -c`, which collapses *adjacent*
+duplicate lines and prefixes each with its count, turns the
+firm column into a frequency table, the fastest balance check
+a panel can get:
+
+```bash
+$ cut -d, -f1 data/raw/firm_panel.csv | tail -n +2 \
+    | sort | uniq -c | head -3
+    180 F0000
+    180 F0001
+    180 F0002
+```
+
+Each of the first three firms has exactly 180 rows, one per
+month. The `sort` in the middle of that pipe is not
+decoration, and the next pitfall is for everyone who has ever
+dropped it.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+`uniq` only collapses duplicates that are **adjacent**. It
+compares each line to the previous one, nothing more, so on
+unsorted input it silently reports groups that are no groups
+at all. The panel is ordered firm by firm, so its month column
+cycles 180 values 300 times, and `uniq` without `sort` finds
+54,000 "unique" months:
+
+```bash
+$ cut -d, -f2 data/raw/firm_panel.csv | tail -n +2 \
+    | uniq | wc -l
+54000
+
+$ cut -d, -f2 data/raw/firm_panel.csv | tail -n +2 \
+    | sort | uniq | wc -l
+180
+```
+
+No error, no warning, just a wrong answer three hundred times
+too large. The rule is mechanical: `uniq` is always `sort |
+uniq` unless you can state exactly why the input is already
+grouped. (`sort -u` fuses the pair when you only need the
+distinct values, as Chapter 6's firm count did; you need the
+separate `uniq -c` when you want the counts.)
+:::
+
+`sort` itself is more than a `uniq` chaperone. With a field
+separator and a key it orders a file by any column, and with
+`g` it compares the key as a number rather than as text. The
+three best market months in the sample, largest first (`r`
+reverses):
+
+```bash
+$ tail -n +2 data/raw/factors.csv | sort -t, -k2,2gr \
+    | cut -d, -f1,2 | head -3
+2012-02,0.138602
+2025-10,0.11817
+2022-07,0.113066
+```
+
+`-t,` sets the delimiter, `-k2,2` says "sort by field 2 and
+only field 2," and `g` is the general numeric comparison. The
+more common numeric flag `-n` would be wrong here, quietly: a
+handful of this file's stored values are small enough to be
+written in scientific notation (`-4.2e-05` appears in the hml
+column), and `-n` does not parse the exponent, reading the
+value as `-4.2`. `g` handles both spellings. That is worth a
+sentence because it is the shape of most `sort` surprises: the
+order is only as right as the comparison rule you asked for.
+
+The last tool in the kit, `tr`, translates or deletes
+individual characters in a stream. Its research niche is
+janitorial, and one job dominates: stripping the carriage
+returns that Windows tools and spreadsheet exports leave at
+the end of every line (the CRLF line endings Chapter 3 flagged
+around WSL2). The demonstration builds a two-line "export" in
+scratch; `cat -et` makes the invisible visible, printing `^M`
+for a carriage return and `$` at each true line end:
+
+```bash
+$ printf 'month,ret\r\n2011-01,0.0124\r\n' > export.csv
+$ cat -et export.csv
+month,ret^M$
+2011-01,0.0124^M$
+```
+
+```bash
+$ tr -d '\r' < export.csv > export_unix.csv
+$ cat -et export_unix.csv
+month,ret$
+2011-01,0.0124$
+```
+
+Those stray `^M`s are a classic silent saboteur: a field that
+looks like `0.0124` but ends in an invisible carriage return
+will fail a numeric parse or a string comparison downstream,
+and nothing on a normal screen shows you why. `tr -d '\r'`
+deletes the character everywhere in the stream, and the fixed
+copy goes to a new file, same hygiene as always. (Note that
+`tr` reads only stdin, hence the `<` redirect; it takes no
+filename arguments.)
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+`sort` order depends on the **locale**, the environment's
+language and collation setting, and that makes byte-level
+reproducibility hostage to an environment variable. The same
+nine filenames, sorted under the POSIX `C` locale and under
+`en_US.UTF-8`, in the sandbox:
+
+```bash
+$ ls | LC_ALL=C sort
+Makefile
+README.md
+data
+output
+pyproject.toml
+renv.lock
+report.qmd
+scripts
+uv.lock
+```
+
+```bash
+$ ls | LC_ALL=en_US.UTF-8 sort
+data
+Makefile
+output
+pyproject.toml
+README.md
+renv.lock
+report.qmd
+scripts
+uv.lock
+```
+
+`C` compares raw byte values, so every uppercase letter sorts
+before every lowercase one; `en_US.UTF-8` uses dictionary
+order, interleaving them. Neither is wrong, but they are
+different, and difference is fatal to anything downstream that
+hashes the stream, like the checksums this book's pipeline
+uses to lock its data (Chapter 11):
+
+```bash
+$ ls | LC_ALL=C sort | sha256sum
+2335b02adba1ce58be51aa40608aeeaeaaf7c9ebf1ec56a974b11b3ccb339b03  -
+
+$ ls | LC_ALL=en_US.UTF-8 sort | sha256sum
+544c6e649ab60e0263fb3bb70b7c249fa5ec804261abea3465f4b11b4f5964a6  -
+```
+
+Same data, two "correct" checksums. The cross-platform
+picture is subtler than the warning usually goes. On the
+author's Mac, BSD `sort` under these same two locale names
+produced byte-identical order and the identical two checksums
+(`transcripts/ch07-sort-locale-mac.txt`), so here the two
+systems agreed. That agreement is not something to lean on: a
+locale name like `en_US.UTF-8` promises a language, not a byte
+order, and collation comes from each platform's own locale
+data, which need not match. The safe habit is to stop
+depending on it, and pin the locale, `LC_ALL=C`, in any script
+whose output order matters; Chapter 10 will make that pin part
+of this book's standard script header rather than teaching it
+here.
+:::
+
+## `awk`, the twenty percent {.tier-advanced}
+
+`awk` is a full programming language, and this book refuses to
+teach it as one, because for a researcher with Python and R a
+long awk program is a worse version of a script you already
+know how to write. What earns awk its place at the prompt is
+the twenty percent that fits in one line: it splits each line
+into fields like `cut`, but it can also **compare** and
+**compute** with them. Three moves cover it.
+
+Move one, print fields (`-F,` sets the separator, `$1` is the
+first field, `$0` would be the whole line):
+
+```bash
+$ awk -F, '{print $1, $2}' data/raw/factors.csv | head -3
+month mkt_rf
+2011-01 0.001383
+2011-02 0.040907
+```
+
+Move two, filter rows by a condition, something `cut` cannot
+do. A pattern like `$2 > 0.05` keeps lines whose second field
+exceeds five percent, but watch the first attempt:
+
+```bash
+$ awk -F, '$2 > 0.05' data/raw/factors.csv | head -3
+month,mkt_rf,smb,hml,rmw,cma,rf
+2011-03,0.061601,0.03776,-0.054344,-0.021434,-0.016718,0.001313
+2011-08,0.069974,-0.002876,-0.022937,-0.000778,0.000871,0.001456
+```
+
+The header sneaked through: its second field is the *string*
+`mkt_rf`, the comparison falls back to string order, and the
+string comparison comes out true. The guard is `NR`, awk's
+running line number, and `NR > 1` is the idiom that means
+"skip the header":
+
+```bash
+$ awk -F, 'NR > 1 && $2 > 0.05' data/raw/factors.csv \
+    | wc -l
+33
+```
+
+Thirty-three of 180 months had a market excess return above
+five percent. Move three, accumulate, using a variable and an
+`END` block that runs after the last line. The mean monthly
+market excess return, straight from the raw file:
+
+```bash
+$ awk -F, 'NR > 1 {s += $2} END {print s/(NR-1)}' \
+    data/raw/factors.csv
+0.00718315
+```
+
+About 0.72 percent per month, a plausibly calibrated market
+premium, and a number you just computed with no notebook, no
+import, no dataframe. That is the whole shallow kit: fields, a
+filter, a sum. The moment you feel a second variable, an
+`if`/`else`, or a join coming on, stop; the honest tools for
+that are the DuckDB section below or the Python and R scripts
+your pipeline already versions. That boundary is not a
+limitation of awk, it is a decision this book makes for scope
+and for reproducibility: one-liners are records, programs
+belong in files.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+Linux distributions ship GNU Awk (`gawk`); macOS ships the
+original BWK `awk` (Brian Kernighan's "one true awk"). For
+everything this section teaches they agree, and the capture
+proves it on the same deterministic data: the filter count
+(33) and the mean (0.00718315) come back byte-identical on the
+author's Mac (`transcripts/ch07-awk-mac.txt`). The split
+appears the moment you use a gawk *extension*. gawk's time
+functions are the classic trap, absent from BWK awk:
+
+```bash
+$ awk 'BEGIN {print systime()}'; echo "exit=$?"
+awk: calling undefined function systime
+ source line number 1
+exit=2
+```
+
+The portable habit matches the section's own advice: keep awk
+one-liners inside the shallow kit (fields, filters, sums, all
+POSIX awk) and they run everywhere; anything fancy enough to
+need gawk's manual is fancy enough to be a Python script.
+:::
+
+## JSON without tears: `jq` {.tier-advanced}
+
+Not everything a researcher touches is tabular. API responses,
+package lockfiles, and tool configuration are JSON, nested
+braces that `cut` and `awk` cannot parse, and the tool for
+them is `jq`: it reads JSON, applies a small query, and prints
+the result. The project has a real JSON file to practice on,
+`renv.lock`, the R package lockfile that Chapter 12 will teach
+(for now it is just structured data). Orientation first,
+because `keys` is to a JSON file what `head -1` is to a CSV:
+
+```bash
+$ jq 'keys' renv.lock
+[
+  "Packages",
+  "R"
+]
+```
+
+Two top-level objects. A path of keys drills in; `.R.Version`
+reads "the `Version` field inside the `R` object":
+
+```bash
+$ jq '.R.Version' renv.lock
+"4.5.3"
+```
+
+Piping inside jq works like piping in the shell, and `length`
+counts whatever it receives:
+
+```bash
+$ jq '.Packages | length' renv.lock
+36
+```
+
+Thirty-six pinned packages. The last pattern is the one you
+will reuse everywhere: iterate over a collection with `[]`,
+format each element with string interpolation, and add `-r`
+(raw) so the output is plain text without JSON quotes, ready
+for the rest of this chapter's tools:
+
+```bash
+$ jq -r '.Packages[] | "\(.Package) \(.Version)"' renv.lock \
+    | head -5
+Formula 1.2-5
+R6 2.6.1
+Rcpp 1.1.1-1.1
+base64enc 0.1-6
+bslib 0.11.0
+```
+
+A package-version table from a nested lockfile, one line, and
+because of `-r` you could `grep` it, `sort` it, or diff it
+against another machine's lockfile. Those four patterns, keys,
+a key path, `length`, and iterate-and-format, are the jq
+equivalent of the shallow awk kit: enough for every
+look-something-up job, with a real query language underneath
+when you eventually want more.
+
+## When lines run out: SQL over CSV and Parquet with DuckDB {.tier-beginner}
+
+Every tool so far sees lines. The questions that outgrow them
+are the ones that see **tables**: join the panel to the factor
+file, average a column by group, filter on a type. You could
+bend awk into that shape; this book will not, because there is
+a better tool that speaks the language empirical researchers
+already know. **DuckDB** is a single-binary SQL database
+(installed with `brew install duckdb`, Chapter 3's package
+manager; current as of 2026-07-03) whose command-line client
+runs queries **directly against data files**: no server, no
+schema setup, no import step. You quote a file path where a
+table name would go, and DuckDB infers the columns and types.
+
+A note on provenance for this section: the DuckDB CLI is not
+installable in the book's locked-down sandbox, so these blocks
+are captured on the author's Mac
+(`transcripts/ch07-duckdb-mac.txt`), against the same
+deterministic, hash-locked data files every other section
+used, which is why the counts below agree with the sandbox
+runs above. The `-csv` flag makes the client print plain CSV
+instead of its default box-drawn table, keeping the output in
+the same format the rest of this chapter reads and writes
+(and pipeable into every tool above).
+
+```bash
+$ duckdb --version
+v1.5.4 (Variegata) 08e34c447b
+```
+
+The simplest query is a look at a file, the SQL spelling of
+`head`:
+
+```bash
+$ duckdb -csv -c "SELECT month, mkt_rf \
+    FROM 'data/raw/factors.csv' LIMIT 3;"
+month,mkt_rf
+2011-01,0.001383
+2011-02,0.040907
+2011-03,0.061601
+```
+
+`DESCRIBE` answers "what columns does this file have, and what
+types did DuckDB infer," the question every analysis should
+ask before trusting a file:
+
+```bash
+$ duckdb -csv -c "DESCRIBE SELECT * \
+    FROM 'data/raw/firm_panel.csv';"
+column_name,column_type,null,key,default,extra
+firm,VARCHAR,YES,NULL,NULL,NULL
+month,VARCHAR,YES,NULL,NULL,NULL
+ret,DOUBLE,YES,NULL,NULL,NULL
+book_equity,DOUBLE,YES,NULL,NULL,NULL
+earnings,DOUBLE,YES,NULL,NULL,NULL
+assets,DOUBLE,YES,NULL,NULL,NULL
+```
+
+Identifiers came in as text and every measure as a double, so
+the inference is sane. Aggregation is one query, and it
+reproduces the two counts this chapter has already computed
+the hard way (the `wc -l` pipe in Chapter 6, the `uniq -c`
+table above):
+
+```bash
+$ duckdb -csv -c "SELECT count(*) AS n_rows, \
+    count(DISTINCT firm) AS n_firms \
+    FROM 'data/raw/firm_panel.csv';"
+n_rows,n_firms
+54000,300
+```
+
+Now the query that is the section's whole argument, the one no
+line tool does well: **join** the panel to the factor file on
+month, and compare the average firm return to the market each
+month. Longer SQL reads better on multiple lines, so this run
+feeds a heredoc (Chapter 6's redirection family, aimed at
+stdin) to the client:
+
+```bash
+$ duckdb -csv <<'SQL'
+SELECT p.month, avg(p.ret) AS mean_ret, f.mkt_rf
+FROM 'data/raw/firm_panel.csv' p
+JOIN 'data/raw/factors.csv' f USING (month)
+GROUP BY p.month, f.mkt_rf
+ORDER BY p.month
+LIMIT 3;
+SQL
+month,mean_ret,mkt_rf
+2011-01,-0.0066718333333333334,0.001383
+2011-02,0.04969140333333332,0.040907
+2011-03,0.07497466333333329,0.061601
+```
+
+Two files, a join, a group-by, and an ordered result, in six
+readable lines of a language many empirical researchers
+already half know. The same query as an awk program would be a
+page. Finally, the format frontier: the pipeline's clean data
+is **Parquet**, a compressed columnar format that is not text
+at all. `grep` and `cut` cannot even open it; to DuckDB it is
+just another path:
+
+```bash
+$ duckdb -csv -c "SELECT count(*) AS n_months \
+    FROM 'data/clean/portfolio.parquet';"
+n_months
+179
+```
+
+One hundred seventy-nine months of the long-short portfolio,
+one fewer than the factor file's 180 because the strategy's
+one-month signal lag drops the first month, a number you can
+now check from the prompt without launching Python. That is
+the division of labor this chapter ends on: the line tools for
+looking, anchoring, and gluing; DuckDB the moment the question
+is relational or the file is columnar; and your versioned
+Python and R scripts, not the prompt, for the estimation and
+figures that go in the paper (the pipeline Chapter 11 wires
+together). DuckDB's SQL goes far beyond what is shown here;
+the CSV and Parquet readers are documented at duckdb.org,
+pinned in this chapter's verification log.
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5. Everything
+here is read-only except item 4, which writes new files; do
+that one in `/tmp`, never in your real project. The DuckDB
+item needs `duckdb` installed (`brew install duckdb`).
+
+1. Look up the market's excess return in your own birthday
+   month (any month from 2011-01 to 2025-12) with one `grep`
+   on `data/raw/factors.csv`. Then count that month's rows in
+   `data/raw/firm_panel.csv` twice: once with the bare month
+   string, once anchored with the comma as `,YYYY-MM`. If the
+   two counts differ, find one offending line and name the
+   column the phantom match lives in.
+
+2. Verify the panel is balanced in the other direction: build
+   a `cut | tail | sort | uniq -c` pipe on the *month* column
+   showing every month appears exactly 300 times. Then drop
+   the `sort` and explain the number `uniq | wc -l` reports.
+
+3. The three *worst* market months: rerun the section's
+   `sort -t, -k2,2gr` ranking without the `r`, and confirm
+   the bottom of the market's sample distribution. Why is `g`
+   rather than `n` the safe numeric flag on this file?
+
+4. Rename the `rf` header column to `riskfree` with `sed`,
+   writing the result to `/tmp/factors_rf.csv`, and confirm
+   with `head -1` that the original is untouched. Then, on a
+   throwaway copy in `/tmp`, do the same edit with `-i.bak`
+   and list the directory to see what the suffix bought you.
+
+5. Read one package's pin out of the lockfile: print the
+   `Version` of `fixest` from `renv.lock` with a `jq` key
+   path. Then produce the full package-version table and
+   `grep` it for `fixest`. Which of the two would you rather
+   put in a script, and why?
+
+6. In one DuckDB query, compute the average long-short return
+   (`ls_ret`) from `data/clean/portfolio.parquet`, and compare
+   it to the pipeline's locked monthly alpha of 0.0034 from
+   Chapter 11. (They will not match, and the gap is the
+   point: one is a raw mean, the other a factor-adjusted
+   intercept.)
