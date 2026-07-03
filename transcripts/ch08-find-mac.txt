@@ -1,0 +1,30 @@
+# transcript
+chapter: 08
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD find (macOS base)
+date: 2026-07-03
+captured-by: user-mac
+note: BSD `find` (macOS) diverges from GNU find (Linux, the
+note: sandbox). The regex engine is selected with a `-E` flag
+note: BEFORE the path, not GNU's `-regextype`; `-printf` does
+note: not exist; and a starting path is required. Run in a
+note: throwaway git-repo copy of the project. Listings sorted
+note: for determinism. No user data in these lines.
+---
+
+$ find -E scripts -regex '.*/0[0-9]_.*[.]py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+
+$ find scripts -name '*.py' -printf '%f\n'
+find: -printf: unknown primary or operator
+
+$ find -name '*.py'
+find: illegal option -- n
+usage: find [-H | -L | -P] [-EXdsx] [-f path] path ... [expression]
+       find [-H | -L | -P] [-EXdsx] -f path [path ...] [expression]
+$ echo $?
+1

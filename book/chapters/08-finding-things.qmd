@@ -1,5 +1,549 @@
 # Finding Things
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 8. find + fd, ripgrep;
-     globbing vs regex; reinforce null-safety from Ch 6. Drafted in
-     Phase 4. -->
+Chapter 7 searched *inside* a file: `grep` scanned the lines of
+one factor file, `awk` summed one column, DuckDB queried one
+CSV by name. Every one of those commands already knew which
+file to open. This chapter answers the question that comes
+before that one: *which file?* A real project is a tree of
+directories, and two questions recur constantly once it grows
+past a handful of files. Where is the script that builds the
+portfolio? Which files mention the long-short return? The
+first is a search for files *by their names and properties*;
+the second is a search *through their contents*, across a
+whole tree at once. The shell has a sharp tool for each, and a
+fast modern pair that does the same jobs with better defaults.
+
+The plan is three tools and one trap. `find` walks a directory
+tree and selects files by name, type, age, or size, and can
+act on what it selects. `ripgrep` (`rg`) is Chapter 7's `grep`
+turned loose on a tree: it searches file *contents*
+recursively, and it is the tool you reach for to answer "where
+in my code is this variable used." `fd` is a friendlier `find`
+with defaults tuned for exactly this kind of project work. The
+trap, saved for last, is that the two fast tools quietly skip
+the files your `.gitignore` lists, which for a researcher is
+often the data, so a search can come back clean and wrong.
+Chapter 7 drew the line between shell globs and regular
+expressions from the text-matching side; this chapter draws
+the same line from the file-finding side, where `find -name`
+takes a glob and `find -regex` and `rg` take a regex.
+
+A note on where the output comes from. The `find`, `rg`, and
+`xargs` runs are executed in this book's Linux sandbox (Ubuntu
+22.04.5, GNU findutils 4.8.0, ripgrep 13.0.0), in a clean copy
+of the asset-pricing project placed at `/tmp/ap` and turned
+into a git repository so the ignore behavior is real, with
+every file-deleting demonstration confined to a throwaway
+`/tmp` scratch directory, never the project's own files. The
+macOS/BSD `find` divergences and the `fd` runs are captured on
+the author's Mac (`transcripts/capture-ch08-mac.sh`, the
+`ch08-*-mac.txt` files), because `fd` is not installable in the
+sandbox and BSD `find` differs from GNU `find`. Nothing in this
+chapter's shown output carries user-specific data, so no masks
+appear in the blocks; the capture script still applies the
+standard masks at capture time as a guard.
+
+## Finding files by name: `find` {.tier-beginner}
+
+`find` takes a place to start and a test to apply, and prints
+every file beneath that place that passes the test. The
+everyday test is `-name`, which matches a filename against a
+shell-style glob. Where are the project's Python scripts?
+
+```bash
+$ find scripts -name '*.py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+scripts/check.py
+```
+
+The first argument, `scripts`, is where to look; `-name
+'*.py'` is what to match. The `'*.py'` is quoted for a reason
+Chapter 6 made central: unquoted, the shell would try to
+expand `*.py` itself, in the current directory, before `find`
+ever ran. Quoting hands the pattern to `find` intact, so
+`find` applies it at every level of the tree. The `| sort` is
+not decoration either: `find` returns results in the order it
+happens to walk the directory, which is unspecified and not
+worth relying on, so piping through `sort` makes the output
+stable and readable. That habit pays off the moment you diff
+two `find` listings or feed them to another command.
+
+`-name` is case-sensitive and matches the filename only, not
+the path, so it finds a match at any depth beneath the
+starting point. Add a second test to narrow the results:
+
+```bash
+$ find scripts -type f -name '*.R' | sort
+scripts/04_regression.R
+scripts/bootstrap_renv.R
+```
+
+That combines two tests: `-type f` restricts the results to
+regular files, and `-name '*.R'` to R scripts. Multiple tests
+written in a row are joined with an implicit "and," so a file
+must pass all of them. `-type f` is the one you will add most
+often, because it filters out directories that happen to match
+the name pattern; its companions are `-type d` for directories
+and `-type l` for symbolic links.
+
+## Finding by type, time, and size {.tier-beginner}
+
+Name is only the most obvious property. `find` can select on
+the same file metadata Chapter 4 read with `ls -l` and `stat`:
+how big a file is, and when it last changed. Size first,
+because it needs no setup. Which raw file is large enough to
+be worth worrying about on a slow disk or a metered transfer?
+
+```bash
+$ find data -size +1M
+data/raw/firm_panel.csv
+```
+
+`-size +1M` means "larger than one megabyte"; the `+` is
+"greater than," and `M` is megabytes (`k` and `G` also work).
+The firm panel is the only file over that line, which is the
+kind of thing worth knowing before you `rsync` a project to a
+server (Chapter 13). Time works the same way, with `-mtime`
+counting the days since a file was last modified. Because
+"days ago" is measured from the moment the command runs, the
+cleanest way to show it is on files with deliberately set
+timestamps, in a throwaway scratch directory:
+
+```bash
+$ touch -d '2020-06-01 12:00:00' old_backup.csv
+$ touch -d '2026-07-01 09:00:00' recent_edit.py
+```
+
+```bash
+$ find . -type f -mtime -30 | sort
+./recent_edit.py
+```
+
+```bash
+$ find . -type f -mtime +365 | sort
+./old_backup.csv
+```
+
+`-mtime -30` reads "modified fewer than 30 days ago" and
+`-mtime +365` reads "modified more than 365 days ago"; the
+minus means "within," the plus means "older than." The recent
+file passes the first test, the stale one passes the second.
+This is how you find the files you actually touched this week
+in a project you have not opened in months, or spot a stale
+output that a rerun should have refreshed. The signs are easy
+to reverse in your head, so read `-mtime -N` as "newer than N
+days" and `-mtime +N` as "older than N days" and check the
+answer against a file whose age you know.
+
+## Acting on what you find: `-exec` and null-safe `xargs` {.tier-beginner}
+
+Finding files is half the job; the other half is doing
+something with them. `find` can run a command on each result
+with `-exec`. The `{}` stands for each found file and the `+`
+gathers them into as few command invocations as possible:
+
+```bash
+$ find scripts -name '*.py' -exec wc -l {} +
+   76 scripts/02_portfolio.py
+   52 scripts/03_figure.py
+  219 scripts/00_make_data.py
+   70 scripts/01_clean.py
+  129 scripts/check.py
+  546 total
+```
+
+That counted the lines of every Python script in the tree with
+one `wc` call. The older, more flexible way to do the same
+thing pipes the file list into `xargs`, which builds a command
+from its input. But a plain pipe splits that list on
+whitespace, and a filename with a space in it (a `Final
+Draft.csv` a collaborator sent) would arrive as two broken
+names. Chapter 6 taught the fix, and it is mandatory here too:
+`find -print0` separates names with a null byte, the one
+character a filename can never contain, and `xargs -0` reads
+them the same way.
+
+```bash
+$ find scripts -name '*.py' -print0 | xargs -0 wc -l
+   76 scripts/02_portfolio.py
+   52 scripts/03_figure.py
+  219 scripts/00_make_data.py
+   70 scripts/01_clean.py
+  129 scripts/check.py
+  546 total
+```
+
+Same answer, and safe against spaces, newlines, and every
+other awkward character a filename can legally hold. The rule
+from Chapter 6 stands: any time `find` output flows into
+another command through a pipe, it is `-print0` into `xargs
+-0`, never a bare pipe. When the action is built into `find`
+as `-exec`, the quoting is handled for you and the null-byte
+question does not arise.
+
+The same machinery that runs `wc` can run `rm`, and that turns
+a search into a bulk deletion. This is where finding things
+becomes dangerous.
+
+::: {.callout-caution .danger title="DANGER"}
+`find` can delete every file it matches, with `-delete` or
+`-exec rm {} +`, and it does so without a second look, across
+the whole tree, in one command. A pattern that is a little too
+broad, or the right pattern started in the wrong directory,
+deletes files you meant to keep, and there is no undo, the same
+irreversible edge as Chapter 6's `rm -rf` and Chapter 5's rule
+that raw data is immutable. The habit that defuses it is to
+look before you leap: run the search with `-print` first, read
+the list, and only then swap in the destructive action.
+
+```bash
+$ find . -name '*.log' -print | sort
+./logs/run1.log
+./logs/run2.log
+```
+
+Those are the files that will die. Having seen them, and only
+now, the deletion is safe:
+
+```bash
+$ find . -name '*.log' -delete
+$ find . | sort
+.
+./keep.txt
+./logs
+```
+
+The two log files are gone and `keep.txt` remains. Never let
+the first time you see a match list be *after* you deleted it.
+:::
+
+## Glob or regex, from the finding side {.tier-beginner}
+
+Chapter 7 promised this line would be drawn again from the
+other direction, and here it is. When `find` matches a name,
+`-name` speaks the shell's **glob** language: `*` is any run of
+characters, `?` is exactly one, and the dot is a literal dot.
+The four numbered scripts, by way of a glob:
+
+```bash
+$ find scripts -name '0?_*.py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+```
+
+`0?_*.py` reads "a zero, then any one character, then an
+underscore, then anything, then `.py`," which is exactly the
+`0N_name.py` shape and excludes `check.py`. The same selection
+as a **regular expression** uses `find -regex`, and the two
+patterns look different because the languages are different:
+
+```bash
+$ find scripts -regextype posix-extended \
+    -regex '.*/0[0-9]_.*[.]py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+```
+
+Three differences carry the whole distinction. `-regex`
+matches the **entire path**, not just the filename, so the
+pattern opens with `.*/` to cover the `scripts/` prefix; in the
+glob, `-name` matched the bare name and no path was mentioned.
+In the regex, `.` means "any character," so a literal dot is
+written `[.]` (or `\.`), the reverse of the glob, where the
+dot was already literal. And the regex `.*` ("any character,
+any number of times") is two characters doing the job the
+glob's lone `*` did, because in a regex `*` means "repeat the
+thing before me." The durable split is the one Chapter 7
+named: a glob is a compact language for filenames, a regex is
+a general language for text, and `find` lets you choose which
+one to match a path against. Reach for `-name` and its globs
+first, because they are shorter and cover most file-finding;
+reach for `-regex` when the question genuinely needs
+alternation or character classes across the path.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`find` is one of the sharpest BSD-versus-GNU divergences on
+everyday commands. Two bite in this chapter. First, the regex
+flag: GNU `find` (Linux) selects the engine with `-regextype
+posix-extended`, shown above; BSD `find` (macOS) has no
+`-regextype` and instead takes a `-E` flag *before* the
+starting path. The portable-on-Mac spelling of the same
+search, captured on the author's machine
+(`transcripts/ch08-find-mac.txt`):
+
+```bash
+$ find -E scripts -regex '.*/0[0-9]_.*[.]py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+```
+
+Second, output formatting: GNU `find` has `-printf` to print a
+chosen field of each result, such as `%f` for the bare
+filename:
+
+```bash
+$ find scripts -name '*.py' -printf '%f\n' | sort
+00_make_data.py
+01_clean.py
+02_portfolio.py
+03_figure.py
+check.py
+```
+
+BSD `find` has no `-printf` at all, so the same command is an
+error on a Mac:
+
+```bash
+$ find scripts -name '*.py' -printf '%f\n'
+find: -printf: unknown primary or operator
+```
+
+BSD `find` is also stricter about the starting path: GNU
+`find` treats a missing path as the current directory, while
+BSD `find` requires one. The portable habit is to always give
+`find` an explicit starting path (write `find .`, never a bare
+`find`), stick to `-name` globs and the tests both share
+(`-type`, `-size`, `-mtime`), and drop to platform-specific
+regex or formatting flags only inside a script you know the
+platform of. The appendix divergence table collects these.
+:::
+
+## Searching contents across a tree: `ripgrep` {.tier-beginner}
+
+`find` matches on a file's name and metadata; it never looks
+inside. Chapter 7's `grep` looked inside, but at one file you
+named. The tool that looks inside *every* file in a tree is
+`ripgrep`, run as `rg`. Point it at a directory and a pattern,
+and it searches the contents of every file underneath,
+reporting each match with its file, line number, and line. The
+question no single-file `grep` answers well, "everywhere in my
+pipeline that the long-short return is touched," is one `rg`:
+
+```bash
+$ rg -n 'ls_ret' scripts
+scripts/check.py:69:    m = sm.OLS(df["ls_ret"], X).fit()
+scripts/04_regression.R:16:#   ls_ret = alpha + b1 mkt_rf + b2 smb + b3 hml
+scripts/04_regression.R:30:  ls_ret ~ mkt_rf + smb + hml + rmw + cma,
+scripts/03_figure.py:30:            ((1.0 + pl.col("ls_ret")).cum_prod() - 1.0)
+scripts/02_portfolio.py:54:        (pl.col("high") - pl.col("low")).alias("ls_ret"),
+scripts/02_portfolio.py:55:    ).select(["month_date", "ls_ret"]).sort("month_date")
+scripts/02_portfolio.py:71:    print(f"mean ls_ret={merged['ls_ret'].mean():.6f}  "
+scripts/02_portfolio.py:72:          f"sd={merged['ls_ret'].std():.6f}")
+```
+
+One command traced the variable across four files and two
+languages: defined in `02_portfolio.py`, plotted in
+`03_figure.py`, regressed in `04_regression.R`, and checked in
+`check.py`. `rg` recurses by default, so no `-r` flag and no
+starting `find` is needed; `-n` adds the line numbers. Three
+things make `rg` the right default for this. It is recursive
+without being asked, it is fast on a large tree, and, as the
+last section of this chapter shows, it knows which files are
+noise and skips them. When you want counts rather than the
+lines themselves, `-c` reports matches per file:
+
+```bash
+$ rg -c 'ls_ret' scripts | sort
+scripts/02_portfolio.py:4
+scripts/03_figure.py:1
+scripts/04_regression.R:2
+scripts/check.py:1
+```
+
+`rg` also lets you narrow *which files* it opens, and this is
+where the chapter's glob-versus-regex line reappears one last
+time. The `-g` flag takes a **glob** that filters filenames,
+while the search pattern itself is always a **regex**. Restrict
+the same search to R files with a glob:
+
+```bash
+$ rg -n -g '*.R' 'ls_ret' scripts
+scripts/04_regression.R:16:#   ls_ret = alpha + b1 mkt_rf + b2 smb + b3 hml
+scripts/04_regression.R:30:  ls_ret ~ mkt_rf + smb + hml + rmw + cma,
+```
+
+And because the pattern is a regex, character classes work
+inside it exactly as they did for `grep` in Chapter 7. The
+regression's five factor coefficients, named `b1` through `b5`:
+
+```bash
+$ rg -o 'b[0-9]' scripts/04_regression.R
+b1
+b2
+b3
+b4
+b5
+```
+
+`-o` prints only the matched text rather than the whole line.
+The division of labor is the same one Chapter 7 drew, now with
+a tool that applies both halves at once: a glob (`-g`) chooses
+the files, a regex (the pattern) chooses the lines.
+
+## `fd`: the ergonomic `find` {.tier-advanced}
+
+`find` is universal and portable, and its syntax shows its
+age: tests spelled `-name`, `-type`, `-print0`, an argument
+order that trips everyone at first. `fd` is a modern
+rewrite that keeps the job and changes the defaults to match
+what project work usually wants. It is a separate install
+(`brew install fd`, Chapter 3's package manager; current as of
+2026-07-03) and, like DuckDB in Chapter 7, it is not
+installable in this book's sandbox, so these blocks are
+captured on the author's Mac (`transcripts/ch08-fd-mac.txt`).
+
+```bash
+$ fd --version
+fd 10.4.2
+```
+
+The everyday form is `fd PATTERN`, and the differences from
+`find` are all defaults. `fd` searches from the current
+directory without being told, matches with a regex rather than
+a glob, and is smart-case (lowercase matches anything, mixed
+case is exact). To find files by extension it has `-e`:
+
+```bash
+$ fd -e py | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+scripts/check.py
+```
+
+That is the whole command, against `find scripts -name '*.py'`
+or `find . -type f -name '*.py'`. The output is the same set of
+files; the typing is a fraction of it, which is why `fd` is
+pleasant for interactive work. For scripts meant to run on a
+bare server, `find` is still the safe choice because it is
+always present; `fd` is the tool you install on your own
+machine to make the daily search quick. But `fd` shares one
+default with `rg` that is a genuine trap for a researcher, and
+that default is the subject of the last section.
+
+## When search skips your data {.tier-advanced}
+
+Here is a search that looks like it worked and did not. The
+word `firm` runs all through the project, so list every file
+that contains it:
+
+```bash
+$ rg -l 'firm' . | sort
+./Makefile
+./README.md
+./report.qmd
+./scripts/00_make_data.py
+./scripts/01_clean.py
+./scripts/02_portfolio.py
+./scripts/check.py
+```
+
+Seven files, a clean result, nothing to suggest anything is
+missing. But the file with more `firm` in it than any other,
+the raw panel `data/raw/firm_panel.csv` with its 54,000 firm
+rows, is not on the list. `rg` skipped it on purpose. Inside a
+git repository, `rg` (and `fd`) read the project's `.gitignore`
+and silently omit every path it lists, and this project's
+`.gitignore`, following the rule Chapter 5 set, ignores the
+`data/` and `output/` directories because they are rebuilt
+from code, not stored in Git. The same default that keeps a
+search from drowning in `node_modules` or a `.venv` also hides
+your data. Turn the filtering off with `--no-ignore` and the
+panel reappears:
+
+```bash
+$ rg -l --no-ignore 'firm' . | sort
+./Makefile
+./README.md
+./data/raw/firm_panel.csv
+./report.qmd
+./scripts/00_make_data.py
+./scripts/01_clean.py
+./scripts/02_portfolio.py
+./scripts/check.py
+```
+
+Eight files now, the panel among them. (ripgrep's `-u`
+"unrestricted" flag loosens the same filtering, and repeats:
+`-uu` also searches hidden files.) The behavior is tied to the
+git
+repository: the ignore rules apply to files `rg` discovers by
+walking the tree, so pointing it straight at an ignored path
+searches that path anyway, `rg firm data/` reads the panel
+without complaint. `find`, the older tool, never consulted
+`.gitignore` at all, which is why `find . -name 'firm_panel.csv'`
+finds it every time.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+`rg` and `fd` skip `.gitignore`d files by default, and for a
+researcher the ignored files are usually the data and the
+outputs, the very things you most often go hunting for. A
+recursive search that returns a plausible-looking list is not
+proof the thing you wanted is absent: it may live in an ignored
+directory, invisible to the default search. `fd` has the same
+default and the same escape hatch:
+
+```bash
+$ fd firm_panel
+
+$ fd -I firm_panel
+data/raw/firm_panel.csv
+```
+
+The first command, the plain search, prints nothing; `-I`
+(also `--no-ignore`) turns filtering off and the file appears.
+The habit worth building: when you are searching for a *data*
+file or a generated output and the fast tools come back empty
+or short, rerun with `--no-ignore` (`rg`) or `-I` (`fd`), or
+name the directory directly, before you conclude the file is
+not there. When in doubt, `find` never filtered in the first
+place.
+:::
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5, inside its
+git repository. Everything here is read-only except item 3,
+which deletes files; do that one in `/tmp`, never in your real
+project. Items 5 and 6 need `fd` installed (`brew install fd`).
+
+1. Find every Python script in the project two ways: with
+   `find` and a `-name` glob, and with `find -type f` added.
+   Then find every file larger than 500 kilobytes with
+   `-size +500k` and name which directory each lives in.
+
+2. Count the lines of all the R scripts in `scripts/` with a
+   null-safe `find -print0 | xargs -0 wc -l`. Then rerun it
+   with a bare pipe (`find ... | xargs wc -l`) and confirm it
+   still works here, then explain why it would break if one of
+   the scripts were named `final draft.R`.
+
+3. In a throwaway `/tmp` directory, create a few `.tmp` files
+   and one file to keep, then delete only the `.tmp` files with
+   `find`: run it with `-print` first, read the list, and only
+   then swap in `-delete`. Confirm the kept file survived.
+
+4. Search the `scripts/` tree for every use of the word
+   `signal` with `rg -n`, then narrow the search to Python
+   files only with `-g '*.py'`. How many files does each
+   search touch, and which language did the glob exclude?
+
+5. Repeat item 1's file search with `fd -e py`, then time your
+   typing against the `find` version. Which would you put in a
+   Makefile meant to run on a Linux server you do not control,
+   and why?
+
+6. Search the whole project for the string `mkt_rf` with `rg`,
+   then with `rg --no-ignore`. Explain the difference in the
+   file lists in terms of the project's `.gitignore`, and name
+   one file that appears only in the second list.

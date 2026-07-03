@@ -1,0 +1,19 @@
+# transcript
+chapter: 08
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU findutils 4.8.0
+date: 2026-07-03
+captured-by: sandbox
+note: GNU find's -printf formats each result; %f is the
+note: bare filename, %p the path. -printf is a GNU
+note: extension (BSD find lacks it; see the Mac capture).
+note: Clean /tmp project copy. No user data.
+---
+
+$ find scripts -name '*.py' -printf '%f\n' | sort
+00_make_data.py
+01_clean.py
+02_portfolio.py
+03_figure.py
+check.py

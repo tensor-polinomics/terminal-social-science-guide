@@ -8,11 +8,89 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 8, "Finding Things" (Phase 4, Part II, 2 of 3;
+  drafted 2026-07-03; Mac captures reconciled byte-for-byte
+  2026-07-03; validator 0/0 in the sandbox and canonical
+  `uv run` on the Mac; `quarto render book` passed, 142-page
+  PDF, Ch 8 pp. 94-104, no overflow; Codex blind audit passed
+  (two should-tighten fixes applied: a prose/command mismatch
+  and a byte-identity blank line in the `fd firm_panel` block);
+  human review passed, and this is the Mac closeout commit;
+  gate G4 stays open until Ch 9 also lands. This commit also
+  carries the pending Ch 7 `10cc8b0` CHANGELOG hash-line touch,
+  since a commit cannot contain its own hash).** Finding
+  files in a tree and searching their contents across it, the
+  layer beneath Chapter 7 (which searched inside one named
+  file). Seven content sections (5 beginner, 2 advanced) plus
+  unnumbered Try-it: `find` by name with a `-name` glob (and
+  why the glob is quoted, and why listings are piped through
+  `sort` since `find`'s traversal order is unspecified);
+  `find` by `-type`, `-size`, and `-mtime` (the last shown on
+  files given known timestamps in throwaway scratch, since
+  "days ago" is measured from now); acting on results with
+  `-exec ... {} +` and the null-safe `find -print0 | xargs -0`
+  that REINFORCES (not re-teaches) Chapter 6; the glob-vs-regex
+  line from the finding side (`find -name` takes a glob,
+  `find -regex` a regex over the whole path), which delivers
+  Chapter 7's explicit forward promise; `ripgrep` (`rg`) as
+  Chapter 7's `grep` turned loose on a tree (recursive by
+  default, `-n`/`-c`, `-g` glob file-filter vs the regex
+  pattern), traced across four scripts and two languages via
+  the running example's `ls_ret`; `fd` as the ergonomic modern
+  `find` (regex by default, smart-case, `-e` extension); and
+  the ignore-aware trap. Callouts: 1 DIVERGENCE (BSD vs GNU
+  `find`: GNU `-regextype posix-extended` vs BSD `-E` before
+  the path, GNU `-printf` absent on BSD, BSD requiring a
+  starting path), 1 DANGER (`find -delete` / `-exec rm` across
+  a tree with no undo; the look-before-you-leap habit of
+  `-print` first, ties to Chapter 6's clobber and Chapter 5's
+  raw-data immutability), 1 PITFALL (the headline finding:
+  `rg` and `fd` skip `.gitignore`d paths by default, so a
+  recursive search silently omits the ignored `data/` and
+  `output/` dirs, the very files a researcher hunts; the fix
+  is `--no-ignore` / `-I`, naming the path directly, or plain
+  `find` which never filtered). No RECOVERY (the DANGER's
+  lesson is prevention), no REPRODUCIBILITY (not earned), no
+  figure. A verified subtlety, not assumed: `rg`/`fd` only
+  honor `.gitignore` INSIDE a git repository (a bare `/tmp`
+  copy does not skip `data/` until `.git` exists), and the
+  filtering applies to files found by traversal, not to a path
+  named explicitly (`rg firm data/` reads the ignored dir).
+  Real output: eight sandbox transcripts (`ch08-find.txt`,
+  `ch08-find-time.txt`, `ch08-exec-xargs.txt`,
+  `ch08-glob-regex.txt`, `ch08-printf.txt`, `ch08-rg.txt`,
+  `ch08-ignore.txt`, `ch08-find-delete.txt`; GNU findutils
+  4.8.0, ripgrep 13.0.0), run in a clean `/tmp` copy of the
+  asset-pricing project made a git repo so the ignore behavior
+  is real, with every deletion demo in throwaway `/tmp`
+  scratch. The six Mac-backed blocks (BSD `find` `-E`/`-printf`
+  divergences, four `fd` blocks) were captured on the author's
+  Mac via `capture-ch08-mac.sh` (a throwaway git-repo copy;
+  standard capture-time masks incl. the `$TMPDIR` scrub) and
+  reconciled byte-for-byte 2026-07-03: five matched the draft,
+  one changed (`fd --version` is `fd 10.4.2`, not the drafted
+  placeholder `fd 10.2.0`, the Ch 7 DuckDB-version lesson), and
+  the no-path check confirmed BSD `find` requires a starting
+  path (`find: illegal option -- n`). `fd` is REAL Mac capture,
+  not quarantine (user decision 2026-07-03): installed on the
+  Mac, a blocked GitHub-release binary in the sandbox. Scope
+  held: no re-teaching of Chapter 7's single-file `grep` or the
+  regex primer (referenced and contrasted: `rg` = `grep` across
+  a tree), no re-teaching of Chapter 6 pipes/quoting (null-
+  safety reinforced only); processes/permissions (Chapter 9)
+  and locale pinning (Chapter 10) stay forward. The modern kit
+  is bounded to `fd`/`rg` (no `bat`/`eza`/`delta`, which are
+  viewing, not finding, Chapter 15). Sources: the git-repo
+  scoping of `.gitignore` filtering is pinned to the ripgrep
+  GUIDE and fd README (both fetched 2026-07-03), plus the live
+  captures; logged in `verification/chapter-08.md`.
 - **Chapter 7, "Text and Tabular Data as Data" (Phase 4,
-  Part II, 1 of 3; drafted 2026-07-02; Mac captures ingested
-  and reconciled byte-for-byte 2026-07-03; validator 0/0 in
-  the sandbox; all 39 shown blocks transcript-backed; gate G4
-  stays open until Ch 8 and Ch 9 also land).** Treats text and
+  Part II, 1 of 3; drafted 2026-07-02; Mac captures reconciled
+  byte-for-byte 2026-07-03; validator 0/0 in the sandbox and
+  canonical `uv run` on the Mac; all 39 shown blocks
+  transcript-backed; Codex blind audit passed; committed +
+  pushed 2026-07-03 as `10cc8b0`; gate G4 stays open until
+  Ch 8 and Ch 9 also land).** Treats text and
   tabular files as data from the shell, in two passes: lines
   and fields, then tables. Seven content sections (5 beginner,
   2 advanced) plus unnumbered Try-it: `grep` for content search
