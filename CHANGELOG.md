@@ -32,8 +32,8 @@ are not part of this repo; this file is the repo-visible history.
   Part I, 5 of 5, the LAST Part-I chapter; drafted 2026-07-02;
   validator 0/0 in the sandbox + canonical Mac `uv run`; render
   passed; no Mac capture needed; Codex blind audit round 1 fixed;
-  human review PENDING; commit will close gate G3 and carries the
-  Ch 4 `3d5a62b` hash-line touch above).**
+  human review passed; committed + pushed `6d46e79`; closes gate
+  G3 and carries the Ch 4 `3d5a62b` hash-line touch above).**
   Turns the running example's directory tree into a taught
   layout, built and toured from the shell. Six content sections
   (4 beginner, 2 advanced) plus unnumbered Try-it: scaffolding
@@ -101,8 +101,9 @@ are not part of this repo; this file is the repo-visible history.
   section prose and the Try-it exercise, the latter caught on
   Codex re-review; a stale mask claim removed; stale gate docs
   reconciled; the synthetic-data exception added). Gate checks
-  still pending: human review and commit. **When this chapter commits, all of
-  Part I (Ch 1-5) is in and gate G3 is reached.**
+  passed: validator, render, Codex blind audit, human review,
+  commit, and push. **All of Part I (Ch 1-5) is in and gate G3
+  is closed.**
 - **Chapter 4, "Navigation & file operations" (Phase 3,
   Part I, 4 of 5; drafted 2026-07-02; validator 0/0 in the
   sandbox; Mac captures reconciled 2026-07-02; Codex blind
