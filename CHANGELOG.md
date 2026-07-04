@@ -8,6 +8,129 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 12, "Environments from the Shell" (Phase 5, Part
+  III, the SECOND of the four Part-III chapters; Ch 11 "Make"
+  is a committed Phase-2 exemplar and is skipped here. Drafted
+  2026-07-04; validator 0/0 in the sandbox; 16 shown blocks
+  byte-backed (14 sandbox + 2 Mac). The 2 Mac blocks
+  (renv::status / no-op renv::restore; R.version.string /
+  packageVersion("fixest")) were RECONCILED byte-for-byte
+  2026-07-04 after the user ran `capture-ch12-mac.sh` (R 4.5.3,
+  renv 1.2.3; two drafted guesses corrected: the R release
+  date is 2026-03-11, and packageVersion prints Unicode curly
+  quotes ‘0.14.2’, kept byte-faithful; the status/restore
+  wording matched as drafted, and renv prints no loader banner
+  under Rscript). Canonical Mac `uv run` validator 0/0,
+  `quarto render` (fresh final 177-page PDF, Ch 12
+  pp. 145-156, clean, incl. the curly-quote block, the long
+  content-sha256 line, and the uv sync install list), Codex
+  blind audit round 1, and final Codex green-light re-review
+  are DONE (2026-07-04; 1 blocker + 2 should-fixes + 1 nit,
+  applied: the renv no-manifest-file reword in the two flagged
+  places, since renv discovers dependencies from the project
+  code and renv.lock is the lockfile only, not a manifest; the
+  split inline transcript path in the provenance note rejoined;
+  a stale "pending reconcile" line in the verification log
+  updated; the timezone-mask nit declined with rationale, the
+  zone already being public via Ch 10's committed TZ example
+  and the unmasked git author identity; the final re-review
+  added the direct renv dependencies() source pin and re-swept
+  the corrected render). Human review approved 2026-07-04.
+  This chapter's commit does NOT close
+  gate G5, which needs Ch 10 + 12 + 13 + 14. This chapter's
+  commit carries the pending Ch 10 `f973acb` CHANGELOG
+  hash-line touch below, since a commit cannot contain its own
+  hash; Ch 12's own hash then becomes the pending touch for
+  Ch 13).** Continues Part III's reproducibility arc on one
+  idea: a reproducible analysis needs a reproducible
+  environment, the exact package versions the code ran
+  against, captured in a lockfile and restored from the shell
+  on any machine (Ch 10 pinned the shell environment, this
+  chapter pins the language environment, Ch 11 orchestrates
+  and re-checks). Seven content sections (5 beginner, 2
+  advanced) plus unnumbered Try-it: the manifest/lockfile pair
+  (a language environment is NOT a shell variable, Chapter
+  2/9's concept disambiguated, not re-taught; the real
+  `pyproject.toml` five `>=` floors vs `uv.lock` pinning
+  `statsmodels==0.14.6` and 27 more, read in the real project);
+  restore and run (`uv sync` in a clean `/tmp` copy rebuilds
+  `.venv/` at exactly the locked versions and verifies on
+  rerun; the annotated ASCII `.venv/` tree, the Ch 5 house
+  device, paired with the real `ls`; `uv run` executes step 0
+  without activation and reprints the locked `49b3a173...`
+  content hash, stated precisely: the seed and the generator's
+  deterministic design pin the numbers, the G1 invariant
+  referenced not re-derived, while the lockfile pins the code
+  computing them; `PY := uv run python` quoted as Ch 11's
+  seam); changing it on purpose (`uv add tabulate` updates
+  environment + manifest + lock together, tabulate==0.10.0
+  being itself a drafted-guess-would-have-been-wrong case;
+  upgrades only via explicit `uv lock --upgrade`, so a lock
+  never goes stale on its own); renv as R's same job
+  (`renv.lock` read with Ch 7's `jq`: R 4.5.3, fixest 0.14.2,
+  consistent with Ch 7's committed values; the
+  init/snapshot/restore/status verbs mapped one-to-one onto
+  uv's; the one-line `.Rprofile` -> `renv/activate.R`
+  auto-activation seam, why Make's `Rscript` node needs no
+  wrapper; `scripts/bootstrap_renv.R` named as the project's
+  real bootstrap); provenance receipts (`uv pip list` saved
+  beside Ch 10's dated run log; `R.version.string` +
+  `packageVersion("fixest")` agreeing with the lockfile;
+  `sessionInfo()` taught in prose with one full capture
+  recorded in the transcript, the Ch 10 `script` handling);
+  commit the lock, not the environment (`pyvenv.cfg`'s
+  `home = /usr/bin` + `readlink .venv/bin/python` ->
+  `/usr/bin/python3` as machine-wiring evidence, Ch 4's
+  readlink applied; the real `.gitignore` ignoring `.venv/` +
+  `renv/library/` while tracking both locks, Ch 5's
+  tracked-vs-regenerated applied); and beyond uv/renv
+  (alternatives named in one breath: conda/mamba, Poetry,
+  pipenv, venv+pip, packrat superseded by renv; Docker NAMED
+  as the OS-layer next step per renv's own docs and PLAN
+  Section 3's explicit cut, own book, nothing run). Callouts:
+  1 PITFALL (the manifest and lock separate at the COMMIT
+  boundary: uv re-locks automatically on the author's machine,
+  so committing half the pair strands the collaborator on a
+  fresh resolution or a `uv run --locked` error; same for
+  renv::install without snapshot), 1 REPRODUCIBILITY (the
+  three-layer Part-III stack with honest edges: lockfiles pin
+  packages, not R itself, not the OS/system libraries, not the
+  data, each pin named for its own layer), 1 DIVERGENCE (the
+  lockfile is cross-platform BY DESIGN while the built
+  environments are platform-wired: the sandbox's Linux `.venv`
+  vs the same project's `renv/library/macos/R-4.5`, with the
+  honest caveat that identical versions do not guarantee
+  bit-identical numerics across BLAS builds, the 4-dp alpha
+  lock Ch 11 records). No DANGER (nothing destroys, as Ch 5),
+  no RECOVERY (the restore verbs ARE the recovery), no figure
+  (the annotated tree carries the layout). Real output: eight
+  sandbox transcripts (`ch12-uv-version.txt`,
+  `ch12-uv-sync.txt`, `ch12-uv-run.txt`, `ch12-venv-tree.txt`,
+  `ch12-uv-list.txt`, `ch12-uv-add.txt`, `ch12-lockread.txt`,
+  `ch12-renv-tree.txt`; Ubuntu 22.04.5, uv 0.11.19, CPython
+  3.10.12, jq 1.6; restore demos in clean `/tmp` copies, the
+  `uv add` in a separate throwaway copy so the real lock is
+  untouched, lockfile reads read-only in the real project;
+  `UV_LINK_MODE=copy` exported to silence a sandbox-specific
+  cross-filesystem hardlink advisory, disclosed in the
+  transcript notes). The 2 Mac blocks were captured by
+  `transcripts/capture-ch12-mac.sh` (non-interactive Rscript
+  only, no sudo, no snapshot so `renv.lock` is never
+  rewritten, standard capture-time masks incl. the `$TMPDIR`
+  scrub) and reconciled byte-for-byte 2026-07-04, with one
+  full masked `sessionInfo()` (openblas BLAS, C.UTF-8 locale,
+  fixest_0.14.2) and the Mac uv stamp (uv 0.11.2, Homebrew)
+  recorded in the transcripts for the log. Scope held: no re-teach
+  of Chapter 2's shell-env/PATH concept or Chapter 9's env-var
+  secrets (disambiguated and referenced), Chapter 11's Make
+  (the environment is what Make invokes, cross-ref), Chapter
+  6/7 tools (applied), or the G1 seed mechanics (referenced as
+  the locked invariant); Docker named not taught; no
+  environment-tool survey beyond the one-breath naming; SSH
+  restore stays forward "will" (Chapter 13). Sources pinned in
+  `verification/chapter-12.md` (uv project-layout and
+  locking/syncing pages, renv intro vignette, status reference,
+  and dependencies reference, all fetched 2026-07-04).
 - **Chapter 10, "Scripts That Fail Loudly" (Phase 5, Part III,
   the FIRST of the four Part-III chapters; Ch 11 "Make" is
   already committed as a Phase-2 exemplar and is skipped here.
@@ -26,12 +149,13 @@ are not part of this repo; this file is the repo-visible history.
   ShellCheck "flags likely bugs" wording) are DONE (2026-07-03),
   and Codex round 2 (1 blocker, a residual "cost nothing / every
   analysis script" overclaim scoped down, + 1 stale-status-label
-  should-fix) is applied; a final Codex green-light, human
-  review, and the Mac commit are PENDING. Its commit will NOT close gate
-  G5, which needs Ch 10 + 12 + 13 + 14. This chapter's commit
-  will carry the pending Ch 9 `3c210d5` CHANGELOG hash-line touch
-  above, since a commit cannot contain its own hash; Ch 10's own
-  hash then becomes the pending touch for Ch 12).** Opens Part III
+  should-fix) applied; final Codex green-light and human review
+  passed; committed + pushed 2026-07-04 as `f973acb`. Its commit
+  does NOT close gate G5, which needs Ch 10 + 12 + 13 + 14. That
+  commit carries the pending Ch 9 `3c210d5` CHANGELOG hash-line
+  touch above, since a commit cannot contain its own hash; Ch
+  10's own `f973acb` hash line, added here after the push,
+  becomes the pending touch and rides with the Ch 12 commit).** Opens Part III
   (the workflow climax) on one idea: a research script should fail
   loudly and reproduce identically. Seven content sections (5
   beginner, 2 advanced) plus unnumbered Try-it: the shebang and

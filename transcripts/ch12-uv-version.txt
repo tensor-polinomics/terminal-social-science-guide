@@ -1,0 +1,11 @@
+# transcript
+chapter: 12
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: uv 0.11.19
+date: 2026-07-04
+captured-by: sandbox
+note: sandbox uv; no personal data.
+---
+$ uv --version
+uv 0.11.19 (aarch64-unknown-linux-gnu)

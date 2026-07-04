@@ -1,5 +1,589 @@
 # Environments from the Shell
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 12. uv (Python), renv
-     (R); reproducible seeds; Docker named not taught. + Provenance:
-     sessionInfo() / package versions / lockfiles. Drafted in Phase 5. -->
+Chapter 10 made a script stop the moment a step fails, and
+Chapter 11 made `make check` re-derive the pipeline's locked
+result. Both guards can pass and the analysis can still go
+wrong a year later, because the code does not run against
+nothing: it runs against an interpreter and a stack of
+packages, and those change underneath you. A `polars` that
+renames an argument, a `statsmodels` that revises a default, a
+`fixest` that fixes a bug your old numbers quietly depended on,
+any of these turns "the same script" into a different program.
+A reproducible analysis therefore needs a reproducible
+*environment*: the exact package versions the code ran
+against, captured in a file you can commit, and restored from
+that file on any machine.
+
+This chapter delivers a promise Chapter 5 made when it toured
+the project layout: `pyproject.toml` and `uv.lock` were named
+as the Python environment's files and `renv.lock` as R's, with
+their operational use deferred to here. Chapter 7 used
+`renv.lock` as raw material for `jq` and left its meaning to
+this chapter too. The companion Git book introduces uv and
+renv and argues why pinned environments matter; this book does
+not re-argue that case. Here you drive both tools from the
+shell: restore an environment from its lockfile, run code
+inside it, change it deliberately, and read the files well
+enough to trust them. This is also the layer Chapter 11's
+Makefile already leans on, since every Python node in the
+build graph is invoked as `uv run python` and the R node
+expects renv's library; Make orchestrates the steps, and this
+chapter is what each step runs inside.
+
+A note on where the output comes from. Everything uv, and
+every file read, is executed in this book's Linux sandbox
+(Ubuntu 22.04.5, uv 0.11.19, CPython 3.10.12; the `ch12-*`
+transcripts): the restore-and-run demos in clean `/tmp` copies
+of the asset-pricing project, and the lockfile reads in the
+real project directory with relative paths. The R and renv
+blocks run on the author's Mac
+(`transcripts/capture-ch12-mac.sh`), because the sandbox has
+no R and cannot reach CRAN; those blocks are marked where they
+appear. No account name or home path appears in any block; one
+sandbox-specific uv advisory about hardlinking across
+filesystems is silenced in the captures and disclosed in the
+transcript notes.
+
+## A language environment is not a shell variable {.tier-beginner}
+
+The word "environment" is doing two jobs in this book, and
+they must not blur. Chapter 2 taught the *shell* environment:
+named strings like `PATH` and `HOME` that every child process
+inherits, and Chapter 9 put secrets in them; Chapter 10 pinned
+two of them (`LC_ALL`, `TZ`). This chapter is about a
+different thing, a *language* environment: the interpreter
+plus the exact set of installed packages a program imports at
+run time. The two meet only at the surface, in that the shell
+decides which interpreter starts (Chapter 2's `PATH`), but a
+language environment is a directory of installed code, not a
+variable. When this chapter says "environment" it means the
+language kind.
+
+An environment is described by a pair of files with two very
+different jobs. The *manifest* says what the project wants, in
+ranges; the *lockfile* records what the resolver actually
+chose, exactly. Here is the running example's real Python
+manifest, `pyproject.toml`, read in the project directory:
+
+```bash
+$ sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+]
+```
+
+Five direct dependencies, each as a floor, not a version:
+"numpy, at least 2.0". That is a wish list, and a wish list is
+not reproducible, because `numpy>=2.0` names a different
+newest version every few months. The lockfile is the answer.
+When uv resolves the manifest it writes `uv.lock`, recording
+exactly which version of every package the resolution chose,
+including the dependencies of your dependencies:
+
+```bash
+$ grep -n '^name = "statsmodels"' -A1 uv.lock
+1331:name = "statsmodels"
+1332-version = "0.14.6"
+```
+
+The project asked for `statsmodels>=0.14`; the lock records
+that this project, today, means exactly `statsmodels 0.14.6`,
+and the same file pins every other package the project pulls
+in, most of which (`pandas`, `scipy`, `pillow`) appear in no
+manifest and arrived as dependencies of the five you asked
+for. You edit the manifest; uv writes
+the lock; you commit both and never edit `uv.lock` by hand
+(it is machine-managed, per uv's own documentation). R draws
+the same line, with one structural difference the renv section
+returns to: there is no manifest *file* on the R side, because
+the project's own code plays that role, and `renv.lock` is the
+lockfile. Read the split as a division of labor: on one side
+the declared intent (a manifest file, or the code renv reads),
+on the other a lockfile for machines replaying a resolution.
+
+## Restore and run: `uv sync` and `uv run` {.tier-beginner}
+
+The payoff of a committed lockfile is what a collaborator, or
+you on a new machine, does with it. They clone the project and
+have no environment at all, only the three inputs that travel:
+
+```bash
+$ ls
+pyproject.toml
+scripts
+uv.lock
+$ uv sync
+Using CPython 3.10.12 interpreter at: /usr/bin/python3
+Creating virtual environment at: .venv
+Resolved 28 packages in 0.61ms
+Installed 20 packages in 548ms
+ + contourpy==1.3.2
+ + cycler==0.12.1
+ + fonttools==4.63.0
+ + kiwisolver==1.5.0
+ + matplotlib==3.10.9
+ + numpy==2.2.6
+ + packaging==26.2
+ + pandas==2.3.3
+ + patsy==1.0.2
+ + pillow==12.2.0
+ + polars==1.42.1
+ + polars-runtime-32==1.42.1
+ + pyarrow==24.0.0
+ + pyparsing==3.3.2
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.2
+ + scipy==1.15.3
+ + six==1.17.0
+ + statsmodels==0.14.6
+ + tzdata==2026.2
+```
+
+One command. `uv sync` found a Python that satisfies the
+manifest's `requires-python`, created a fresh `.venv/`
+directory next to the manifest, and installed every package at
+the version `uv.lock` dictates, `statsmodels==0.14.6` and all.
+Nothing was resolved against today's package index; the
+versions came from the lock, which is the whole point. Run it
+again and it verifies instead of reinstalling:
+
+```bash
+$ uv sync
+Resolved 28 packages in 1ms
+Checked 20 packages in 0.72ms
+```
+
+What did `uv sync` actually build? A directory, and its layout
+is worth one look. The map below is a labeled sketch (the
+house tree device from Chapter 5), and the real listing beside
+it is the evidence:
+
+```text
+.venv/                  the rebuilt environment (ignored)
+|-- CACHEDIR.TAG        marks the dir as disposable cache
+|-- pyvenv.cfg          which Python built it, and how
+|-- bin/                interpreter links, entry points
+|-- lib/                site-packages, the installed code
+|-- lib64/              Linux alias for lib
+`-- share/              a few package-installed extras
+```
+
+```bash
+$ ls .venv
+CACHEDIR.TAG
+bin
+lib
+lib64
+pyvenv.cfg
+share
+$ ls .venv/lib/python3.10/site-packages | head
+PIL
+__pycache__
+_polars_runtime_32
+_virtualenv.pth
+_virtualenv.py
+contourpy
+contourpy-1.3.2.dist-info
+cycler
+cycler-0.12.1.dist-info
+dateutil
+```
+
+`site-packages/` is the environment in the most literal sense:
+the twenty installed packages as directories of code. To run
+the project inside it, you do not need to "activate" anything;
+`uv run` executes a command with the project environment on
+its import path, creating or updating the environment first if
+needed:
+
+```bash
+$ uv run python scripts/00_make_data.py
+wrote data/raw/factors.csv  months=180
+wrote data/raw/firm_panel.csv  rows=54000  firms=300
+seed=20260629  lambda=0.00149  sigma=0.06
+content-sha256=49b3a1733cf22f5339f1f56edb50bcb6ae02e8d6a029b8f894f279cdf55dbccb
+```
+
+This is the restored environment doing real work: step 0 of
+the pipeline, in a copy that had no `.venv/` five minutes ago,
+regenerates the data and prints the same content hash
+`49b3a173...` that Chapter 11's `make check` re-derives. Be
+precise about what did what: the *numbers* are identical
+because the generator is deterministic by design, seeded with
+`20260629` (the running example's locked invariant, built in
+Phase 1 and guarded by `make check`; this chapter does not
+re-derive it). What the lockfile adds is that the *code
+computing them* is the same everywhere: the same `polars`, the
+same `statsmodels`, the same everything, so no version drift
+can change an API, a default, or a result between your laptop
+and the server. Seed pins the randomness; lock pins the
+software; Chapter 10's header pins the shell around both. This
+`uv run` is also exactly what Chapter 11's Makefile writes at
+every Python node (`PY := uv run python`), so a `make` in this
+project has been running inside the locked environment all
+along.
+
+## Change it on purpose: `uv add` {.tier-beginner}
+
+A pinned environment is not a frozen one; it changes when you
+say so, and the discipline is that every change lands in both
+files. Suppose the project needs a new package. Do not reach
+for `pip install`, which would modify `.venv/` behind the
+lockfile's back; state the new requirement with `uv add`, here
+in a throwaway copy of the project:
+
+```bash
+$ uv add tabulate
+Resolved 29 packages in 317ms
+Installed 1 package in 1ms
+ + tabulate==0.10.0
+```
+
+One command again, three effects: the package is installed
+into `.venv/`, the manifest gains the requirement, and the
+lock records the exact version chosen. Both files show it:
+
+```bash
+$ sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+    "tabulate>=0.10.0",
+]
+$ grep -n '^name = "tabulate"' -A1 uv.lock
+1383:name = "tabulate"
+1384-version = "0.10.0"
+```
+
+The reverse operation is `uv remove`. Upgrades are just as
+deliberate: a lockfile never goes stale on its own, because uv
+does not consider new upstream releases a reason to change it;
+versions move only when you run `uv lock --upgrade` (or
+`--upgrade-package` for one), which is why last year's project
+still builds last year's environment.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+The manifest and the lockfile only keep their promise if they
+travel together, and the place they separate is the commit.
+On your machine uv hides the failure mode: `uv run` and
+`uv sync` re-lock and re-sync automatically, so after an
+`uv add`, or a hand edit to `pyproject.toml`, everything
+works locally whether or not you commit what changed. Commit
+the manifest edit but not the regenerated `uv.lock`, and your
+collaborator's next `uv run` quietly re-resolves the missing
+requirement against *today's* package index, getting versions
+you never tested; or their `uv run --locked`, the strict form
+for exactly this situation, stops with an error. The same
+applies in R: an `renv::install()` without the matching
+`renv::snapshot()` leaves `renv.lock` describing an
+environment that no longer exists. The habit is mechanical:
+any command that touches the environment (`uv add`,
+`uv remove`, `uv lock --upgrade`, `renv::snapshot()`) is
+followed by committing the manifest and lockfile in the same
+commit, so no collaborator can receive one without the other.
+:::
+
+## The same job for R: renv {.tier-beginner}
+
+The project's R half makes the same promise with one tool
+swap: renv. One difference is structural: renv has no
+pyproject-style manifest file. What the project *wants*, renv
+discovers by reading the project's own code (it scans for
+`library()` calls and their relatives); what was *chosen* is
+recorded in the lockfile, `renv.lock`, a JSON file pinning the
+R version and the exact version of every package so
+discovered. You met it as `jq` practice in Chapter 7; now read
+it for what it says, in the real project directory:
+
+```bash
+$ jq -r '.R.Version' renv.lock
+4.5.3
+$ jq -r '.Packages.fixest.Version' renv.lock
+0.14.2
+```
+
+The lock pins R 4.5.3 and `fixest` 0.14.2, the regression
+engine behind Chapter 11's `04_regression.R`, along with the
+whole `knitr`/`rmarkdown` stack, 36 packages in all. The verbs
+map one-to-one onto uv's. `renv::init()` sets a project up
+once (the running example ran it in
+`scripts/bootstrap_renv.R`, the project's real bootstrap
+script). `renv::snapshot()` writes the current library's
+versions into `renv.lock`, the analogue of uv writing the lock
+on `uv add`. `renv::restore()` reads `renv.lock` and installs
+exactly those versions, the analogue of `uv sync`. And
+`renv::status()` reports whether library and lockfile agree,
+run here from the shell on the author's Mac (captured in
+`transcripts/ch12-renv-mac.txt`; R is Mac-only in this book's
+build, as every chapter using it has noted):
+
+```bash
+$ Rscript -e 'renv::status()'
+No issues found -- the project is in a consistent state.
+$ Rscript -e 'renv::restore()'
+- The library is already synchronized with the lockfile.
+```
+
+A clean status is the state to keep a project in; renv's
+documentation is blunt that a project which fails `status()`
+is a project whose `restore()` on another machine may not
+work. There is one more moving part uv does not have. Where
+`uv run` wraps each invocation, renv activates *per project,
+automatically*, through a one-line `.Rprofile` at the project
+root:
+
+```bash
+$ cat .Rprofile
+source("renv/activate.R")
+$ ls renv
+activate.R
+library
+settings.json
+staging
+```
+
+R runs `.Rprofile` at startup in that directory, so any R
+started in the project, interactively, by `Rscript`, or by
+Chapter 11's `make` invoking `Rscript scripts/04_regression.R`,
+is switched to the project's own library in `renv/library/`
+before your first line of code runs. That is why the Makefile
+needs no special wrapper for its R node: the project directory
+itself is the switch.
+
+## Provenance: what did this run against? {.tier-beginner}
+
+Chapter 10 taught the run log: `tee` what a job printed, so
+there is a record of what happened. The environment deserves
+the same treatment, because "what happened" includes what
+versions it happened on. The receipt for a Python environment
+is one command:
+
+```bash
+$ uv pip list
+Package           Version
+----------------- -----------
+contourpy         1.3.2
+cycler            0.12.1
+fonttools         4.63.0
+kiwisolver        1.5.0
+matplotlib        3.10.9
+numpy             2.2.6
+packaging         26.2
+pandas            2.3.3
+patsy             1.0.2
+pillow            12.2.0
+polars            1.42.1
+polars-runtime-32 1.42.1
+pyarrow           24.0.0
+pyparsing         3.3.2
+python-dateutil   2.9.0.post0
+pytz              2026.2
+scipy             1.15.3
+six               1.17.0
+statsmodels       0.14.6
+tzdata            2026.2
+```
+
+Twenty packages, twenty versions, agreeing with the lockfile
+they were installed from; save that beside the run log
+(`uv pip list > logs/env-$(date -u +%Y%m%d).txt`, the Chapter
+10 dated-log habit) and the question "what did the June run
+use?" has an answer on file. R's receipts run on the author's
+Mac (`transcripts/ch12-renv-mac.txt`, like the renv blocks
+above); the short ones name the interpreter and the package
+that computed your table:
+
+```bash
+$ Rscript -e 'R.version.string'
+[1] "R version 4.5.3 (2026-03-11)"
+$ Rscript -e 'packageVersion("fixest")'
+[1] ‘0.14.2’
+```
+
+Both agree with `renv.lock`, read with `jq` in the previous
+section: the environment on disk matches the environment on
+record, which is what a clean `renv::status()` asserted. The
+fuller R receipt is `sessionInfo()`, which reports the R
+version, the platform, the BLAS in use, the locale (Chapter
+10's `LC_ALL` showing up on the R side), and the version of
+every attached package; the capture script records one full
+`sessionInfo()` for this project in the transcript, and the
+Try-it has you save your own. It is the standard first
+attachment when you report a puzzling result to anyone.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The reproducibility stack of Part III has three layers, and it
+helps to say which tool pins which. Chapter 10's script header
+pins the *shell* around a run (`LC_ALL`, `TZ`, fail-loud
+options). This chapter's lockfiles pin the *language
+environment* the code imports (package versions, exactly).
+Chapter 11's Make wires the steps together and its
+`make check` re-derives the result, catching whatever still
+drifted. The seed pins the randomness inside the code. Be
+honest about the edges: `uv.lock` and `renv.lock` pin
+packages, not the world. renv records the R version but
+cannot install R for you; neither tool pins the operating
+system or system libraries (that is a container's job, named
+at the end of this chapter); and no lockfile protects data
+that changed on disk, which is what Chapter 10's `verify.sh`
+checksums are for. Each layer covers a specific drift; the
+habit is running all of them, not trusting one.
+:::
+
+## Commit the lock, not the environment {.tier-advanced}
+
+If lockfiles are committed, why not commit `.venv/` and
+`renv/library/` too and skip the restore step? Because an
+installed environment is a *built artifact wired to the
+machine that built it*, and two of its files prove that
+directly:
+
+```bash
+$ cat .venv/pyvenv.cfg
+home = /usr/bin
+implementation = CPython
+uv = 0.11.19
+version_info = 3.10.12
+include-system-site-packages = false
+prompt = asset-pricing
+$ readlink .venv/bin/python
+/usr/bin/python3
+```
+
+The environment's own config records which machine's Python
+built it (`home = /usr/bin`), and its `python` is not even a
+copy, just a symlink (Chapter 4) to that machine's
+interpreter. Copy this `.venv/` to a Mac and the link dangles
+or points at the wrong binary; the compiled libraries inside
+(`numpy`, `pyarrow`) are built for this OS and CPU besides.
+The project's `.gitignore` already draws the right line, and
+Chapter 5's tracked-versus-regenerated rule named it: commit
+the recipe, regenerate the artifact.
+
+```bash
+$ grep -nE '\.venv|renv/' .gitignore
+32:.venv/
+37:renv/library/
+38:renv/local/
+39:renv/cellar/
+40:renv/lock/
+41:renv/python/
+42:renv/staging/
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The portability split runs *between the two files*, by design.
+`uv.lock` is deliberately universal: uv documents it as a
+cross-platform lockfile that resolves for every operating
+system, CPU, and supported Python at once (it can even carry
+more than one pinned `numpy`, one per Python range it resolved
+for), which is why the sandbox's Linux laptop-stand-in and the
+author's Mac restore from the same committed lock. The *environments* those
+restores produce are the opposite, platform-built throughout:
+this chapter's `.venv/` links `/usr/bin/python3` on Linux,
+and the same project's R library sits under a path renv names
+after the platform that built it, visible in the real project
+tree:
+
+```bash
+$ ls renv/library
+macos
+$ ls renv/library/macos
+R-4.5
+```
+
+A library built on macOS for R 4.5 lives under
+`renv/library/macos/R-4.5`; restore the same `renv.lock` on
+the Linux server and renv builds a sibling tree for that
+platform instead. Same lockfile, machine-specific results,
+which is exactly why the lock is committed and the library is
+ignored. One honest caveat rides along: restoring identical
+*versions* does not guarantee bit-identical *numerics* across
+platforms, since compiled BLAS routines differ (the running
+example locks its alpha at 4 decimal places for exactly that
+reason, a choice its README records).
+:::
+
+Note the direction of the rule: nothing here says the
+environment directories are unimportant, only that they are
+*regenerated, not shipped*. On a new machine, or after a
+suspected corruption, the recovery is never to hunt for a copy
+of `.venv/`; it is `uv sync` and `renv::restore()`, which
+Chapter 13 will lean on when this project moves to a remote
+server.
+
+## Beyond uv and renv {.tier-advanced}
+
+Two honest boundary notes close the chapter. First,
+alternatives exist and you will meet them: Python environments
+are also managed by conda/mamba (binary-heavy scientific
+stacks), Poetry and pipenv (lock-first project managers in the
+same spirit as uv), and the standard library's bare
+`venv` + `pip` (no lockfile unless you build one); R had
+packrat, renv's own predecessor, now superseded. This book
+teaches uv and renv because they are lock-first, fast, and
+already wired into the running example; if a collaborator's
+project uses one of the others, the concepts transfer
+unchanged, manifest, lockfile, restore, receipt, and only the
+verbs differ.
+
+Second, the layer this book stops at. A lockfile pins
+packages; it does not pin the operating system, the system
+libraries a compiled package links against, or the compiler
+that built it. When a project must pin *that* layer too, the
+standard next step is a container, almost always Docker: a
+committed recipe (`Dockerfile`) that rebuilds an entire OS
+image, with your uv and renv steps running inside it. renv's
+own documentation points to Docker for exactly this division
+of labor. Containers are named here so you know what they are
+for and when you have outgrown lockfiles alone, and that is
+all: they are their own book, none is run or taught here, and
+for the pipeline this book actually builds, laptop to server
+with lockfiles committed, uv and renv carry the load.
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5. Do the
+throwaway steps in `/tmp`; the real project directory is never
+modified.
+
+1. Restore from the lock. Copy `pyproject.toml`, `uv.lock`,
+   and `scripts/` to a scratch directory
+   (`mkdir /tmp/env-demo && cp -r ...`), run `uv sync` there,
+   and read the install list: every version came from the
+   lock. Run `uv sync` again and confirm it verifies instead
+   of reinstalling.
+
+2. Run inside it. In the restored copy, run
+   `uv run python scripts/00_make_data.py` and check the
+   printed `content-sha256` against the locked hash in the
+   project README (the one Chapter 11's `make check`
+   re-derives). State in one sentence what the seed pinned
+   and what the lockfile pinned.
+
+3. Read the locks. Find `statsmodels` in `uv.lock` with
+   `grep -n '^name = "statsmodels"' -A1 uv.lock`, and the R
+   and `fixest` versions in `renv.lock` with `jq` (Chapter
+   7's tool, Chapter 12's question). Say which file a human
+   edits and which files only tools write.
+
+4. Change and observe. In the scratch copy, `uv add` a small
+   package, then show what changed in `pyproject.toml` and
+   `uv.lock`. List exactly what you would need to commit, and
+   what breaks for a collaborator if you commit only half.
+   Delete the scratch directory when done.
+
+5. Take the receipts (Mac, R installed). In the real project,
+   run `Rscript -e 'renv::status()'`, then save the two
+   receipts beside a dated run log:
+   `uv pip list > /tmp/env-py.txt` in your restored copy and
+   `Rscript -e 'library(fixest); sessionInfo()'` redirected
+   to `/tmp/env-r.txt`. Confirm the versions in both agree
+   with the two lockfiles.

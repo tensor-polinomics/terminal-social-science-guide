@@ -1,0 +1,13 @@
+# transcript
+chapter: 12
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: uv (Homebrew or standalone install)
+date: 2026-07-04
+captured-by: user-mac
+note: version stamp only, to reconcile the chapter's sandbox uv
+note: 0.11.19 stamp against the Mac install.
+---
+
+$ uv --version
+uv 0.11.2 (Homebrew 2026-03-26 aarch64-apple-darwin)

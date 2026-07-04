@@ -1,0 +1,36 @@
+# transcript
+chapter: 12
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: uv 0.11.19; CPython 3.10.12
+date: 2026-07-04
+captured-by: sandbox
+note: same /tmp copy, after uv sync; readlink used instead of ls -l so no owner column appears.
+---
+$ ls .venv
+CACHEDIR.TAG
+bin
+lib
+lib64
+pyvenv.cfg
+share
+$ ls .venv/lib/python3.10/site-packages | head
+PIL
+__pycache__
+_polars_runtime_32
+_virtualenv.pth
+_virtualenv.py
+contourpy
+contourpy-1.3.2.dist-info
+cycler
+cycler-0.12.1.dist-info
+dateutil
+$ cat .venv/pyvenv.cfg
+home = /usr/bin
+implementation = CPython
+uv = 0.11.19
+version_info = 3.10.12
+include-system-site-packages = false
+prompt = asset-pricing
+$ readlink .venv/bin/python
+/usr/bin/python3

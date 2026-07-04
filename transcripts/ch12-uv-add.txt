@@ -1,0 +1,33 @@
+# transcript
+chapter: 12
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: uv 0.11.19
+date: 2026-07-04
+captured-by: sandbox
+note: separate throwaway /tmp copy so the real project lock is untouched; uv sync run once as setup before capture, so the add shows only the new package; UV_LINK_MODE=copy exported (see ch12-uv-sync note).
+---
+$ sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+]
+$ uv add tabulate
+Resolved 29 packages in 317ms
+Installed 1 package in 1ms
+ + tabulate==0.10.0
+$ sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+    "tabulate>=0.10.0",
+]
+$ grep -n '^name = "tabulate"' -A1 uv.lock
+1383:name = "tabulate"
+1384-version = "0.10.0"
