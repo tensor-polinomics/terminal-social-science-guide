@@ -1,0 +1,29 @@
+# transcript
+chapter: 09
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD chown/chgrp (macOS base)
+date: 2026-07-03
+captured-by: user-mac
+note: Changing a file's OWNER to another user needs root even on
+note: macOS, so this shows the privilege-free parts and the
+note: honest un-privileged failure. No sudo is run. The account
+note: name is masked to [account]; standard group names (staff,
+note: admin, ...) are not user-identifying and are left as-is.
+---
+
+# The chapter shows the two chown lines and the failure
+# contiguously; ls -l and a chgrp change are recorded
+# below the chapter's block for reference.
+$ chown "$(id -un)" key.pem      # to yourself: allowed
+$ chown daemon key.pem           # to another user: denied
+chown: key.pem: Operation not permitted
+$ echo $?
+1
+
+# --- for reference (not shown in the chapter) ---
+$ ls -l key.pem
+-rw-r--r--@ 1 [account]  staff  18 Jul  3 20:14 key.pem
+$ chgrp everyone key.pem
+$ ls -l key.pem
+-rw-r--r--@ 1 [account]  everyone  18 Jul  3 20:14 key.pem

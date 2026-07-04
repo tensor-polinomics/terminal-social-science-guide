@@ -8,6 +8,94 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 9, "Processes, Permissions, and Secrets" (Phase 4,
+  Part II, 3 of 3, the LAST Part-II chapter, so its commit
+  CLOSES gate G4; drafted 2026-07-03; validator 0/0 in the
+  sandbox AND under the canonical `uv run` on the Mac; 14 sandbox
+  blocks byte-backed; the `chown` Mac block RECONCILED
+  byte-for-byte against the user's capture, BSD `ps` Mac capture
+  in hand; `quarto render book` passed (153-page PDF, Ch 9
+  pp. 105-117, no overflow); Codex blind audit rounds 1-2 passed
+  (round 1: one content clarification, the secret-handling one,
+  plus status-doc reconciliation; round 2: content approved,
+  page-figure and status-doc drift reconciled); human review
+  approved, and this is the Mac closeout commit that closes G4.
+  This commit also carries the
+  pending Ch 8 `63090ca` CHANGELOG hash-line touch, since a
+  commit cannot contain its own hash).** Draws processes, permissions,
+  and secrets together as one idea: who and what can see a file
+  or a secret, and where it leaks. Seven content sections (5
+  beginner, 2 advanced) plus unnumbered Try-it: running a job in
+  the background (`&`, `$!`, `jobs`, `wait`, `kill %1`, and `ps`
+  to see it as an OS process); signals and `kill` (default
+  SIGTERM is catchable and lets a trapped handler clean up,
+  SIGKILL/`-9` cannot be caught, shown with a trap script whose
+  cleanup runs on TERM but not on KILL); `nohup` to survive a
+  SIGHUP when the terminal closes (the local stopgap, with tmux
+  in Chapter 14 and remote work in Chapter 13 as the fuller
+  answers); permissions with `chmod` (symbolic `u+x` and octal
+  `600`/`644`/`755`, applying not re-teaching Chapter 4's
+  reading of the `rwx` triples, with `chmod 600` on a `.env`
+  tying permissions to secrets); ownership with `chown`/`chgrp`
+  (the privilege-free parts plus the honest un-privileged
+  failure, since changing a file's owner needs root); secrets in
+  environment variables (Chapter 2's `export` made operational,
+  the project's own `.gitignore` secrets stanza as the anchor,
+  cross-ref the Git book for never-commit); and where a secret
+  leaks (its command-line argument exposed in `ps` to every
+  user, its text written to shell history, and its printed
+  output copied into logs, screenshots, and agent transcripts).
+  Callouts: 2 DANGER (`chmod 777` world-writable; the three-way
+  secret leak via history/`ps`/logs, framed as the reveal-it
+  sibling of Chapter 6's destroy-it danger), 2 PITFALL (`kill
+  -9` skips a process's cleanup; an exported env var is
+  inherited by every child process including an AI agent
+  launched from the same shell, cross-ref Chapter 16), 2
+  DIVERGENCE (BSD vs GNU `ps` invocation, `ps aux` portable vs
+  `ps -ef` the System V idiom; bash `HISTCONTROL=ignorespace`
+  vs zsh `setopt HIST_IGNORE_SPACE` for the leading-space
+  trick), 1 RECOVERY (a leaked secret is rotated at the
+  provider, not deleted, since a shown secret cannot be
+  un-shown). No REPRODUCIBILITY (not earned); no figure
+  (command/output driven; a `~/.ssh` permissions tree is more
+  naturally Chapter 13's). Real output: nine sandbox
+  transcripts (`ch09-jobs.txt`, `ch09-signals.txt`,
+  `ch09-nohup.txt`, `ch09-chmod.txt`, `ch09-env.txt`,
+  `ch09-ps.txt`, `ch09-ps-leak.txt`, `ch09-gitignore.txt`,
+  `ch09-history.txt`; GNU bash 5.1.16, GNU coreutils 8.32,
+  procps-ng 3.3.17, Python 3.10.12; all demos in throwaway
+  `/tmp` scratch, every secret value fake, the `ls -l` account
+  name masked to `[account]`). Shell history hygiene is a real
+  sandbox bash capture (`HISTCONTROL=ignorespace` +
+  `set +o history`, `ch09-history.txt`); the zsh equivalent
+  (`setopt HIST_IGNORE_SPACE`) is pinned to the zsh manual,
+  because an interactive zsh on a real terminal reads the
+  keyboard rather than a script's piped input (an earlier Mac
+  capture script that drove interactive shells hung on the
+  user's terminal and was replaced). The one Mac-backed block,
+  `chown` ownership, was RECONCILED byte-for-byte against the
+  user's capture (`ch09-chown-mac.txt` matched the draft exactly:
+  the un-privileged `chown daemon` fails "Operation not
+  permitted", exit 1); the BSD `ps` Mac capture
+  (`ch09-ps-mac.txt`) backs the `ps` DIVERGENCE (a `PID ARGS`
+  header vs Linux `PID COMMAND`). The capture script runs no
+  `sudo`, no interactive shell, and applies the standard
+  capture-time masks. Verified live in the sandbox, not
+  assumed: the
+  SIGTERM-trap-vs-SIGKILL cleanup difference, the exported vs
+  unexported env inheritance, the `ps` arg exposure and its
+  env-read mitigation, and the `chmod` bit changes. Scope held:
+  no re-teaching of Chapter 6's `rm`/`>`/`curl | sh` danger or
+  its quoting/null-safety (sibling, referenced), Chapter 2's
+  env-var concept (made operational), or Chapter 4's reading of
+  the permission string (applied with `chmod`); persistent
+  sessions (Chapter 14), remote jobs and `~/.ssh` keys (Chapter
+  13), `set -euo pipefail`/locale (Chapter 10) stay forward
+  "will"; AI-prompt specifics stay Chapter 16 (present-tense
+  cross-ref). Sources pinned in `verification/chapter-09.md`
+  (GNU libc Termination Signals, coreutils chmod, bash Bash
+  History Facilities/Builtins, zsh Options; all fetched
+  2026-07-03).
 - **Chapter 8, "Finding Things" (Phase 4, Part II, 2 of 3;
   drafted 2026-07-03; Mac captures reconciled byte-for-byte
   2026-07-03; validator 0/0 in the sandbox and canonical
@@ -15,10 +103,10 @@ are not part of this repo; this file is the repo-visible history.
   PDF, Ch 8 pp. 94-104, no overflow; Codex blind audit passed
   (two should-tighten fixes applied: a prose/command mismatch
   and a byte-identity blank line in the `fd firm_panel` block);
-  human review passed, and this is the Mac closeout commit;
-  gate G4 stays open until Ch 9 also lands. This commit also
-  carries the pending Ch 7 `10cc8b0` CHANGELOG hash-line touch,
-  since a commit cannot contain its own hash).** Finding
+  human review passed; committed + pushed 2026-07-03 as
+  `63090ca`; gate G4 stays open until Ch 9 also lands. This
+  commit also carries the pending Ch 7 `10cc8b0` CHANGELOG
+  hash-line touch, since a commit cannot contain its own hash).** Finding
   files in a tree and searching their contents across it, the
   layer beneath Chapter 7 (which searched inside one named
   file). Seven content sections (5 beginner, 2 advanced) plus

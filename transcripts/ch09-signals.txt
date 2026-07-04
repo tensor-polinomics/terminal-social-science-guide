@@ -1,0 +1,36 @@
+# transcript
+chapter: 09
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (kill is a bash builtin here)
+date: 2026-07-03
+captured-by: sandbox
+note: two runs of a trap-handling script. The default `kill`
+  sends SIGTERM, which the script's trap catches and cleans up
+  after; `kill -9` sends SIGKILL, which the kernel delivers
+  with no chance to run the trap. The shell's asynchronous
+  "Killed" job-control notice (non-deterministic in a
+  non-interactive shell) is redirected away so the teaching is
+  entirely in job.log. PIDs vary per run. No user data; nothing
+  masked.
+
+The script under test (longjob.sh):
+
+  #!/usr/bin/env bash
+  cleanup() {
+    echo "caught SIGTERM, cleaning up scratch files" >> job.log
+    exit 0
+  }
+  trap cleanup TERM
+  echo "job started (pid $$)" >> job.log
+  while true; do sleep 0.2; done
+---
+$ ./longjob.sh &
+$ kill "$!"          # default signal is SIGTERM
+$ cat job.log
+job started (pid 10)
+caught SIGTERM, cleaning up scratch files
+$ ./longjob.sh &
+$ kill -9 "$!"       # SIGKILL cannot be caught
+$ cat job.log
+job started (pid 17)
