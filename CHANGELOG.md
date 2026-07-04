@@ -8,6 +8,91 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 10, "Scripts That Fail Loudly" (Phase 5, Part III,
+  the FIRST of the four Part-III chapters; Ch 11 "Make" is
+  already committed as a Phase-2 exemplar and is skipped here.
+  Drafted 2026-07-03; validator 0/0 in the sandbox; 18 shown
+  blocks byte-backed (14 sandbox + 4 Mac). The 4 Mac blocks
+  (bash-3.2 floor, ShellCheck, shfmt, BSD `/usr/bin/time`) were
+  RECONCILED byte-for-byte 2026-07-03 after the user ran
+  `capture-ch10-mac.sh` (ShellCheck 0.11.0, shfmt 3.13.1; five
+  drafted guesses corrected, incl. the bash build `darwin25`, the
+  `declare -A` block's real trailing `1`, and the BSD RSS line).
+  Canonical Mac `uv run` validator 0/0, `quarto render` (165-page
+  PDF, Ch 10 pp. 118-130, clean), and Codex blind audit round 1
+  (2 blockers + 3 should-fixes + 1 status-cleanup, all applied:
+  the "four-line" header count, the narrowed LC_ALL/TZ claim, the
+  "next chapter" bridge, the `/tmp`-fixture Try-it, and the
+  ShellCheck "flags likely bugs" wording) are DONE (2026-07-03),
+  and Codex round 2 (1 blocker, a residual "cost nothing / every
+  analysis script" overclaim scoped down, + 1 stale-status-label
+  should-fix) is applied; a final Codex green-light, human
+  review, and the Mac commit are PENDING. Its commit will NOT close gate
+  G5, which needs Ch 10 + 12 + 13 + 14. This chapter's commit
+  will carry the pending Ch 9 `3c210d5` CHANGELOG hash-line touch
+  above, since a commit cannot contain its own hash; Ch 10's own
+  hash then becomes the pending touch for Ch 12).** Opens Part III
+  (the workflow climax) on one idea: a research script should fail
+  loudly and reproduce identically. Seven content sections (5
+  beginner, 2 advanced) plus unnumbered Try-it: the shebang and
+  the bash target (`#!/usr/bin/env bash`, why not `/bin/sh` or
+  zsh); `set -euo pipefail` line by line (`-e` stop on error, `-u`
+  unset-variable guard, `-o pipefail` carried from Chapter 6, not
+  re-taught); exit codes made operational (explicit `exit N`, a
+  guard that chooses its status, `$?`, and a `trap ... ERR`/`EXIT`
+  handler, delivering Chapter 2's forward promise); linting with
+  ShellCheck (the SC2086 unquoted-expansion Chapter 6 warned about)
+  and shfmt; a trustworthy run log with `tee` (delivering Chapter
+  6's and Chapter 9's forward promise), `script` (in prose, its
+  session capture being non-deterministic), and `/usr/bin/time -v`;
+  pinning the environment with `LC_ALL=C` and `TZ=UTC` (delivering
+  Chapter 7's deferred locale pin and Chapter 2/3's forward "will")
+  so sort order, date strings, and checksums stop drifting; and a
+  `verify.sh` anchor over the running example that combines the
+  whole standard header with a file-level `sha256sum -c` against a
+  locked manifest, failing loudly (nonzero exit, `ERR` trap) when a
+  raw byte drifts and `tee`ing a log. Callouts: 1 DANGER (a
+  no-`set -e` script marches past a failed step and writes a
+  confident empty output while exiting 0, the scripted sibling of
+  Chapter 6's `pipefail` trap and Chapter 5's raw-in/generated-out
+  hygiene), 1 PITFALL (the three `set -e` footguns, each verified
+  live: a `local x=$(cmd)` assignment masks the failure because
+  `local` succeeds, a function used as an `if` condition suppresses
+  `set -e` throughout, and the left of `&&` may fail; a BARE
+  `x=$(cmd)` assignment by contrast DOES fire, so the mask is
+  attributed to `local`, not command substitution in general), 2
+  DIVERGENCE (the macOS bash-3.2 floor made operational, `declare
+  -A`/`${var^^}`/`mapfile` failing on the system `/bin/bash`; and
+  BSD `/usr/bin/time -l` vs GNU `-v` plus BSD `date -r` vs GNU
+  `date -d @`, with `time` also a shell keyword), 1 REPRODUCIBILITY
+  (the four-line standard script header), 1 RECOVERY (debug a
+  failed script with `bash -x`, the `ERR` trap, and the exit code).
+  No figure. Real output: ten sandbox transcripts
+  (`ch10-shebang.txt`, `ch10-set.txt`, `ch10-nosete.txt`,
+  `ch10-exit-trap.txt`, `ch10-footguns.txt`, `ch10-debug.txt`,
+  `ch10-tee.txt`, `ch10-time.txt`, `ch10-locale.txt`,
+  `ch10-verify.txt`; GNU bash 5.1.16, GNU coreutils 8.32,
+  util-linux 2.37.2; every demo in throwaway `/tmp` scratch, the
+  `verify.sh` anchor over a fresh `/tmp` copy of the running
+  example's `data/raw/`). The `verify.sh` locked hashes
+  (`8648c3be...`/`5056f919...`) are file checksums of the
+  deterministic raw CSVs, distinct from the content digest
+  `49b3a173...` that Chapter 11's `make check` re-derives; the
+  chapter says so rather than conflating them. The 4 Mac blocks are
+  captured by `transcripts/capture-ch10-mac.sh` (no interactive
+  shell, no sudo, standard capture-time masks) and reconciled at
+  the gate; the ShellCheck/shfmt versions are stamped from the real
+  capture (the Ch 7 DuckDB / Ch 8 `fd` lesson). Scope held: no
+  re-teaching of Chapter 6's pipe/redirection mechanics or
+  quoting/null-safety (applied and reinforced), Chapter 2's
+  exit-code concept (made operational), Chapter 11's Make (the
+  script is the node, Make the graph, cross-ref), or Chapter 9's
+  env-var secrets; environments/lockfiles (Chapter 12), SSH
+  (Chapter 13), and tmux (Chapter 14) stay forward "will". Sources
+  pinned in `verification/chapter-10.md` (ShellCheck SC2086 wiki
+  and shfmt/mvdan.cc/sh fetched 2026-07-03; `set`/`trap` behavior
+  primary-evidenced by live capture, the gnu.org Set-Builtin HTML
+  node having returned empty this session).
 - **Chapter 9, "Processes, Permissions, and Secrets" (Phase 4,
   Part II, 3 of 3, the LAST Part-II chapter, so its commit
   CLOSES gate G4; drafted 2026-07-03; validator 0/0 in the
@@ -19,7 +104,8 @@ are not part of this repo; this file is the repo-visible history.
   (round 1: one content clarification, the secret-handling one,
   plus status-doc reconciliation; round 2: content approved,
   page-figure and status-doc drift reconciled); human review
-  approved, and this is the Mac closeout commit that closes G4.
+  approved; committed + pushed 2026-07-03 as `3c210d5`, the Mac
+  closeout commit that closes G4.
   This commit also carries the
   pending Ch 8 `63090ca` CHANGELOG hash-line touch, since a
   commit cannot contain its own hash).** Draws processes, permissions,

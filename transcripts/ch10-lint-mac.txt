@@ -1,0 +1,52 @@
+# transcript
+chapter: 10
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: ShellCheck 0.11.0 / shfmt 3.13.1
+date: 2026-07-03
+captured-by: user-mac
+note: ShellCheck and shfmt are blocked GitHub-release binaries in
+note: the sandbox; they behave the same cross-platform, so this Mac
+note: capture is the evidence (Ch 7 DuckDB / Ch 8 fd pattern). No
+note: personal data is shown; paths are masked.
+---
+
+$ shellcheck --version
+ShellCheck - shell script analysis tool
+version: 0.11.0
+license: GNU General Public License, version 3
+website: https://www.shellcheck.net
+$ cat unsafe.sh
+#!/usr/bin/env bash
+infile=$1
+wc -l $infile
+$ shellcheck unsafe.sh
+
+In unsafe.sh line 3:
+wc -l $infile
+      ^-----^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+wc -l "$infile"
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2086 -- Double quote to prevent globbing ...
+
+$ shfmt --version
+3.13.1
+$ cat messy.sh
+#!/usr/bin/env bash
+if [ -f data.csv ];then
+echo "found"
+fi
+$ shfmt -d messy.sh
+diff messy.sh.orig messy.sh
+--- messy.sh.orig
++++ messy.sh
+@@ -1,4 +1,4 @@
+ #!/usr/bin/env bash
+-if [ -f data.csv ];then
+-echo "found"
++if [ -f data.csv ]; then
++	echo "found"
+ fi

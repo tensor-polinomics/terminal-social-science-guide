@@ -1,0 +1,32 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16
+date: 2026-07-03
+captured-by: sandbox
+note: throwaway /tmp scratch; no personal data shown.
+---
+$ cat guard.sh
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ ! -f data/clean.csv ]]; then
+  echo "error: data/clean.csv is missing" >&2
+  exit 3
+fi
+echo "found input"
+$ ./guard.sh
+error: data/clean.csv is missing
+$ echo $?
+3
+$ cat traps.sh
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "failed at line $LINENO (exit $?)" >&2' ERR
+echo "checking inputs"
+wc -l data/clean.csv
+echo "done"
+$ ./traps.sh
+checking inputs
+wc: data/clean.csv: No such file or directory
+failed at line 5 (exit 1)

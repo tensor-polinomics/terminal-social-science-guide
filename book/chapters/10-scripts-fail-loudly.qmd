@@ -1,7 +1,672 @@
 # Scripts That Fail Loudly
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 10. #!/usr/bin/env
-     bash, set -euo pipefail, exit codes; bash target with portable
-     habits; macOS bash-3.2 DIVERGENCE. + ShellCheck/shfmt. + Logs &
-     provenance (tee, script, /usr/bin/time). + Locale/timezone
-     reproducibility (pin LC_ALL/TZ). Drafted in Phase 5. -->
+Everything so far has been you at the prompt: you type a
+command, read what it prints, and decide what to do next. A
+pipeline you mean to run again, on a server, next year, or by a
+collaborator, cannot lean on you being there to read the
+output. It has to be a *script*, a file of commands that runs
+unattended, and a script that runs unattended carries two
+obligations the interactive prompt let you skip. It must *fail
+loudly*: stop the instant a step goes wrong instead of marching
+on and writing a plausible-looking wrong answer. And it must
+*reproduce identically*: give the same result on your laptop, a
+Linux server, and a GPU pod, instead of quietly depending on
+which machine ran it. This chapter is those two habits, and
+they are close cousins, because both come down to refusing to
+let the shell paper over a problem.
+
+This is where several promises from earlier chapters come due.
+Chapter 6 showed `pipefail` and promised that the book's scripts
+would open with `set -euo pipefail`; here they do. Chapter 2
+introduced the exit code and `$?` and deferred `set -e` to here;
+this chapter makes them operational. Chapter 3 took a firm
+position, write scripts for bash with portable habits, and
+flagged the macOS bash-3.2 floor; here that becomes the rule a
+script is written to. Chapter 7 pinned `LC_ALL` for a
+reproducible `sort` and left the standard script header to this
+chapter. And the loud, reproducible script you build here is the
+thin wrapper the Make graph of Chapter 11 will invoke: Make owns
+the dependency graph, and a script is the small, honest step at
+each node.
+
+A note on where the output comes from. The shebang, `set -euo
+pipefail`, exit codes, the `trap`, the `set -e` footguns,
+`bash -x`, `tee`, `/usr/bin/time -v`, the `TZ` and `LC_ALL`
+pinning, and the `verify.sh` anchor are executed in this book's
+Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16, GNU coreutils
+8.32, util-linux 2.37.2; the `ch10-*` transcripts), in throwaway
+`/tmp` scratch directories. Four things run on the author's Mac
+(`transcripts/capture-ch10-mac.sh`) because the sandbox cannot
+produce them: ShellCheck and shfmt (blocked release binaries,
+like DuckDB in Chapter 7 and `fd` in Chapter 8), the macOS
+bash-3.2 failures, and BSD `/usr/bin/time` and `date`. Those
+Mac blocks are marked where they appear. No real credential or
+account name appears anywhere; scratch paths are relative.
+
+## The shebang and the bash target {.tier-beginner}
+
+A script is just a text file of commands, but the kernel needs
+to be told which interpreter should read it. That is the job of
+the *shebang*, the first line, which begins with `#!` followed
+by the interpreter to run. Write it as `#!/usr/bin/env bash`:
+
+```bash
+$ cat pipeline.sh
+#!/usr/bin/env bash
+echo "running under bash $BASH_VERSION"
+$ chmod +x pipeline.sh
+$ ./pipeline.sh
+running under bash 5.1.16(1)-release
+```
+
+Three things make that work. The `#!/usr/bin/env bash` line
+tells the kernel to find `bash` on your `PATH` and feed it the
+file, so the script runs under bash wherever bash happens to be
+installed. The `chmod +x` (Chapter 9) marks the file executable
+so you can run it as `./pipeline.sh`. And the script reports the
+bash that actually ran it, `5.1.16` in the sandbox. Why
+`/usr/bin/env bash` rather than a hardcoded `#!/bin/bash`? A
+Homebrew or Linuxbrew bash lives at `/opt/homebrew/bin/bash` or
+`/home/linuxbrew/.../bash`, not `/bin/bash`; `env` searches
+your `PATH` and finds whichever one you installed, so the same
+shebang works on a Mac and a server.
+
+The one shebang to avoid for a research script is
+`#!/bin/sh`. On Debian and Ubuntu `/bin/sh` is `dash`, a lean
+POSIX shell that does not have the bash features this chapter
+relies on for safety, `set -o pipefail`, `[[ ]]`, and arrays
+among them. Pointing a script at `/bin/sh` and then writing
+bash inside it is how a script works on your Mac (where
+`/bin/sh` quietly runs in a bash-compatible mode) and breaks on
+a Linux server. Pick bash, say so in the shebang, and write
+portable habits inside; do not write zsh in a script either,
+which is fine at your interactive prompt but is not the target
+you automate against.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+"Write for bash" hides a version trap that Chapter 3 flagged and
+this chapter must make operational. macOS ships a *system* bash
+frozen at 3.2.57 (2007), while Linux and WSL2 run bash 5.x (the
+sandbox's 5.1.16 above). A script that uses a bash-4-or-later
+feature runs on the server and fails on a Mac's `/bin/bash`.
+The usual casualties are associative arrays (`declare -A`),
+uppercase/lowercase expansion (`${var^^}`), and `mapfile` /
+`readarray`. Asking the system bash for an associative array
+shows the floor (captured on the author's Mac,
+`transcripts/ch10-bash32-mac.txt`):
+
+```bash
+$ /bin/bash --version
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+$ /bin/bash -c 'declare -A m; m[x]=1; echo ${m[x]}'
+/bin/bash: line 0: declare: -A: invalid option
+declare: usage: declare [-afFirtx] [-p] [name[=value] ...]
+1
+```
+
+The version line confirms the 3.2.57 floor, and `declare -A`
+is rejected as an invalid option. Worse than the plain error,
+bash 3.2 then reads `m[x]=1` as an ordinary *indexed*
+assignment, so the last `echo` prints `1`: a script that asked
+for an associative array does not get one and marches on with a
+different data structure than you wrote. The fix is not to write
+to the 3.2 floor forever; it is to
+`brew install bash` (Chapter 3) so a modern bash sits on your
+`PATH`, and let `#!/usr/bin/env bash` find it. The *system*
+`/bin/bash` stays at 3.2 no matter what you install, which is
+exactly why the shebang points at `env bash` and not `/bin/bash`.
+When a script must also run under the bare system bash, avoid
+the bash-4 features above; when it need not, install a current
+bash and target it.
+:::
+
+## Fail loudly: `set -euo pipefail` {.tier-beginner}
+
+By default a shell script keeps going after a command fails. It
+runs the next line, and the next, whatever happened before, so a
+failure in step one becomes a wrong answer in step five with no
+sign anything went wrong. Three shell options turn that off, and
+together they are the first line of nearly every serious script.
+Put them at the top:
+
+```bash
+$ cat step.sh
+#!/usr/bin/env bash
+set -euo pipefail
+echo "step 1: clean"
+cp missing.csv clean.csv    # fails: file not found
+echo "step 2: never runs"
+$ ./step.sh
+step 1: clean
+cp: cannot stat 'missing.csv': No such file or directory
+$ echo $?
+1
+```
+
+With `set -e` in force, the failing `cp` stops the script then
+and there: "step 2" never prints, and the script's exit status
+is the failing command's `1`, so anything that runs it, a
+Makefile, a scheduler, another script, sees the failure. That is
+the `-e`: *exit on error*. The `-o pipefail` is the option
+Chapter 6 introduced, which makes a pipeline fail when any stage
+fails, not only its last; you carry it here as part of the
+header rather than re-deriving it. The `-u` is *treat an unset
+variable as an error*, which catches the most common typo in a
+script, a misspelled or never-set variable name:
+
+```bash
+$ cat need.sh
+#!/usr/bin/env bash
+set -euo pipefail
+echo "output dir is [${OUTDIR}]"
+$ ./need.sh
+./need.sh: line 3: OUTDIR: unbound variable
+```
+
+Without `-u` that line would print `output dir is []` and sail
+on, and a later `rm -rf "$OUTDIR"/*` (Chapter 6) would expand to
+`rm -rf /*`. With `-u` the script stops at the unset variable
+and names the line. Read `set -euo pipefail` as one habit: stop
+on the first failed command, stop on an unset variable, and stop
+on a failure anywhere in a pipe. Type it at the top of every
+script before you write anything else.
+
+::: {.callout-caution .danger title="DANGER"}
+A script *without* `set -euo pipefail` does not announce its
+failures; it commits them to disk. Watch a step whose input is
+missing sail straight past the error and write a confident,
+empty result:
+
+```bash
+$ cat summarize.sh
+#!/usr/bin/env bash
+sort data/clean.csv > sorted.csv
+wc -l < sorted.csv > count.txt
+echo "summary written"
+$ ./summarize.sh          # data/clean.csv does not exist
+sort: cannot read: data/clean.csv: No such file or directory
+summary written
+$ echo $?
+0
+$ cat count.txt
+0
+```
+
+`sort` failed, but the `>` had already truncated `sorted.csv` to
+an empty file (Chapter 6), `wc` happily counted its zero lines,
+and the script printed "summary written" and *exited 0*. Nothing
+looks wrong: there is an output file, there is a success status,
+and a downstream step or a collaborator has no reason to
+suspect the count is a lie. This is the scripted sibling of
+Chapter 6's `pipefail` trap and Chapter 5's raw-in/generated-out
+hygiene: a silent failure is worse than a loud one, because you
+act on it. Adding `set -euo pipefail` to the top of this script
+turns the missing input into an immediate nonzero exit, which is
+the whole point of the previous block.
+:::
+
+## Exit codes you can act on: `exit`, `$?`, and `trap` {.tier-beginner}
+
+Chapter 2 taught that every command hands back an exit code,
+zero for success and nonzero for failure, and that `$?` holds
+the most recent one. In a script you go from *reading* that code
+to *setting* it. When your script detects a problem it should
+stop with a nonzero `exit` and a message on stderr, so its
+caller learns something went wrong and, if you choose your
+numbers, what:
+
+```bash
+$ cat guard.sh
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ ! -f data/clean.csv ]]; then
+  echo "error: data/clean.csv is missing" >&2
+  exit 3
+fi
+echo "found input"
+$ ./guard.sh
+error: data/clean.csv is missing
+$ echo $?
+3
+```
+
+The guard checks its precondition, writes the complaint to
+stderr with `>&2` (Chapter 6) so it does not pollute the data on
+stdout, and `exit 3` ends the script with a status you chose. A
+plain `exit` (or the end of the script) returns the last
+command's status; `exit 0` forces success; `exit N` reports a
+specific failure. For the unexpected failures you did not write
+a guard for, a `trap` on the `ERR` condition runs a handler the
+moment any command fails, which is where you put a diagnostic or
+a cleanup:
+
+```bash
+$ cat traps.sh
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "failed at line $LINENO (exit $?)" >&2' ERR
+echo "checking inputs"
+wc -l data/clean.csv
+echo "done"
+$ ./traps.sh
+checking inputs
+wc: data/clean.csv: No such file or directory
+failed at line 5 (exit 1)
+```
+
+The `wc` on a missing file failed, `set -e` began the exit, and
+on the way out the `ERR` trap fired and reported the line and
+the status; "done" never ran. A trap on `EXIT` (rather than
+`ERR`) runs on *every* exit and is the place to delete a scratch
+file or a lock whether the script succeeds or fails, the
+scripted form of the cleanup Chapter 9's `SIGTERM` handler did
+for a signal. Keep the handler short; its job is to leave the
+workspace clean and the failure visible, not to soldier on.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+`set -e` has famous blind spots, and a script that trusts it too
+much can still march past a failure. It does *not* fire when the
+failing command's status is consumed by something else. The
+sharpest case is a failure hidden inside a `local` assignment,
+because `local` is itself a command that succeeds:
+
+```bash
+$ cat footgun.sh
+#!/usr/bin/env bash
+set -e
+count_rows() {
+  local n=$(wc -l < missing.csv)   # command fails...
+  echo "count_rows kept going, n=[$n]"
+}
+count_rows
+echo "main continued past set -e"
+$ ./footgun.sh
+./footgun.sh: line 4: missing.csv: No such file or directory
+count_rows kept going, n=[]
+main continued past set -e
+```
+
+The `wc` failed, but `local` reported its own success, so `set
+-e` saw nothing to act on: the function set `n` to empty and the
+script continued. Two more contexts disable `set -e` the same
+way: a function called as an `if` condition (or on either side
+of `&&`/`||`) runs to the end with `set -e` suppressed
+throughout, and the left side of `&&` is allowed to fail:
+
+```bash
+$ cat footgun2.sh
+#!/usr/bin/env bash
+set -e
+f() { false; echo "  f kept going"; }
+if f; then echo "  if-branch"; fi
+false && echo "unreached"
+echo "main continued past set -e"
+$ ./footgun2.sh
+  f kept going
+  if-branch
+main continued past set -e
+```
+
+The habit that survives these: split the assignment from the
+command (`local n; n=$(wc -l < f)`), check the status you care
+about explicitly rather than assuming `set -e` caught it, and
+lean on the `ERR` trap and ShellCheck (next section) to flag
+what the eye misses. `set -euo pipefail` is a floor, not a
+force field.
+:::
+
+::: {.callout-tip .recovery title="RECOVERY"}
+When a script fails and the message alone does not tell you
+where, rerun it under `bash -x`, which prints each command,
+expanded, as it executes, so you can watch the values and see
+exactly which line broke:
+
+```bash
+$ cat pipeline_step.sh
+#!/usr/bin/env bash
+set -euo pipefail
+infile=data/clean.csv
+n=$(wc -l < "$infile")
+echo "rows: $n"
+$ bash -x pipeline_step.sh
++ set -euo pipefail
++ infile=data/clean.csv
+++ wc -l
+pipeline_step.sh: line 4: data/clean.csv: No such file or directory
++ n=
+```
+
+The `+` lines are the trace: you can see `infile` was set, then
+line 4's `wc` tried to read a file that is not there, so `n`
+came out empty and the script stopped. `bash -x script.sh` runs
+a copy under the trace without editing the file; `set -x` inside
+the script turns it on for a region and `set +x` off again. Read
+the last `+` line before the error and you have the failing
+command with its real arguments.
+:::
+
+## Lint before you run: ShellCheck and shfmt {.tier-beginner}
+
+A script that fails loudly at runtime is good; a script whose
+bugs are caught *before* it runs is better. **ShellCheck** is a
+static analyzer for shell scripts: it reads the file and flags
+the mistakes that bite, most of all the unquoted expansion
+Chapter 6 warned about. Run it on a script with a bare `$infile`
+(captured on the author's Mac, `transcripts/ch10-lint-mac.txt`):
+
+```bash
+$ cat unsafe.sh
+#!/usr/bin/env bash
+infile=$1
+wc -l $infile
+$ shellcheck unsafe.sh
+
+In unsafe.sh line 3:
+wc -l $infile
+      ^-----^ SC2086 (info): Double quote to prevent globbing and word splitting.
+
+Did you mean:
+wc -l "$infile"
+
+For more information:
+  https://www.shellcheck.net/wiki/SC2086 -- Double quote to prevent globbing ...
+```
+
+`SC2086` is the code for the unquoted `$infile`, the exact bug
+that turns a filename with a space into two arguments; ShellCheck
+points at it, explains it, and suggests the fix. You do not need
+the whole rule catalogue: the handful a researcher hits
+repeatedly are `SC2086` (quote your expansions), the `[ ]`
+versus `[[ ]]` test warnings, and the ones about a masked exit
+status like the `local` footgun above. Run `shellcheck
+yourscript.sh` before you trust a script, and wire it into the
+Makefile if you want it enforced.
+
+**shfmt** is the companion formatter: it rewrites a script into
+a consistent style so diffs stay small and structure is obvious.
+`shfmt -d` shows what it would change without touching the file:
+
+```bash
+$ cat messy.sh
+#!/usr/bin/env bash
+if [ -f data.csv ];then
+echo "found"
+fi
+$ shfmt -d messy.sh
+diff messy.sh.orig messy.sh
+--- messy.sh.orig
++++ messy.sh
+@@ -1,4 +1,4 @@
+ #!/usr/bin/env bash
+-if [ -f data.csv ];then
+-echo "found"
++if [ -f data.csv ]; then
++	echo "found"
+ fi
+```
+
+It spaces `;then` into `; then` and indents the body with a tab.
+`shfmt -w script.sh` writes the changes in place. The two tools
+divide the work cleanly: ShellCheck flags the *likely bugs* (it
+does not prove a script correct), shfmt makes the layout
+*consistent*, and neither runs your code, so both are safe to
+run on a script you are still unsure of. Both are third-party installs (`brew install
+shellcheck shfmt`; ShellCheck 0.11.0 and shfmt 3.13.1 here,
+current as of 2026-07-03), not in every environment, so treat
+them as a local pre-flight rather than something the server is
+guaranteed to have.
+
+## Leave a run log you can trust {.tier-advanced}
+
+A long job that printed its progress and then scrolled away
+leaves you nothing to point to when you ask, later, what it
+actually did. The lightweight fix is to keep a log. `tee` reads
+a stream and writes it to a file *and* to the screen at once,
+delivering the promise Chapter 6 made when it split output with
+`>` alone:
+
+```bash
+$ ./report_step.sh | tee run.log
+loading factors
+forming portfolio
+done
+$ cat run.log
+loading factors
+forming portfolio
+done
+```
+
+You watched the run live and it was saved. In practice you give
+the log a dated name, `... | tee "logs/run-$(date -u
++%Y%m%dT%H%M%SZ).log"`, so successive runs do not overwrite each
+other and the filename records when the job ran. To capture
+errors as well as output, merge the streams first: `./job.sh
+2>&1 | tee run.log` (Chapter 6). For a heavier record, `script`
+captures an entire terminal session, every command and its
+output and the timing, into a `typescript` file: `script
+session.log` starts recording and `exit` stops it. `script` logs
+the whole session where `tee` logs one command's stream, and it
+depends on a real terminal, so `tee` is the everyday choice and
+`script` is for when you want the complete session on the record.
+
+To learn how long a step took and how much memory it used, put
+`/usr/bin/time -v` in front of it (the full path, because bare
+`time` is a shell keyword with a terser report):
+
+```bash
+$ /usr/bin/time -v sleep 0.2
+	Command being timed: "sleep 0.2"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.20
+```
+
+The `sleep 0.2` stands in for a real step. The report continues
+past what is shown, and its most useful line for a researcher is
+lower down, "Maximum resident set size (kbytes)", which tells
+you the peak memory a step needed, the number that decides
+whether a job fits on your laptop or has to move to a bigger
+machine. The resource figures vary from run to run; capture them
+once as a record, not as a reproducible constant.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The `-v` flag is GNU `time`, which macOS does not ship. The Mac
+has a BSD `/usr/bin/time` whose long report is `-l`, not `-v`,
+and whose layout differs (captured on the author's Mac,
+`transcripts/ch10-bsd-mac.txt`):
+
+```bash
+$ /usr/bin/time -l sleep 0.2
+        0.20 real         0.00 user         0.00 sys
+             1196032  maximum resident set size
+```
+
+The numbers mean the same things, but the flag and the format
+are not portable, and to complicate it further, `time` is also a
+shell keyword, so `time cmd` and `/usr/bin/time cmd` are
+different programs. Prefer the explicit full path
+`/usr/bin/time` when you want the resource report, and remember
+it is `-v` on Linux and `-l` on macOS. When you need one command
+that runs unchanged on both, the shell keyword `time` (no path)
+gives a short real/user/sys line on either.
+:::
+
+## Pin the environment: `LC_ALL` and `TZ` {.tier-beginner}
+
+A script can be correct and still give two different answers on
+two machines, because some tools read their behavior from the
+environment rather than from your code. Two variables cause most
+of the drift in research work. Chapter 7 showed the first,
+`LC_ALL`: the locale sets `sort` order and therefore any
+checksum taken over sorted output, so a script whose result must
+be byte-identical everywhere pins it, `export LC_ALL=C`, to force
+plain byte order regardless of the machine's language settings.
+The second is the time zone, `TZ`, which changes how `date`
+renders a timestamp. The same instant printed under two zones is
+two different strings:
+
+```bash
+$ date -u -d @1700000000 +"%Y-%m-%d %H:%M %Z"
+2023-11-14 22:13 UTC
+$ TZ=America/New_York date -d @1700000000 +"%Y-%m-%d %H:%M %Z"
+2023-11-14 17:13 EST
+```
+
+Same moment (a fixed Unix timestamp), two wall-clock strings,
+because the zone differs by five hours. A script that stamps its
+output files or parses dates will produce different results on a
+laptop set to New York and a server set to UTC unless it pins
+the zone, `export TZ=UTC`, so every machine agrees. Together
+with the shebang and `set -euo pipefail`, these two lines are the
+standard header this book puts at the top of a reproducible
+script.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The reproducible-script header is four lines, and every line
+earns its place:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+export LC_ALL=C
+export TZ=UTC
+```
+
+The shebang fixes the interpreter, `set -euo pipefail` makes the
+script stop at the first failure instead of writing a wrong
+answer, and `LC_ALL=C` with `TZ=UTC` strip out the two
+environment settings that would otherwise let sort order, date
+strings, and any checksum taken over them depend on the machine.
+Pin them whenever text the locale controls, a sort order, a
+formatted date, a checksum over either, enters your outputs.
+(The running example's own locked hash in Chapter 11 is stable
+for a different reason, it digests rounded numeric bytes rather
+than locale-sensitive text; but the instinct is the same, make
+the result independent of where the script ran.) Use this header
+for a reproducible shell script, and reach for the `LC_ALL`/`TZ`
+pins whenever locale- or zone-sensitive text, a sort order, a
+date, a checksum over either, enters your outputs. A script that
+only shuffles numeric files may not need them, so pin
+deliberately rather than by reflex, and note the exception when
+you skip them.
+:::
+
+The date example uses a divergence worth naming. Reading a Unix
+timestamp with `date -d @1700000000` is the GNU form; BSD `date`
+on macOS spells it `date -r 1700000000`, and `-d` there means
+something else entirely. It is the same `sed`/`date`/`readlink`
+BSD-versus-GNU split from Chapter 4, and the portable move for a
+script that must run on both is to pin `TZ` and avoid
+platform-specific `date` parsing, or to compute timestamps in a
+language layer (Python, R) whose date handling you control.
+
+## Putting it together: a `verify.sh` for the project {.tier-advanced}
+
+The pieces of this chapter combine into a small script the
+running example actually needs: a guard that checks the raw data
+is exactly what the analysis expects before any step runs. It
+pins the environment, checks each raw file against a locked
+checksum, fails loudly if a byte has drifted, and leaves a log.
+Here it is, and its clean run:
+
+```bash
+$ cat verify.sh
+#!/usr/bin/env bash
+# Fail loudly and reproduce identically: check the raw data
+# against a locked checksum manifest before any analysis runs.
+set -euo pipefail
+export LC_ALL=C TZ=UTC
+trap 'echo "verify.sh: failed at line $LINENO (exit $?)" >&2' ERR
+
+cd "$(dirname "$0")"
+echo "verifying raw data against the locked manifest"
+sha256sum -c data/raw/SHA256SUMS
+echo "verify.sh: data OK"
+$ cat data/raw/SHA256SUMS
+8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  data/raw/factors.csv
+5056f91931a3c99e95aa79125c22fc4bc025c49210c99ff52b9dcef6352a92af  data/raw/firm_panel.csv
+$ ./verify.sh 2>&1 | tee verify.log
+verifying raw data against the locked manifest
+data/raw/factors.csv: OK
+data/raw/firm_panel.csv: OK
+verify.sh: data OK
+$ cat verify.log
+verifying raw data against the locked manifest
+data/raw/factors.csv: OK
+data/raw/firm_panel.csv: OK
+verify.sh: data OK
+```
+
+Every line of this chapter is in that header: the `env bash`
+shebang, `set -euo pipefail`, the pinned `LC_ALL`/`TZ`, and an
+`ERR` trap that names the failing line. The body reads a manifest
+of expected SHA-256 checksums, one per raw file, and asks
+`sha256sum -c` to confirm each still matches; `tee` keeps a log
+of the run. When the data is intact, every file reports `OK` and
+the script exits 0. Now let a single byte of one input change,
+and the guard does its job:
+
+```bash
+$ printf "\n# tampered\n" >> data/raw/factors.csv
+$ ./verify.sh
+verifying raw data against the locked manifest
+data/raw/factors.csv: FAILED
+data/raw/firm_panel.csv: OK
+sha256sum: WARNING: 1 computed checksum did NOT match
+verify.sh: failed at line 10 (exit 1)
+$ echo $?
+1
+```
+
+`sha256sum -c` marks the changed file `FAILED`, prints a
+warning, and returns nonzero; `set -e` stops the script, the
+`ERR` trap reports line 10, and the exit status is `1`, so a
+Makefile or a collaborator running this first would halt before
+analyzing corrupted input. This file-level check is the
+lightweight sibling of Chapter 11's `make check`, which
+re-derives the pipeline's *content* hash from the numbers
+themselves; `verify.sh` guards the raw bytes, `make check` guards
+the computed result, and both fail loudly so a reproducibility
+problem stops the build instead of riding through it.
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5. Do the
+throwaway steps in `/tmp`, and keep a copy of the raw data so you
+can restore it.
+
+1. Add the header. Take one of the project's driver steps, or
+   write a two-line script that copies a file, and give it the
+   full header: `#!/usr/bin/env bash`, `set -euo pipefail`,
+   `export LC_ALL=C`, `export TZ=UTC`. Make it executable with
+   `chmod +x` and run it.
+
+2. Watch it stop. Add a line that reads a file that does not
+   exist, run the script, and confirm it stops there with a
+   nonzero `echo $?` instead of running the lines after it. Then
+   delete `set -e` from the header and watch the same script
+   march past the failure; explain which output is now a lie.
+
+3. Trap the failure. Add `trap 'echo "failed at line $LINENO"
+   >&2' ERR` under the header and rerun the failing version;
+   confirm it names the line. Add a second `trap ... EXIT` that
+   removes a scratch file and confirm it runs on both success
+   and failure.
+
+4. Lint it. Run `shellcheck` on a script that uses an unquoted
+   `$var` and fix what it flags (expect `SC2086`); then run
+   `shfmt -d` on a carelessly indented script and apply the
+   change with `shfmt -w`. Explain what each tool did and what
+   it did not.
+
+5. Pin and checksum, on a scratch copy. Copy the raw data to a
+   throwaway dir first (`cp -r data/raw /tmp/verify-demo`) so the
+   real `data/raw/` is never touched (Chapter 5's immutability
+   rule). In the copy, write a `verify.sh` that pins `LC_ALL`/`TZ`
+   and runs `sha256sum -c` against a manifest you build there
+   (`cd /tmp/verify-demo && sha256sum *.csv > SHA256SUMS`), and
+   `tee`s a log. Append a byte to one *copied* file, rerun, and
+   confirm the script fails loudly with a nonzero exit; delete the
+   scratch dir when done. Explain how this differs from Chapter
+   11's `make check`.
