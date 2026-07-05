@@ -1,0 +1,30 @@
+# transcript
+chapter: 13
+os: macOS (Apple Silicon) + remote Linux server
+shell: zsh (login default)
+tool: OpenSSH ssh -L (port forward)
+date: 2026-07-05
+captured-by: user-mac
+note: ssh -fN -L 8899:localhost:39797 opens a background
+note: tunnel; a short-lived python3 -m http.server on the
+note: server (timeout-killed) is reached with curl THROUGH
+note: the tunnel at localhost:8899. Started as two separate
+note: steps (server, then tunnel) for reliability. Only demo
+note: filenames appear; host/account/ip masked.
+---
+# open the tunnel in the background (no remote shell):
+$ ssh -fN -L 8899:localhost:39797 lab-server
+# reach the server-side http.server THROUGH the tunnel:
+$ curl -s http://localhost:8899/ | sed -n '1,12p'
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Directory listing for /</title>
+</head>
+<body>
+<h1>Directory listing for /</h1>
+<hr>
+<ul>
+<li><a href="HELLO.txt">HELLO.txt</a></li>
+<li><a href="step.py">step.py</a></li>

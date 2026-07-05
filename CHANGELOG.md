@@ -8,6 +8,80 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 13, "SSH and Remote Compute" (Phase 5, Part III,
+  the THIRD of the four Part-III chapters; Ch 11 "Make" is a
+  committed Phase-2 exemplar and is skipped here. Drafted
+  2026-07-05; validator 0/0 in the sandbox; of 21 fenced code
+  blocks 18 are transcript-backed (17 prompted plus the renv
+  output block) and confirmed as contiguous substrings of the
+  ch13-* transcripts (5 sandbox transcripts + 7 Mac
+  transcripts), with marked [...] elisions for the rsync file
+  list and the uv/renv install logs, and the other 3 are
+  authored non-capture listings. The Mac transcripts were
+  captured by the user running transcripts/capture-ch13-mac.sh
+  and a tunnel re-capture against a real remote Linux server
+  (AWS EC2 Ubuntu, kernel 6.8.0-aws, with R and uv userspace);
+  the capture scripts hardcode no personal data, deriving the
+  server hostname/account/home/mount/device/IP at runtime and
+  masking them, emitting the alias as lab-server, with two
+  further masks applied on ingestion and documented (the Mac's
+  own hostname inside a ~/.ssh filename, and a host-named private
+  key). Sources pinned + fetched 2026-07-05 (OpenSSH
+  ssh/ssh_config/ssh-keygen, rsync, openrsync, and the Slurm
+  sbatch/squeue/scancel docs). The book's THIRD figure,
+  fig-ch13-motion, was authored and built font-independently
+  (pdflatex -> gs -dNoOutputFonts -> pdftocairo -svg, per the
+  Ch 5 lesson, not dvisvgm) and eyeballed from the outlined PDF.
+  Codex blind audit round 1 is DONE 2026-07-05: the canonical
+  Mac `uv run` validator (0/0) and `quarto render` (189-page
+  PDF, Ch 13 pp. 157-169, the figure renders in HTML and PDF
+  and the long output lines wrap without overflow) both passed,
+  and round 1's five blockers, four should-fixes, and two nits
+  were ALL applied (the ~/.ssh filename masks, the softened
+  R-version claim, the per-second Runpod billing correction with
+  pinned docs, the tunnel block's missing line, and smaller
+  wording/fence fixes). A final Codex re-review, human review,
+  and the Mac commit are PENDING; this chapter's commit will NOT
+  close gate G5, which needs Ch 10 + 12 + 13 + 14, and it carries
+  the pending Ch 12 `1b3fb47` CHANGELOG hash-line touch below,
+  since a commit cannot contain its own hash.)** Delivers the
+  laptop-to-server motion Chapter 1 promised and the environment
+  rebuild Chapter 12 deferred, on one spine: the same project
+  and workflow, on a machine you cannot see. Seven content
+  sections (5 beginner, 2 advanced) plus unnumbered Try-it:
+  reaching a shell with `ssh` (interactive and one-shot, the
+  known_hosts host-key-change RECOVERY, and an honest scope on
+  what ssh does and does not guarantee); keys and the
+  permissions that make them work (a throwaway `ssh-keygen`
+  demo, `chmod 600`/`700` applying Chapter 9, `ssh-agent`, the
+  annotated `~/.ssh/` tree, and the wrong-permissions PITFALL);
+  a config file and a port forward (`~/.ssh/config` with
+  `ssh -G` evidence, `ssh -L` reaching a server-side service via
+  a real tunnel, and the agent-forwarding PITFALL quoting the
+  ssh_config security warning); moving the project with `rsync`
+  (the trailing-slash semantics, excluding `.venv`/`renv/library`
+  per Chapter 12, the `--delete` DANGER shown with a `-n` dry
+  run, and the openrsync-vs-GNU DIVERGENCE); verifying the
+  transfer (cross-machine `sha256sum`/`shasum -a 256` agreement,
+  the precise distinction between rsync's after-transfer
+  whole-file checksum and an end-to-end manifest, `tar`/`du`/`df`,
+  and a REPRODUCIBILITY callout tying checksum-verified transfer
+  to the lockfile rebuild); rebuilding the environment and
+  surviving a disconnect (a live `uv sync` and `renv::restore()`
+  on the server, delivering Chapter 12's payoff on a third
+  platform, and the SIGHUP/`nohup`/tmux-is-Chapter-14 handoff);
+  and the bigger remote worlds (a GPU pod as another Linux box
+  plus a meter, an HPC scheduler's `sbatch`/`squeue`/`scancel`
+  as recognize-and-route, VS Code Remote as a pointer). A live
+  finding corrected a drafted assumption: macOS openrsync accepts
+  `--itemize-changes` and `-z` (the OpenBSD man page implied
+  otherwise), so the divergence is framed as
+  implementation/protocol, not flag failure. Scope held: no tmux
+  (Chapter 14), no re-teaching of `chmod` (Chapter 9), checksum
+  mechanics (Chapter 3/10), or uv/renv (Chapter 12); `ncdu` named
+  and routed to Chapter 15; SSH server administration out
+  (client-side only, no sudo on the box). Sources in
+  `verification/chapter-13.md`.
 - **Chapter 12, "Environments from the Shell" (Phase 5, Part
   III, the SECOND of the four Part-III chapters; Ch 11 "Make"
   is a committed Phase-2 exemplar and is skipped here. Drafted
@@ -35,13 +109,15 @@ are not part of this repo; this file is the repo-visible history.
   zone already being public via Ch 10's committed TZ example
   and the unmasked git author identity; the final re-review
   added the direct renv dependencies() source pin and re-swept
-  the corrected render). Human review approved 2026-07-04.
+  the corrected render). Human review approved 2026-07-04;
+  committed + pushed 2026-07-04 as `1b3fb47`.
   This chapter's commit does NOT close
   gate G5, which needs Ch 10 + 12 + 13 + 14. This chapter's
   commit carries the pending Ch 10 `f973acb` CHANGELOG
   hash-line touch below, since a commit cannot contain its own
-  hash; Ch 12's own hash then becomes the pending touch for
-  Ch 13).** Continues Part III's reproducibility arc on one
+  hash; Ch 12's own `1b3fb47` hash line, added here after the
+  push, becomes the pending touch and rides with the Ch 13
+  commit).** Continues Part III's reproducibility arc on one
   idea: a reproducible analysis needs a reproducible
   environment, the exact package versions the code ran
   against, captured in a lockfile and restored from the shell

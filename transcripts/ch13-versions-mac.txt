@@ -1,0 +1,16 @@
+# transcript
+chapter: 13
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: macOS OpenSSH + openrsync
+date: 2026-07-05
+captured-by: user-mac
+note: macOS ships openrsync (an OpenBSD reimplementation) and a
+note: newer OpenSSH than the Linux sandbox; the sandbox side is in
+note: ch13-versions.txt. No personal data in these version lines.
+---
+$ ssh -V
+OpenSSH_10.2p1, LibreSSL 3.3.6
+$ rsync --version | head -2
+openrsync: protocol version 29
+rsync version 2.6.9 compatible

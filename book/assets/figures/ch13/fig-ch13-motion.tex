@@ -1,0 +1,66 @@
+% ======================================================================
+% fig-ch13-motion.tex
+% Chapter 13 (SSH and remote compute), the book's THIRD figure and the
+% chapter opener. Concept: the laptop-to-server motion Chapter 1 promised.
+% The laptop (neutral, the familiar) connects over ssh to a remote Linux
+% box (blue, the project spine's new home); rsync carries the project
+% there (lockfiles, not built environments) and results back; uv sync and
+% renv::restore() (green, the Chapter 12 rebuild) reconstruct the env on
+% arrival. The same shape reaches a GPU pod or an HPC login node, faded,
+% which the reader learns to RECOGNIZE, not master.
+%
+% Build (font-independent SVG, per book-private CLAUDE.md; NOT dvisvgm):
+%   pdflatex fig-ch13-motion.tex
+%   gs -o outlined.pdf -dNoOutputFonts -sDEVICE=pdfwrite fig-ch13-motion.pdf
+%   pdftocairo -svg outlined.pdf fig-ch13-motion.svg
+% lmodern gives a Type1 mono that outlines cleanly in the SVG.
+% ======================================================================
+\documentclass[tikz,border=8pt]{standalone}
+\input{preamble.tex}
+\usepackage{lmodern}
+
+\begin{document}
+\begin{tikzpicture}[
+  box/.style = {tbcard={#1}{center}, text width=30mm,
+    minimum width=36mm, minimum height=15mm, inner sep=5pt,
+    font=\sffamily\fontsize{8.5}{10.5}\selectfont,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  small/.style = {tbcard={#1}{center}, text width=27mm,
+    minimum width=31mm, minimum height=12mm, inner sep=4pt},
+  elabel/.style = {font=\sffamily\fontsize{7.5}{9}\selectfont,
+    text=tbMute, fill=white, inner sep=1.5pt, align=center},
+]
+
+% ---- the two machines ----
+\node[box={tbNeut}] (laptop) at (0,0)
+  {\textbf{your laptop}\\[2pt]
+   \tbdetail{edit, version with Git}};
+
+\node[box={tbPrim}, tbstrong] (server) at (72mm, 0)
+  {\textbf{remote Linux box}\\[2pt]
+   \tbdetail{the same shell, elsewhere}};
+
+% ---- environment rebuild, above the server ----
+\node[small={tbData}, text width=34mm] (env) at (72mm, 27mm)
+  {\tbdetail{\textbf{uv sync} $+$ \textbf{renv::restore()}\\
+   rebuild the env from the lockfiles}};
+\draw[tbedge] (env.south) -- (server.north);
+
+% ---- the motion: push and pull ----
+\draw[tbedge thick] ([yshift=4mm]laptop.east) -- ([yshift=4mm]server.west)
+  node[elabel, midway] {ssh $+$ rsync -a\\(lockfiles travel)};
+\draw[tbdash] ([yshift=-6mm]server.west) -- ([yshift=-6mm]laptop.east)
+  node[elabel, midway] {rsync results back};
+
+% ---- the bigger worlds, recognize and route ----
+\node[small={tbNeut}] (gpu) at (134mm, 12mm)
+  {\tbdetail{\textbf{GPU pod}\\a Linux box $+$ a meter}};
+\node[small={tbNeut}] (hpc) at (134mm, -12mm)
+  {\tbdetail{\textbf{HPC login node}\\sbatch to the queue}};
+\draw[tbdash] (server.east) -- (gpu.west);
+\draw[tbdash] (server.east) -- (hpc.west);
+\node[tbnote, text width=32mm] at (134mm, -28mm)
+  {recognize and route,\\not master};
+
+\end{tikzpicture}
+\end{document}

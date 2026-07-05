@@ -1,0 +1,38 @@
+# transcript
+chapter: 13
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: OpenSSH ssh_config (ssh -G) + local ~/.ssh perms
+date: 2026-07-05
+captured-by: user-mac
+note: ssh -G prints the config the alias resolves to; the real
+note: hostname/user are masked. The chapter shows the config-file
+note: FORM as a labeled template. ~/.ssh permissions are the
+note: PITFALL evidence (700 dir, 600 keys). Masked on ingestion:
+note: the Mac's own hostname inside a filename ("environment-<mac
+note: hostname>" -> "environment-[hostname]"), which the capture
+note: -time mask did not target. The author's real key and
+note: backup filenames are also masked to canonical placeholders
+note: (the two personal key files -> id_ed25519 / id_ed25519_alt,
+note: the config.bak timestamp -> [date]) so the
+note: listing shows the permission evidence without disclosing the
+note: real ~/.ssh inventory; the permission bits, sizes, and dates
+note: are unchanged.
+---
+$ ssh -G lab-server | grep -Ei '^(hostname|user|port|identityfile) '
+user [account]
+hostname [ip]
+port 22
+identityfile ~/.ssh/id_ed25519
+$ ls -l ~/.ssh
+total 72
+drwx------@ 4 [account]  staff   128 Jun 17 16:32 agent
+-rw-r--r--@ 1 [account]  staff   721 May  8 19:13 config
+-rw-r--r--@ 1 [account]  staff   569 May  8 19:13 config.bak.[date]
+-rw-------@ 1 [account]  staff   132 Jun 14 18:18 environment-[hostname]
+-rw-------@ 1 [account]  staff   419 Mar 20 17:34 id_ed25519
+-rw-r--r--@ 1 [account]  staff   109 Mar 20 17:34 id_ed25519.pub
+-rw-------@ 1 [account]  staff   419 Mar 20 17:40 id_ed25519_alt
+-rw-r--r--@ 1 [account]  staff   104 Mar 20 17:40 id_ed25519_alt.pub
+-rw-------@ 1 [account]  staff  1662 Mar 20 18:27 known_hosts
+-rw-------@ 1 [account]  staff   922 Mar 20 18:27 known_hosts.old

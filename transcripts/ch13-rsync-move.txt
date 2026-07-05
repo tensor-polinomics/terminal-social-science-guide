@@ -1,0 +1,76 @@
+# transcript
+chapter: 13
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: rsync 3.2.7 (GNU; the Linux/server side)
+date: 2026-07-04
+captured-by: sandbox
+note: rsync semantics run LOCALLY in a throwaway scratch dir
+note: (dir-to-dir), byte-identical to the remote form; the network
+note: only proves remoteness, not semantics. Uses -v (verbose),
+note: which BOTH GNU rsync and macOS openrsync support, so the shown
+note: commands are portable. GNU-only niceties (-i/--itemize-changes,
+note: -z) are shown in the chapter's DIVERGENCE, not here. Scratch
+note: paths are throwaway; no personal data appears.
+---
+$ ls proj proj/data proj/scripts
+proj:
+data
+scripts
+
+proj/data:
+panel.csv
+
+proj/scripts:
+00_make.py
+01_clean.py
+
+# Trailing slash on the source copies its CONTENTS into the target:
+$ rsync -a proj/ backup
+$ find backup | sort
+backup
+backup/data
+backup/data/panel.csv
+backup/scripts
+backup/scripts/00_make.py
+backup/scripts/01_clean.py
+
+# No trailing slash nests the source dir INSIDE the target:
+$ rsync -a proj nested
+$ find nested | sort
+nested
+nested/proj
+nested/proj/data
+nested/proj/data/panel.csv
+nested/proj/scripts
+nested/proj/scripts/00_make.py
+nested/proj/scripts/01_clean.py
+
+# --delete removes files on the target that are gone from the
+# source. A stale result sits on the backup; look before leaping
+# with -n (dry run) and -v (verbose) before the real run:
+$ printf 'old\n' > backup/OLD_RESULT.csv
+$ rsync -a -v -n --delete proj/ backup
+sending incremental file list
+deleting OLD_RESULT.csv
+./
+
+sent 229 bytes  received 46 bytes  550.00 bytes/sec
+total size is 28  speedup is 0.10 (DRY RUN)
+$ ls backup
+OLD_RESULT.csv
+data
+scripts
+
+# The dry run changed nothing: OLD_RESULT.csv is still there.
+# Now the real run deletes it:
+$ rsync -a -v --delete proj/ backup
+sending incremental file list
+deleting OLD_RESULT.csv
+./
+
+sent 229 bytes  received 46 bytes  550.00 bytes/sec
+total size is 28  speedup is 0.10
+$ ls backup
+data
+scripts

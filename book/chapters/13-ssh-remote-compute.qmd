@@ -1,7 +1,607 @@
-# SSH and Remote Compute: Servers, GPU Pods, HPC
+# SSH and Remote Compute
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 13. ~/.ssh/config,
-     port forwarding, VS Code Remote. + SSH key hygiene. + Data movement
-     (rsync/scp, DANGER on rsync --delete + trailing slash, checksum
-     verify, tar/gzip, du/df/ncdu). + GPU pods (Runpod, nvtop). + SLURM/
-     HPC recognize-and-route (one page, droppable). Drafted in Phase 5. -->
+Chapter 1 promised a motion: the analysis leaves the laptop,
+runs on a remote Linux machine where the heavy work happens,
+and the results come back. Chapter 12 ended on the other half
+of that promise, that `uv sync` and `renv::restore()` would
+rebuild the project's environment "when this project moves to a
+remote server." This chapter is where both promises come due.
+The tool that makes it possible is `ssh`: the one interface
+that makes a machine you cannot see behave like Chapter 2's
+local shell.
+
+The spine of the chapter is a single idea: the same project
+and the same workflow, on a machine you cannot see, with the
+Linux boundary flagged where it bites. `ssh` opens a shell on
+the remote box and runs commands there; a key and a config
+file make the connection authenticated and repeatable; `rsync`
+moves the project across and the results back without
+destroying either side; the Chapter 12 lockfiles rebuild the
+environment on arrival; and you learn to recognize the two
+larger remote worlds, GPU pods and HPC schedulers, without this
+book pretending to teach them in depth. Everything here is
+client-side. You are a guest on someone else's Linux box,
+usually without `sudo`, so nothing in this chapter administers
+a server; it drives one.
+
+A note on where the output comes from. The SSH-client blocks
+run on the author's Mac against a real remote Linux server (an
+AWS EC2 Ubuntu box), captured by `transcripts/capture-ch13-mac.sh`;
+`rsync`'s semantics, `ssh-keygen`, `tar`, and `du` run in this
+book's Linux sandbox, where they need no network and behave
+exactly as they do remotely. Because everything SSH touches is
+identifying, the captures mask, at capture time, the server's
+hostname (`[hostname]`), any literal address (`[ip]`), the
+account name (`[account]`), and the home path (`~`) with its
+mount (`[mount]`) and device (`[device]`); the server alias is
+shown throughout as `lab-server`. No private key is ever shown.
+The one keypair on display is a throwaway generated for the
+book.
+
+![The laptop-to-server motion this chapter delivers. Your laptop is where you edit and version; a key and `~/.ssh/config` open an authenticated, named connection to a remote Linux box; `rsync` moves the project across (lockfiles, not built environments) and results back; `uv sync` and `renv::restore()` rebuild the environment on arrival. The same pattern reaches a GPU pod or an HPC login node, which you learn to recognize rather than master.](../assets/figures/ch13/fig-ch13-motion){#fig-ch13-motion fig-alt="A left-to-right diagram. On the left a card labeled 'laptop (edit, version, Git)'. An arrow labeled 'ssh: key + ~/.ssh/config' leads to a center card 'remote Linux box'. Between them two arrows: 'rsync -a (lockfiles travel)' pointing right and 'rsync results back' pointing left. Above the center card, 'uv sync / renv::restore() rebuild the environment'. On the right two faded cards, 'GPU pod (+ a meter)' and 'HPC login node (sbatch)', labeled 'recognize and route'." width="5.6in" fig-pos="H"}
+
+## Reaching a shell on a machine you cannot see {.tier-beginner}
+
+`ssh` logs you into a remote host and runs commands there. Give
+it an address and it opens an interactive shell; give it a
+command and it runs just that one and returns, which is how
+scripts and capture tools talk to a server without a human at
+the keyboard:
+
+```bash
+$ ssh lab-server 'uname -a'
+Linux [hostname] 6.8.0-1039-aws #41~22.04.1-Ubuntu SMP Thu Sep 11 10:54:48 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+```
+
+The prompt never changed, but that `uname` ran on another
+machine: a different kernel, `x86_64`, and the `aws` in the
+build string gives it away as a cloud VM. Most of what you
+learned in Parts I and II applies directly, because on the far
+side of `ssh` is an ordinary Linux shell. It is a GNU one,
+though, so the BSD-versus-GNU differences this book keeps
+flagging now sit between your Mac and the server rather than
+inside one machine. The other new fact is that a dropped
+network connection, not a closed terminal, is now what can
+interrupt your work, a thread this
+chapter returns to.
+
+Be precise about what `ssh` gives you. It authenticates the two
+ends to each other and encrypts everything on the wire, so you
+know which machine you reached and no one between can read the
+traffic. It does not, by itself, make the server "secure" or
+your data safe there; those depend on how the box is
+administered and on the habits from Chapter 9. The first time
+you connect, `ssh` records the server's host key in
+`~/.ssh/known_hosts` and adds new hosts automatically; if that
+key ever changes, it "warns about this and disables password
+authentication to prevent server spoofing or man-in-the-middle
+attacks," per the `ssh` manual.
+
+::: {.callout-tip .recovery title="RECOVERY"}
+One day `ssh` refuses to connect with a wall of hashes and
+`REMOTE HOST IDENTIFICATION HAS CHANGED!`. That warning means
+the server's host key no longer matches the one in
+`known_hosts`. Two very different things cause it. The benign
+case: the server was rebuilt, reinstalled, or reprovisioned
+(common with cloud VMs and pods), so it has a legitimately new
+key. The dangerous case: something is impersonating the server.
+Do not blindly delete the line to make it go away. Confirm out
+of band that the machine was rebuilt (the console, a colleague,
+the provider's dashboard); only then remove the stale entry
+with `ssh-keygen -R lab-server` and reconnect, checking the new
+fingerprint. If you cannot explain the change, stop and treat
+it as an interception until proven otherwise.
+:::
+
+## Keys, and the permissions that make them work {.tier-beginner}
+
+Typing a password on every connection does not scale and cannot
+be scripted. Key authentication replaces it with a pair of
+files: a private key that stays on your laptop and is never
+shared, and a public key you copy to each server. `ssh-keygen`
+makes the pair (here a throwaway demo key, generated in scratch
+for the book, never a real one):
+
+```bash
+$ ssh-keygen -t ed25519 -C book-demo-key -f demo_key -N ''
+Generating public/private ed25519 key pair.
+Your identification has been saved in demo_key
+Your public key has been saved in demo_key.pub
+The key fingerprint is:
+SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key
+```
+
+`-t ed25519` picks the modern key type (also the default),
+`-C` sets a comment to recognize it by, and `-f` names the
+output. Two files result: `demo_key` (private, secret) and
+`demo_key.pub` (public, shareable). The public half is a single
+line you can hand out freely, and the fingerprint identifies
+the key without revealing it:
+
+```bash
+$ cat demo_key.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEaqncWvaHmNESKgkhbk0F7qjjgMbz171gdQCQOYOUJz book-demo-key
+
+# The fingerprint names the key without revealing it:
+$ ssh-keygen -lf demo_key.pub
+256 SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key (ED25519)
+```
+
+The public key goes into `~/.ssh/authorized_keys` on the
+server (one key per line); anyone holding the matching private
+key can then log in as you. That is exactly why the private key
+must stay private, and OpenSSH enforces this through file
+permissions. It refuses to use a private key that other users
+can read. Lock it down with Chapter 9's `chmod`:
+
+```bash
+$ chmod 600 demo_key
+$ ls -l
+total 8
+-rw------- 1 [account] [account] 399 Jul  5 10:18 demo_key
+-rw-r--r-- 1 [account] [account]  95 Jul  5 10:18 demo_key.pub
+```
+
+`600` leaves the private key readable and writable only by you;
+the public key can stay `644`. The directory itself should be
+`700`. A private key is usually protected further by a
+*passphrase* (pass `-N ''` here only to keep the demo
+non-interactive), and the `ssh-agent` holds the decrypted key
+in memory so you type that passphrase once per session rather
+than once per connection:
+
+```bash
+$ ssh-add demo_key
+Identity added: demo_key (book-demo-key)
+$ ssh-add -l
+256 SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key (ED25519)
+```
+
+A real `~/.ssh` collects these files, on both the laptop and
+the server. The map:
+
+```text
+~/.ssh/                 # dir must be 700 (drwx------)
+|-- config              # per-host shortcuts (Section 3)
+|-- id_ed25519          # PRIVATE key, 600, never leaves
+|-- id_ed25519.pub      # public key, 644, copy to servers
+|-- known_hosts         # host keys ssh has seen
+`-- authorized_keys     # (on the SERVER) public keys allowed in
+```
+
+The server side shows the same shape, and the `700` directory
+and the `authorized_keys` file are both real:
+
+```bash
+$ ssh lab-server 'ls -ld ~/.ssh; ls -l ~/.ssh'
+drwx------ 3 [account] [account] 4096 Apr  6 22:19 [mount]/[account]/.ssh
+total 44
+-rw-r--r-- 1 [account] [account]  686 Mar 20 17:25 authorized_keys
+```
+
+::: {.callout-warning .pitfall title="PITFALL"}
+If key authentication silently falls back to asking for a
+password, the cause is almost always permissions, not the key.
+OpenSSH ignores a private key that is group- or world-readable,
+and `sshd` ignores an `authorized_keys` file (or a `~/.ssh`
+directory, or the home directory) that others can write to. The
+checklist: private key `600`, `~/.ssh` `700`, `authorized_keys`
+`600` or `644`, and the home directory not group-writable, on
+both machines. Chapter 9's `chmod` fixes all of them; the key
+material is rarely the problem.
+:::
+
+## A config file, and forwarding a port {.tier-beginner}
+
+Retyping `ssh -p 22 -i ~/.ssh/id_ed25519 account@host`
+every time invites mistakes. `~/.ssh/config` gives the whole
+connection a name. This is an authored template, not a capture;
+fill in your own values:
+
+```text
+# ~/.ssh/config
+Host lab-server
+    HostName [ip]                # a real IP or a DNS name
+    User     your-account
+    Port     22
+    IdentityFile ~/.ssh/id_ed25519
+```
+
+After this, `ssh lab-server` expands to the full command, and
+so does every tool that reads the same config: `rsync`, `scp`,
+`git`, and your editor's remote mode. The `ssh` manual notes
+that "the first obtained value for each parameter is used," so
+put specific `Host` blocks above general defaults. To see what
+an alias actually resolves to, ask `ssh -G lab-server`; on the
+author's machine it reports `hostname [ip]`, `user [account]`,
+`port 22`, and `identityfile ~/.ssh/id_ed25519`, the
+resolved settings the block above produced.
+
+Sometimes the thing you want is a service bound to the server's
+*own* `localhost`, a Jupyter notebook, a database, a dashboard,
+not exposed to the network at all. `ssh -L` forwards a local
+port to it, so your laptop can reach it as if it were local:
+
+```bash
+$ ssh -fN -L 8899:localhost:39797 lab-server
+# reach the server-side http.server THROUGH the tunnel:
+$ curl -s http://localhost:8899/ | sed -n '1,12p'
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Directory listing for /</title>
+</head>
+<body>
+<h1>Directory listing for /</h1>
+<hr>
+<ul>
+<li><a href="HELLO.txt">HELLO.txt</a></li>
+<li><a href="step.py">step.py</a></li>
+```
+
+`-L 8899:localhost:39797` reads as "forward my local `8899` to
+`localhost:39797` on the server"; `-N` runs no remote command
+and `-f` backgrounds the tunnel. The `curl` on the laptop
+reached a server-side web server (a throwaway one here) purely
+through the tunnel. The everyday version of this is running a
+notebook on the server and opening it in your laptop's browser.
+A related flag, `-J`, hops through a bastion or jump host when
+the server is not directly reachable.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Agent forwarding (`ForwardAgent yes`, or `ssh -A`) lets a
+process on the remote host use the keys in your laptop's agent,
+which is convenient for, say, `git` operations from the server.
+It also has a real cost. The `ssh_config` manual is blunt: a
+user "with the ability to bypass file permissions on the remote
+host" can reach your forwarded agent, and while they "cannot
+obtain key material from the agent," they "can perform
+operations on the keys that enable them to authenticate using
+the identities loaded into the agent." In plain terms: on a box
+where someone else is root, agent forwarding lets them
+authenticate as you, to anywhere your keys reach, for as long
+as you are connected. Do not forward your agent to a machine
+you do not fully trust; a jump host (`-J`) or a dedicated
+per-host key is usually the safer tool.
+:::
+
+## Moving the project with `rsync` {.tier-beginner}
+
+`scp file lab-server:path` copies a single file over the same
+SSH connection, which is fine for one file. For a directory
+tree, and for re-syncing it after edits, `rsync` is the right
+tool: it transfers only what changed. Its one genuine trap is
+the trailing slash on the source. A source with a trailing
+slash means "the contents of this directory"; without it, "the
+directory itself":
+
+```bash
+# Trailing slash on the source copies its CONTENTS into the target:
+$ rsync -a proj/ backup
+$ find backup | sort
+backup
+backup/data
+backup/data/panel.csv
+backup/scripts
+backup/scripts/00_make.py
+backup/scripts/01_clean.py
+
+# No trailing slash nests the source dir INSIDE the target:
+$ rsync -a proj nested
+$ find nested | sort
+nested
+nested/proj
+nested/proj/data
+nested/proj/data/panel.csv
+nested/proj/scripts
+nested/proj/scripts/00_make.py
+nested/proj/scripts/01_clean.py
+```
+
+`proj/` put the contents directly into `backup`; `proj` (no
+slash) nested a `proj/` inside `nested`. The `rsync` manual
+puts it exactly: a trailing slash "means 'copy the contents of
+this directory' as opposed to 'copy the directory by name'."
+`-a` (archive) preserves permissions, times, and symlinks and
+recurses.
+
+To push the running example to the server, exclude the two
+directories Chapter 12 said never travel: the built
+environments. The lockfiles go; `.venv/` and `renv/library/`
+stay home and are rebuilt on the far side:
+
+```bash
+$ rsync -av --exclude='.venv' --exclude='renv/library' \
+    sandbox/asset-pricing/ lab-server:ch13-demo/
+[...]
+sent 4994461 bytes  received 1024 bytes  2474114 bytes/sec
+total size is 4989006  speedup is 1.00
+```
+
+::: {.callout-caution .danger title="DANGER"}
+`rsync --delete` makes the destination match the source by
+*deleting* anything on the destination that is not in the
+source. Aim it at the wrong directory, or fumble that trailing
+slash, and it erases files `rsync` never created. There is no
+trash and no undo. Always dry-run first with `-n`, and read the
+`deleting` lines before committing:
+
+```bash
+$ rsync -a -v -n --delete proj/ backup
+sending incremental file list
+deleting OLD_RESULT.csv
+./
+
+sent 229 bytes  received 46 bytes  550.00 bytes/sec
+total size is 28  speedup is 0.10 (DRY RUN)
+$ ls backup
+OLD_RESULT.csv
+data
+scripts
+```
+
+The `(DRY RUN)` marker and the intact `OLD_RESULT.csv` confirm
+nothing happened yet. Only when the dry run shows exactly what
+you expect do you drop the `-n`. The same file discipline as
+Chapter 6's `rm -rf`: look before you leap.
+:::
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The `rsync` on macOS is not the `rsync` on Linux. Recent macOS
+ships `openrsync`, an independent OpenBSD reimplementation:
+
+```bash
+$ rsync --version | head -2
+openrsync: protocol version 29
+rsync version 2.6.9 compatible
+```
+
+Linux ships GNU rsync, a different program at a newer protocol:
+
+```bash
+$ rsync --version | head -1
+rsync  version 3.2.7  protocol version 31
+```
+
+They speak a common protocol, and the everyday flags used above
+(`-a`, `-v`, `-n`, `--delete`, `--exclude`) behave the same on
+both, so the transfers in this chapter are portable. But they
+are different programs, and the man page you trust for one may
+not describe the other. On the tested macOS, GNU-only niceties
+like `--itemize-changes` and `-z` (compress) happen to be
+accepted, yet an older macOS or a bare OpenBSD box may not have
+them. The portable habit: stick to the common flags, and run
+`rsync --version` on any new machine before assuming a flag
+exists.
+:::
+
+## Did the bytes survive the trip? {.tier-beginner}
+
+Moving data is not the same as moving it *intact*, and on
+restricted or licensed data an undetected truncation is a real
+hazard. Chapter 10 built a manifest of `sha256sum` hashes;
+across two machines, the check is the same idea, run on both
+ends. After the push, hash the moved files on the server and on
+the laptop and compare:
+
+```bash
+$ ssh lab-server 'cd ch13-demo && find . -name "*.csv" | sort \
+    | xargs sha256sum'
+54989b4637304f96016a4877d20be4b144165c2db6ee4e7720350cf4ce9b99b1  ./data/clean/portfolio.csv
+8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  ./data/raw/factors.csv
+5056f91931a3c99e95aa79125c22fc4bc025c49210c99ff52b9dcef6352a92af  ./data/raw/firm_panel.csv
+
+# ...and on the MAC with shasum -a 256 (Ch 3's divergence):
+$ find . -name '*.csv' | sort | xargs shasum -a 256
+54989b4637304f96016a4877d20be4b144165c2db6ee4e7720350cf4ce9b99b1  ./data/clean/portfolio.csv
+8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  ./data/raw/factors.csv
+5056f91931a3c99e95aa79125c22fc4bc025c49210c99ff52b9dcef6352a92af  ./data/raw/firm_panel.csv
+```
+
+Identical hashes, from GNU `sha256sum` on the server and BSD
+`shasum -a 256` on the Mac (Chapter 3's divergence, earning its
+keep). The bytes that arrived are the bytes that left.
+
+Be careful what you credit `rsync` with here. The `rsync`
+manual says it "always verifies that each transferred file was
+correctly reconstructed on the receiving side by checking a
+whole-file checksum," so a garbled transfer is caught in
+flight. But that is a transfer-integrity check, not proof
+against an already-corrupt source, and it "has nothing to do
+with" a checksum you run end to end against a known-good
+manifest. The two are complementary: `rsync` guards the wire,
+your `sha256sum` guards the file.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+Two independent guarantees make a remote run trustworthy, and
+they combine. A checksum-verified transfer means the *same
+bytes* sit on both machines: the raw data is identical, not
+merely "copied." Rebuilding the environment from the lockfiles
+(next section) means the *same package versions* run on both
+machines. Same inputs, same code versions, on the laptop and on
+the server. Neither Chapter 10's manifest nor Chapter 12's
+lockfile is re-credited for the other's job; together they are
+what let a result computed on a server be believed back on the
+laptop.
+:::
+
+Two housekeeping tools travel with this. `tar` bundles a tree
+into one file (optionally gzip-compressed) so it moves as a
+single object and unpacks identically:
+
+```bash
+$ tar -czf proj.tgz proj
+$ ls -lh proj.tgz
+-rw-r--r-- 1 [account] [account] 282 Jul  4 13:43 proj.tgz
+$ tar -tzf proj.tgz
+proj/
+proj/data/
+proj/data/panel.csv
+proj/scripts/
+proj/scripts/00_make.py
+```
+
+And before you move anything, `du` shows what is worth moving,
+while `df` (run on the server) shows whether there is room:
+
+```bash
+$ du -h --max-depth=1 proj | sort -h
+56K	proj/output
+300K	proj/data
+360K	proj
+```
+
+```bash
+$ ssh lab-server 'df -h $HOME'
+Filesystem      Size  Used Avail Use% Mounted on
+[device]    492G  405G   63G  87% [mount]
+```
+
+`ncdu` is the interactive, navigable version of `du`; because
+it is a full-screen TUI rather than a one-shot command, it
+belongs with the modern-kit tools in Chapter 15.
+
+## Rebuilding the environment, and surviving a disconnect {.tier-advanced}
+
+The project is now on the server without its environments, and
+this is the moment Chapter 12 was built for. `uv sync` reads
+`uv.lock` and rebuilds the Python environment, resolving the
+universal lock for whatever interpreter the server has:
+
+```bash
+$ ssh lab-server 'cd ch13-demo && ~/.local/bin/uv sync'
+Using CPython 3.12.12
+Creating virtual environment at: .venv
+Resolved 28 packages in 45ms
+[...]
+Installed 18 packages in 217ms
+```
+
+Eighteen packages here, resolved for the server's CPython 3.12;
+the same lock gave 20 on the sandbox's CPython 3.10, because a
+universal lockfile resolves per interpreter (Chapter 12's
+divergence, live on a third machine). `statsmodels` lands at
+`0.14.6`, the locked version. Note the explicit
+`~/.local/bin/uv`: a non-interactive `ssh host 'cmd'` does not
+read your login shell's startup files, so a tool installed in
+`~/.local/bin` is not on `PATH` unless you name it in full, a
+seam Chapter 17 returns to.
+
+R rebuilds the same way, though more slowly. This server had no
+`renv` and no copy of the library, so `renv::restore()`, run
+over `ssh` in the demo directory, first bootstraps `renv`, then
+rebuilds the library from `renv.lock` by compiling every
+package from source:
+
+```bash
+- Downloading renv ... OK
+- Installing renv  ... OK
+[...]
+- lattice       [0.20-45 -> 0.22-9]
+- nlme          [3.1-160 -> 3.1-168]
+- base64enc     [* -> 0.1-6]
+- bslib         [* -> 0.11.0]
+[...]
+Successfully installed 35 packages in 420 seconds.
+```
+
+Seven minutes of compilation, and the library matches the lock:
+`fixest 0.14.2`, the same version Chapter 7 read and Chapter 12
+committed. Two details are worth seeing. `lattice` and `nlme`
+show `[old -> new]` because the server already had system
+copies that `renv` overrides to the locked versions; the rest
+show `[* -> version]` because they were absent. Either way the
+installed versions are the lock's, not whatever the server
+happened to have: a lockfile pins *packages*, not the R
+interpreter itself, exactly the honest edge Chapter 12 drew
+(renv tracks the R version but does not install it, so a
+server on a different R patch release restores the same
+packages, not the same R).
+
+One new hazard comes with remoteness. On your laptop, a job
+ends when you decide; over `ssh`, the connection is a lifeline.
+Close the laptop or lose the network and the remote shell
+receives `SIGHUP`, and by default the job dies with it. Chapter
+9's `nohup` is the fire-and-forget stopgap: the job survives
+the disconnect, but you cannot look in on it, only read its log
+afterward. The real answer, a session you can detach from, walk
+away, and reattach to later to watch a job run live, is `tmux`,
+which the next chapter is about.
+
+## The bigger remote worlds: GPU pods and HPC {.tier-advanced}
+
+Two larger remote settings are worth recognizing, because the
+skills above carry straight into them and the goal is to route
+yourself, not to master either here.
+
+A cloud GPU pod (Runpod and its kind) is, from the shell's
+point of view, just another Linux box you `ssh` into, plus a
+meter running. The same `ssh`, `rsync`, and `uv sync` all
+apply. What differs is three things worth internalizing before
+you rent one: there is a GPU (check it with `nvidia-smi`;
+`nvtop` is the live monitor), a pod's container storage is
+often *ephemeral*, so you `rsync` results *off* before you stop
+the pod (or write them to a persistent volume, if the provider
+offers one), and billing is metered, on Runpod by the second,
+so an idle pod still costs money. This book runs nothing on a
+paid pod; the point is only that it is not a new kind of
+machine, just a metered one.
+
+A university HPC cluster adds a scheduler, and here the change
+is real: you do not run heavy jobs on the login node you land
+on. You write a small job script and *submit* it to a scheduler
+(usually Slurm), which queues it and runs it on a compute node
+when resources free up. Three verbs are enough to recognize the
+world: `sbatch` submits a job script (whose `#SBATCH` comment
+lines set resources), `squeue` shows the queue, and `scancel`
+cancels a job. A minimal script, shown to be read, not run
+here:
+
+```text
+#!/usr/bin/env bash
+#SBATCH --job-name=ff5
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=8G
+#SBATCH --time=00:30:00
+
+module load R/4.5
+Rscript scripts/04_regression.R
+```
+
+Clusters also use *modules* (`module load ...`) instead of a
+system-wide install, plus *scratch* space and per-user
+*quotas*. This is a signpost, not a manual: when you land on a
+real cluster, its own documentation is the authority. The same
+goes for editor integrations like VS Code's Remote-SSH, which
+opens a folder on the server and edits it as if local over the
+very same `ssh` config; it is a convenience worth naming and
+reading the official docs for, not a new mechanism.
+
+## Try it yourself {.unnumbered}
+
+Use the running example and your own remote box (or borrow the
+patterns if you have none yet).
+
+1. Name the connection. Add a `Host` block for your server to
+   `~/.ssh/config`, then confirm `ssh myalias 'hostname'`
+   returns the server's name and `ssh -G myalias` shows the
+   `hostname`, `user`, and `identityfile` you expect.
+
+2. Move the project, safely. From the project root, dry-run the
+   push first: `rsync -av -n --exclude='.venv'
+   --exclude='renv/library' ./ myalias:ch13-demo/`. Read the
+   list, then run it for real without `-n`. State in one
+   sentence why `.venv/` and `renv/library/` are excluded.
+
+3. Prove the trailing slash to yourself. In a throwaway `/tmp`
+   directory, run `rsync -a src/ a` and `rsync -a src b`, then
+   `find a` and `find b`, and explain the difference in one
+   line. Do NOT test `--delete` anywhere real; if you must,
+   only in `/tmp` with `-n` first.
+
+4. Verify the bytes. `sha256sum` (or `shasum -a 256`) a data
+   file on both ends and confirm the hashes match. Then rebuild
+   the Python environment on the server with `uv sync` and
+   check that the installed `statsmodels` version matches the
+   one in `uv.lock`.
