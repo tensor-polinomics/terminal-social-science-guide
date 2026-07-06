@@ -1,0 +1,24 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: tmux 3.2a
+date: 2026-07-05
+captured-by: sandbox
+note: the session -> window -> pane containment, shown with the
+note: NON-interactive builders (`new-window`, `split-window`) and
+note: inspected with `list-windows` / `list-panes`, which need no
+note: attach. Session `analysis` and window `build` are names the
+note: book chose. Window 0's automatic name `sh-` is the sandbox
+note: default shell (`sh`); the `%N`/`@N` ids and layout strings
+note: are tmux internals, not personal data.
+---
+$ tmux new-session -d -s analysis -x 80 -y 24
+$ tmux new-window -t analysis -n build
+$ tmux split-window -t analysis:build -v
+$ tmux list-windows -t analysis
+0: sh- (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0
+1: build* (2 panes) [80x24] [layout 419a,80x24,0,0[80x12,0,0,1,80x11,0,13,2]] @1 (active)
+$ tmux list-panes -t analysis:build
+0: [80x12] [history 0/2000, 484 bytes] %1
+1: [80x11] [history 0/2000, 452 bytes] %2 (active)

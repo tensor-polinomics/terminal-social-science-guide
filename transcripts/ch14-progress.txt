@@ -1,0 +1,35 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: tmux 3.2a
+date: 2026-07-05
+captured-by: sandbox
+note: the persistence MECHANIC, captured without ever attaching.
+note: A stepwise job runs in a detached session; two separate
+note: `capture-pane` dumps a few seconds apart show it has
+note: PROGRESSED (3 steps, then 7). run_pipeline.py is a throwaway
+note: 12-step stand-in for a slow analysis step, in a scratch dir.
+note: Session name `job` chosen by the book. Pane fixed at 80x24
+note: (-x/-y) so captures are stable; trailing blank pad-lines
+note: stripped. No personal data.
+---
+$ tmux new-session -d -s job -x 80 -y 24 \
+    "cd /tmp/ch14demo && python3 run_pipeline.py"
+$ tmux ls
+job: 1 windows (created Sun Jul  5 21:12:52 2026)
+$ tmux capture-pane -t job -p
+step 1/12 done
+step 2/12 done
+step 3/12 done
+
+# A few seconds later, a SEPARATE check (still no attach) shows
+# the job has moved on by itself:
+$ tmux capture-pane -t job -p
+step 1/12 done
+step 2/12 done
+step 3/12 done
+step 4/12 done
+step 5/12 done
+step 6/12 done
+step 7/12 done

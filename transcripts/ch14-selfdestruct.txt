@@ -1,0 +1,20 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: tmux 3.2a
+date: 2026-07-05
+captured-by: sandbox
+note: the self-destruct PITFALL, run for real. A session whose
+note: ONLY process is the job ends the moment the job exits (the
+note: pane's process dies, its window closes, the last window
+note: closing ends the session), so `tmux ls` a few seconds later
+note: reports no server. Session name `job` chosen by the book;
+note: the socket dir /tmp/tmux-<uid> is the sandbox's own.
+---
+$ tmux new-session -d -s job -x 80 -y 24 \
+    "echo building; sleep 2; echo done"
+$ tmux ls
+job: 1 windows (created Sun Jul  5 21:17:20 2026)
+$ tmux ls
+no server running on /tmp/tmux-1187/default

@@ -8,6 +8,106 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 14, "Persistent Sessions" (Phase 5, Part III, the
+  FOURTH and LAST Part-III chapter, so its commit CLOSES gate G5;
+  Ch 11 "Make" is a committed Phase-2 exemplar and is skipped
+  here. Drafted 2026-07-05; validator 0/0 in the sandbox; all 9
+  fenced `bash` blocks are transcript-backed and confirmed as
+  contiguous substrings of the ch14-* transcripts by a scripted
+  byte-checker (7 sandbox blocks plus the 2 Section-3 server
+  blocks, the latter RECONCILED byte-for-byte 2026-07-05 against
+  `ch14-server-mac.txt` after the user ran
+  `transcripts/capture-ch14-mac.sh` against a real remote Linux
+  server; the drafted placeholder timestamp and step counts were
+  replaced with the real capture, `tmux ls` was filtered at
+  capture time to the demo session so the author's unrelated
+  pre-existing sessions never enter the repo, and the fourth
+  server read, a second `capture-pane`, was captured but dropped
+  from the chapter as redundant with the local demo, leaving
+  Connection A start, B `tmux ls`, C `capture-pane`, and the log
+  tail). One further authored non-runnable
+  `text` fence (the session/window/pane ASCII tree) is a labeled
+  schematic, not a capture; the RECOVERY callout is prose, with
+  no pseudo-capture block.
+  Sources pinned + confirmed 2026-07-05 (the tmux(1) manual and
+  tmux Getting-Started wiki for the default `C-b` prefix,
+  `C-b d` detach, nested-prefix `C-b C-b`, `attach -d`, and
+  `capture-pane -p`; the GNU Screen manual "Command Character"
+  for screen's `C-a`). No new figure; the book's three figures
+  stay Ch 2/5/13, and the containment is carried by the annotated
+  ASCII tree (the Ch 5 house device). The canonical Mac `uv run`
+  validator passed 0/0 and `quarto render book` produced a fresh
+  196-page PDF on 2026-07-06, with Ch 14 on pp. 170-178. Codex
+  final review and human review passed; this chapter's commit
+  CLOSES gate G5 (Ch 10 + 12 + 13 + 14 all in, Part III
+  complete), and it carries the pending Ch 13 `8c2cf09`
+  CHANGELOG hash-line touch below, since a commit cannot contain
+  its own hash. Ch 14's own hash-line becomes the pending touch
+  for the Ch 15 commit.)**
+  Delivers the forward promise Chapter 9 (`nohup` section) and
+  Chapter 13 (closing line) both made, on one spine: the
+  connection is disposable, the session is not. In Chapter 13 a
+  dropped `ssh` connection killed the remote job; tmux moves the
+  job into a session that lives on the server independent of the
+  connection, so you detach, close the laptop, reconnect from
+  anywhere, reattach, and the job is still running, its recent
+  output on screen and its Chapter 10 log intact. Five content
+  sections (3
+  beginner, 2 advanced) plus unnumbered Try-it: the core session
+  loop (`new`/detach/`ls`/`attach`/`kill-session`, the `Ctrl-b`
+  prefix, driven non-interactively with `new-session -d` because
+  an interactive `attach` seizes the terminal and would hang a
+  scripted capture); the session -> window -> pane containment
+  (the annotated ASCII tree paired with real
+  `list-windows`/`list-panes`, `new-window`/`split-window`);
+  surviving a disconnect on a remote job (the local mechanic, a
+  job progressing between two `capture-pane` dumps with no
+  attach, then the server payoff over two independent `ssh`
+  connections proving the session outlived the first); what tmux
+  does NOT do (survives a disconnect, NOT a reboot, which ends
+  the session, NOT a killed process; not a substitute for a
+  cluster scheduler, Ch 13's `sbatch`; the precise tmux-vs-`nohup`
+  delta, tmux adding reattach, live view, and multiple windows);
+  and screen plus driving tmux from a script (`send-keys` /
+  `capture-pane`). Callouts: 1 RECOVERY (reattach after a dropped
+  connection with `tmux ls` then `tmux attach -t`, and `attach
+  -d` when a session is already attached elsewhere), 2 PITFALL
+  (a session started as `tmux new-session -d 'cmd'` self-destructs
+  when the job exits, taking the scrollback, verified by a live
+  capture, so run the job inside a shell or rely on the Ch 10
+  log; and nested tmux, where `Ctrl-b` reaches the outer session
+  and `Ctrl-b Ctrl-b` the inner), 1 REPRODUCIBILITY (the job and
+  its Chapter 10 `tee` log both outlive the disconnect, and the
+  log survives even the session self-destruct, neither Chapter
+  credited for the other's job), 1 DIVERGENCE (tmux `C-b` vs
+  screen `C-a`, and the different command sets). No DANGER
+  (nothing here destroys, as Ch 5/12), no figure. A verified-not-
+  assumed subtlety: the self-destruct is a real run, and the
+  "progressed while detached" claim is two real `capture-pane`
+  dumps, not an assertion. Real output: six sandbox transcripts
+  (`ch14-coreloop.txt`, `ch14-progress.txt`, `ch14-structure.txt`,
+  `ch14-sendkeys.txt`, `ch14-selfdestruct.txt`, `ch14-screen.txt`;
+  Ubuntu 22.04.5, tmux 3.2a, GNU Screen 4.09.00; all demos in the
+  sandbox, `capture-pane` pad-lines stripped). The Section-3
+  server blocks are captured by `transcripts/capture-ch14-mac.sh`
+  (ssh one-shots only, BatchMode, hostname/account/home/IP masked
+  at capture time, `tmux ls` filtered to the demo session `job`;
+  a throwaway `~/ch14-job.sh` and `~/ch14-job.log` written and
+  removed at the end) into `ch14-versions-mac.txt` (the Mac's own
+  tmux 3.7a and screen 4.00.03 stamped) and `ch14-server-mac.txt`,
+  RECONCILED byte-for-byte 2026-07-05. Scope held: no
+  re-teaching of `ssh`/`rsync` (Ch 13), `nohup`/`SIGHUP`/`disown`
+  (Ch 9, cross-ref as the stopgap tmux replaces), the run log
+  (Ch 10), or the process model (Ch 2); copy-mode, theming,
+  status-line customization, and plugin managers are deliberately
+  out (PLAN Section 3, when in doubt cut); screen is a one-breath
+  aside, not a parallel tutorial. Sources in
+  `verification/chapter-14.md`. This commit also folds in a
+  one-line consistency fix to the committed Chapter 13: its
+  `nohup` handoff no longer says the log can "only be read
+  afterward" (you can follow it live with `tail -f`), matching
+  Chapter 14's precise `nohup`-versus-tmux contrast, a Codex
+  round-2 finding that the whole-tree sweep traced back to Ch 13.
 - **Chapter 13, "SSH and Remote Compute" (Phase 5, Part III,
   the THIRD of the four Part-III chapters; Ch 11 "Make" is a
   committed Phase-2 exemplar and is skipped here. Drafted
@@ -40,11 +140,19 @@ are not part of this repo; this file is the repo-visible history.
   were ALL applied (the ~/.ssh filename masks, the softened
   R-version claim, the per-second Runpod billing correction with
   pinned docs, the tunnel block's missing line, and smaller
-  wording/fence fixes). A final Codex re-review, human review,
-  and the Mac commit are PENDING; this chapter's commit will NOT
-  close gate G5, which needs Ch 10 + 12 + 13 + 14, and it carries
-  the pending Ch 12 `1b3fb47` CHANGELOG hash-line touch below,
-  since a commit cannot contain its own hash.)** Delivers the
+  wording/fence fixes). Codex round 2 (paperwork reconciliation)
+  then caught the stale public docs and one stale note in
+  `ch13-restore-mac.txt` (an R-version assertion left in the
+  transcript header after the chapter/verification/CHANGELOG were
+  fixed), all reconciled; the final Codex green-light re-review
+  and human review passed; committed + pushed 2026-07-05 as
+  `8c2cf09` (HEAD = origin/main = refs/heads/main). This
+  chapter's commit does NOT close gate G5, which needs
+  Ch 10 + 12 + 13 + 14; it carries the pending Ch 12 `1b3fb47`
+  CHANGELOG hash-line touch below, since a commit cannot contain
+  its own hash; Ch 13's own `8c2cf09` hash line, added here after
+  the push, becomes the pending touch and rides with the Ch 14
+  commit.)** Delivers the
   laptop-to-server motion Chapter 1 promised and the environment
   rebuild Chapter 12 deferred, on one spine: the same project
   and workflow, on a machine you cannot see. Seven content

@@ -203,11 +203,11 @@ thing still reproduces byte for byte wherever it ran.
 Sketched as the commands you will meet, that arc looks like the
 roadmap below. Do not run it or try to understand it yet; it is
 here only to show the shape of where the book is going, and each
-line names the chapter that will teach it.
+line names the chapter that teaches it.
 
 ```text
 # Illustrative roadmap, not run here. Each command below
-# will be taught, with real captured output, in the
+# is taught, with real captured output, in the
 # chapter named beside it; this intro only shows the shape.
 
 make             # rebuild the whole study     (Ch 11)

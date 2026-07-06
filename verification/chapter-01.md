@@ -3,14 +3,13 @@
 Per PLAN.md Section 10. Chapter 1 is the book's opening and is
 pure framing: it **executes no commands**, so it has no captured
 transcript of its own. The one fenced block is a labeled,
-non-runnable `text` roadmap sketch; each command in it **will
-be** taught, with real captured output, in the later chapter
-named beside it (Make = Ch 11, ssh/rsync/GPU = Ch 13, tmux = Ch
-14). As of this writing only Ch 11 is drafted; Ch 12/13/14 are
-still stubs, so the roadmap is a **forward contract, not a claim
-that those chapters already teach or capture anything.** (Revisit
-this wording when those chapters are written; see RESUME Open
-flags.) The chapter's reproducibility argument, including the
+non-runnable `text` roadmap sketch; each command in it **is**
+taught, with real captured output, in the later chapter named
+beside it (Make = Ch 11, ssh/rsync/GPU = Ch 13, tmux = Ch 14),
+all now drafted and committed (Part III complete at G5), so the
+roadmap now describes chapters that really do teach and capture
+those commands, not a forward contract. The chapter's
+reproducibility argument, including the
 claim that journals, funders, and referees increasingly expect a
 rebuild (REPRODUCIBILITY callout) and that reproducibility is now
 a basic research obligation ("The payoff starts on the laptop"),
@@ -20,10 +19,10 @@ documents," "the Git book argues at length ... and this book
 takes that as settled") and does not re-source it here. The
 laptop-payoff section's other claims (a command is a record you
 can rerun and share; batch file operations replace manual
-repetition) are self-evident shell mechanics that **will be**
-demonstrated with real commands in the later chapters they are
-routed forward to (Ch 4, 7, 8, still stubs as of this writing),
-not external facts needing a pin.
+repetition) are self-evident shell mechanics **demonstrated**
+with real commands in the later chapters they are routed forward
+to (Ch 4, 7, 8, now drafted and committed), not external facts
+needing a pin.
 
 That leaves a small number of external/volatile platform facts,
 all in the DIVERGENCE callout and the Mac-centric framing.
@@ -85,8 +84,8 @@ Access date for all web sources below: 2026-07-01.
 - verifies: only that uv and renv are named as the Python and R
   environment managers; Ch 1 shows no uv/renv command and makes
   no version-specific claim about either, so the naming is safe.
-  Operational behavior is **deferred to Ch 12 (still a stub as of
-  this writing) and is NOT verified by Ch 1.**
-- version note: named-only in Ch 1; to be version-stamped when
-  Ch 12 is written (a plan, not a done fact)
+  Operational behavior is **deferred to Ch 12 (now drafted and
+  committed) and is NOT verified by Ch 1.**
+- version note: named-only in Ch 1; version-stamped operationally
+  in Ch 12 (now drafted)
 - confirmable: yes (named-only)

@@ -1,0 +1,15 @@
+# transcript
+chapter: 14
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: macOS tmux + screen
+date: 2026-07-05
+captured-by: user-mac
+note: The Mac's own tmux (Homebrew) and screen versions, for the
+note: version stamp; the Linux side is in ch14-screen.txt. No
+note: personal data in these version lines.
+---
+$ tmux -V
+tmux 3.7a
+$ screen --version
+Screen version 4.00.03 (FAU) 23-Oct-06

@@ -1,4 +1,417 @@
 # Persistent Sessions
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 14. tmux (screen as
-     aside); surviving disconnects on long jobs. Drafted in Phase 5. -->
+Chapter 13 left one hazard unsolved. Over `ssh`, the connection
+is a lifeline: close the laptop or lose the network and the
+remote shell receives `SIGHUP`, and by default the job dies with
+it. Chapter 9 named `nohup` as the stopgap, a way to keep a job
+alive through a disconnect, but a limited one, since you cannot
+reattach to the job and drive it, only follow its log from the
+outside. Both chapters pointed here for the real answer.
+
+That answer is `tmux`, a terminal multiplexer. The idea behind
+it is one sentence: the connection is disposable, the session is
+not. `tmux` runs a program that owns a session living on the
+machine where `tmux` runs, holding your shells and their running
+jobs. You *attach* a terminal to that session to watch and type,
+and *detach* to walk away; the session, and everything running
+in it, stays put. Detach on purpose, or get cut off by a dropped
+network, and the difference is the same: nothing. You reconnect
+later, from anywhere, reattach, and the job is still running,
+right where you left it, its recent output still on screen. On a
+remote server this is the difference between a job that survives
+the night and one that dies when your laptop sleeps.
+
+This is a lean chapter on purpose. It teaches the small core a
+researcher actually needs, the session loop, the
+session/window/pane structure, and the survive-a-disconnect
+payoff, and deliberately skips tmux's large surface of
+copy-mode, theming, status-line customization, and plugins. When
+in doubt, this chapter cuts. `tmux` builds on Chapter 2's process
+model (a session is a set of processes that keep running whether
+or not a terminal is attached) and does not re-teach it; it also
+does not re-teach `ssh` (Chapter 13), the run log (Chapter 10),
+or `nohup`/`SIGHUP` (Chapter 9), all of which it leans on by
+cross-reference.
+
+A note on where the output comes from. The core loop, the
+session structure, `send-keys`/`capture-pane`, and the
+"progressed while detached" demo all run in this book's Linux
+sandbox (tmux 3.2a), captured non-interactively: an interactive
+`tmux attach` takes over the terminal and would hang a scripted
+capture, the Chapter 9 lesson, so the captures drive `tmux`
+through its command interface (`new-session -d`, `ls`,
+`capture-pane`, `send-keys`) and never attach. The one thing the
+sandbox cannot show, that a session outlives the `ssh`
+connection that started it, is captured on the author's Mac
+against a real remote Linux server by
+`transcripts/capture-ch14-mac.sh`. Because a remote session's
+prompt, `tmux ls`, and status line all expose identifying
+values, the captures mask, at capture time, the account
+(`[account]`), the hostname (`[hostname]`), and any address
+(`[ip]`); the server alias is shown as `lab-server` and every
+session name (`job`, `work`, `analysis`, `build`) is one the
+book chose, not a real one.
+
+## Sessions that outlive the connection {.tier-beginner}
+
+The whole tool reduces to a short loop: start a session, detach
+from it, list what is running, reattach, and eventually end it.
+Interactively you start one by name with `tmux new -s work`,
+which drops you into a shell inside the session. To leave it
+running and return to your plain terminal, you press the *prefix
+key* `Ctrl-b`, release it, then press `d` (for detach). tmux's
+default *key bindings* all have this shape: press `Ctrl-b`,
+release, then another key. The prefix exists so tmux's own keys
+never collide with the keys your programs use; in the default
+bindings `Ctrl-b d` means "detach" and `Ctrl-b c` means "new
+window". (The `tmux ...` commands you type at the shell, below,
+are separate from these bindings and need no prefix.)
+
+Because an interactive session cannot be scripted (attaching
+seizes the terminal), the captures here use the non-interactive
+equivalents, which do exactly the same thing without a keyboard.
+`tmux new-session -d -s work` creates a session named `work` and
+immediately detaches (`-d`); `tmux ls` lists the sessions the
+server is holding; `tmux kill-session -t work` ends one by name:
+
+```bash
+$ tmux new-session -d -s work -x 80 -y 24
+$ tmux ls
+work: 1 windows (created Sun Jul  5 21:11:43 2026)
+$ tmux kill-session -t work
+$ tmux ls
+no server running on /tmp/tmux-1187/default
+```
+
+The `-s work` names the session so you can find it again; the
+`-x 80 -y 24` fixes its size (useful only for reproducible
+captures, an interactive session takes your terminal's size).
+After the session is created, `tmux ls` shows it exists with no
+terminal attached, and once killed, the last session gone, the
+tmux server itself exits. The everyday loop is the interactive
+mirror of this: `tmux new -s work`, do your work, `Ctrl-b d` to
+detach, `tmux attach -t work` to come back.
+
+::: {.callout-tip .recovery title="RECOVERY"}
+Your connection drops mid-job, or you close the laptop by
+accident. Nothing is lost, because the job was in a tmux session
+on the server, not tied to your terminal. Reconnect with `ssh`,
+run `tmux ls` to confirm the session is still listed, and
+`tmux attach -t job` to rejoin it. With no argument `tmux attach`
+joins your most recent session, but naming it with `-t` is the
+habit that scales once you keep more than one. If another client
+is still attached to that session (a desktop you left at the
+office), tmux by default lets both attach at once and share the
+view; `tmux attach -d -t job` detaches that other client as you
+join, so the session is yours alone.
+:::
+
+::: {.callout-warning .pitfall title="PITFALL"}
+The prefix key is also the classic confusion, because tmux
+happily runs inside tmux. `ssh` into a server and start tmux
+there while a local tmux is already running, and two servers are
+stacked; the prefix goes to the *outer*, local one. `Ctrl-b c`
+then opens a window in your laptop's session, not the server's,
+and it looks like the server's tmux is ignoring you. To send the
+prefix through to the inner session, press it twice: `Ctrl-b
+Ctrl-b c`. The simpler habit is to not nest at all: on a remote
+box use the server's tmux and leave your local terminal plain,
+so there is only ever one prefix to think about.
+:::
+
+## Sessions, windows, and panes {.tier-beginner}
+
+A session is not flat. It contains *windows* (like tabs, one
+full screen each), and a window can be split into *panes* (tiled
+regions of that screen). In normal use the nesting goes one way:
+a server holds sessions, a session holds windows, a window holds
+panes, and detaching or reattaching moves the whole tree at once. For
+the running example, one session can hold everything a single
+analysis needs:
+
+```text
+session "analysis"        # survives your disconnects
+|-- window 0: shell       # editing, a REPL, ad-hoc commands
+`-- window 1: "build"     # the long job lives here
+    |-- pane 0            # the job, running
+    `-- pane 1            # a tail -f on its log
+```
+
+That map is a schematic; tmux reports the real structure with
+`list-windows` and `list-panes`. Building the same shape without
+attaching, `new-window` adds window 1 and `split-window -v`
+divides it into two stacked panes:
+
+```bash
+$ tmux new-session -d -s analysis -x 80 -y 24
+$ tmux new-window -t analysis -n build
+$ tmux split-window -t analysis:build -v
+$ tmux list-windows -t analysis
+0: sh- (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0
+1: build* (2 panes) [80x24] [layout 419a,80x24,0,0[80x12,0,0,1,80x11,0,13,2]] @1 (active)
+$ tmux list-panes -t analysis:build
+0: [80x12] [history 0/2000, 484 bytes] %1
+1: [80x11] [history 0/2000, 452 bytes] %2 (active)
+```
+
+The `analysis:build` target names a window as
+`session:window`; a pane can be addressed further as
+`session:window.pane`. `list-windows` confirms two windows, the
+second holding two panes, and `list-panes` shows those two panes
+with their sizes. Interactively you rarely type these: `Ctrl-b
+c` makes a window, `Ctrl-b "` and `Ctrl-b %` split a pane
+horizontally and vertically, `Ctrl-b n`/`Ctrl-b p` move between
+windows, and `Ctrl-b` with an arrow key moves between panes. For
+research work you can go a long way with a single window and
+never split a pane at all; the structure is there when a long
+job wants its own window while you keep working in another.
+
+## Surviving a disconnect on a remote job {.tier-beginner}
+
+This is the payoff, and the reason the chapter exists. The
+mechanism is easiest to see locally first. Start a stepwise job
+in a detached session and, without ever attaching, read its
+pane twice a few seconds apart:
+
+```bash
+$ tmux new-session -d -s job -x 80 -y 24 \
+    "cd /tmp/ch14demo && python3 run_pipeline.py"
+$ tmux ls
+job: 1 windows (created Sun Jul  5 21:12:52 2026)
+$ tmux capture-pane -t job -p
+step 1/12 done
+step 2/12 done
+step 3/12 done
+```
+
+A few seconds later, a separate check, still without attaching,
+shows the job has moved on by itself:
+
+```bash
+$ tmux capture-pane -t job -p
+step 1/12 done
+step 2/12 done
+step 3/12 done
+step 4/12 done
+step 5/12 done
+step 6/12 done
+step 7/12 done
+```
+
+`capture-pane -p` prints a pane's current contents to standard
+output, so you can glance at a running job without taking over
+its screen. The job advanced from three steps to seven between
+the two calls: it is running on its own, and the terminal only
+observes it.
+
+Now put that on a server, where it earns its keep. Let
+`ch14-job.sh` stand in for a slow analysis step: a small script
+that counts to thirty, printing `step N/30 done` every couple of
+seconds and teeing a log (Chapter 10). The move is to start it
+in a detached session over one `ssh` command, then let that
+connection close, and prove the session survived by reconnecting
+with *separate* `ssh` commands, each a fresh connection. Nothing
+stays open across the job:
+
+```bash
+# Connection A: start the job in a DETACHED session, then return.
+$ ssh lab-server 'tmux new-session -d -s job "bash ch14-job.sh"'
+
+# Connection B (a fresh ssh): the session outlived connection A.
+$ ssh lab-server 'tmux ls'
+job: 1 windows (created Sun Jul  5 19:57:08 2026)
+
+# Connection C (another fresh ssh): read the pane, no attach.
+$ ssh lab-server 'tmux capture-pane -t job -p'
+step 1/30 done
+step 2/30 done
+step 3/30 done
+step 4/30 done
+step 5/30 done
+step 6/30 done
+step 7/30 done
+step 8/30 done
+```
+
+The first `ssh` returned as soon as the detached session was
+created; the job kept running on the server with no connection
+open. Connection C, eight steps in, was reading a job that no
+one was attached to. A later, independent `ssh` finds it further
+along still, and its Chapter 10 log has been written the whole
+time:
+
+```bash
+# The Ch 10 log survives independently of the session:
+$ ssh lab-server 'tail -3 ~/ch14-job.log'
+step 14/30 done
+step 15/30 done
+step 16/30 done
+```
+
+Interactively this is the whole workflow: `ssh` to the server,
+`tmux new -s job`, launch the job, `Ctrl-b d`, and close the
+laptop. Tomorrow, `ssh` back, `tmux attach -t job`, and watch it
+finish live. The connection was disposable; the session was not.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+Two things persist through the disconnect, and both matter. The
+*job* survives, so a run started before you left is still a run
+you can trust, computed without interruption. And its *log*
+survives, because the job wrote it with `tee` (Chapter 10), so
+the evidence of what happened is on disk regardless of whether
+you were watching. Even if the session itself ends (next
+pitfall), the log remains. A result and its record both outlive
+the connection, which is what lets a computation run overnight
+on a server and still be believed in the morning. tmux keeps the
+job alive; Chapter 10's log keeps its provenance; neither is
+credited for the other's job.
+:::
+
+::: {.callout-warning .pitfall title="PITFALL"}
+Starting a session as `tmux new-session -d -s job "<command>"`
+ties the session's life to that one command. By default, when
+the command finishes, the pane's process exits, its window
+closes, and with the last window gone the session ends, taking
+the scrollback with it:
+
+```bash
+$ tmux new-session -d -s job -x 80 -y 24 \
+    "echo building; sleep 2; echo done"
+$ tmux ls
+job: 1 windows (created Sun Jul  5 21:17:20 2026)
+$ tmux ls
+no server running on /tmp/tmux-1187/default
+```
+
+Come back after the job finished and the session is simply gone,
+along with anything it printed. Two habits avoid the surprise:
+start a session with a *shell* (`tmux new -s job`, then run the
+job inside it) so the shell outlives the job and holds its
+output, or, better, always write a log with `tee` (Chapter 10)
+so the record survives no matter what the session does. (tmux's
+`remain-on-exit` option can instead hold the finished pane open,
+but the two habits above are simpler and more portable.)
+:::
+
+## What tmux does not do {.tier-advanced}
+
+tmux is precise about what it protects, and overselling it
+invites a false sense of safety. It keeps a session alive *on
+the machine where it runs*, against exactly one thing: your
+connection or terminal going away. It does not protect against
+the machine itself going away. If the server reboots, every tmux
+session on it is gone, job and scrollback with it; a session is
+live processes in memory, not a saved file. This is precisely
+why a long, must-not-die job on a shared cluster belongs to the
+scheduler, not to tmux: you `sbatch` it (Chapter 13) so the
+scheduler, not your login session, owns its lifecycle and can
+requeue it under the cluster's policy, whereas tmux is for an
+interactive session you personally want to detach from and
+rejoin. (Surviving an actual reboot then depends on that requeue
+policy and your own checkpointing, not on tmux at all.) Nor does
+tmux keep a *process* alive that dies on its
+own: if the job crashes or is killed, the session may stay open
+(a shell is still there) but the work is over. tmux persists the
+session, not the success of what runs in it.
+
+Set against `nohup`, the distinction is now clean. Both survive
+a disconnect. `nohup` is fire-and-forget: the job runs on with
+its output redirected to a file, and you cannot reattach to drive
+it, only watch its log grow with `tail -f` from outside. tmux
+adds the three things that
+make it the real workflow: you can *reattach* and watch the job
+live, you can keep *several* windows and panes in one session,
+and you can leave an interactive program (a REPL, an editor)
+running between visits. Use `nohup` for a single fire-and-forget
+command; use tmux when you will come back and look.
+
+One quiet cost comes with that power: a detached session is easy
+to forget. A session you left weeks ago is still holding a
+finished job's shell, a stale environment, maybe a half-open
+file, silently. `tmux ls` on login is the one-line audit; kill
+what you no longer need with `tmux kill-session -t name`. The
+sessions do not clean up after themselves, and on a shared
+server other people can see them cluttering the process table.
+
+## screen, and driving tmux from a script {.tier-advanced}
+
+Before tmux there was `screen`, and it may still be the only
+multiplexer on an older or minimal server where tmux is not
+installed. It does the same core job, and when it is what you
+have, its loop is worth recognizing:
+
+```bash
+$ screen --version
+Screen version 4.09.00 (GNU) 30-Jan-22
+```
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+`screen` and `tmux` solve the same problem with different keys
+and different commands, so muscle memory does not transfer.
+`screen`'s prefix is `Ctrl-a`, not tmux's `Ctrl-b`; you start a
+named session with `screen -S work`, detach with `Ctrl-a d`,
+list with `screen -ls`, and reattach with `screen -r work`. A
+detached session can be started non-interactively with
+`screen -dmS work <command>`. The commands differ throughout
+(`screen -ls` versus `tmux ls`, `Ctrl-a d` versus `Ctrl-b d`),
+so on an unfamiliar server the first question is which of the
+two is installed. This book teaches tmux; `screen` is here only
+so a bare server does not strand you.
+:::
+
+The same command interface that let the sandbox capture this
+chapter is useful in its own right: you can drive a session from
+outside it. `send-keys` types a command into a pane as if you
+had typed it, and `capture-pane` reads the result back, neither
+one attaching:
+
+```bash
+$ tmux new-session -d -s work -x 80 -y 24 -c /tmp/ch14demo
+$ tmux send-keys -t work 'python3 run_pipeline.py' Enter
+$ tmux capture-pane -t work -p
+python3 run_pipeline.py
+$ step 1/12 done
+step 2/12 done
+step 3/12 done
+```
+
+`send-keys ... Enter` sends the literal keystrokes plus a
+newline, so the pane's shell runs `python3 run_pipeline.py`; the
+following `capture-pane` shows the command and its first lines
+of output. This is a niche tool, not part of the daily loop, but
+it is how a monitoring script or a scheduled task can launch and
+check on a job in a named session without a human, and it is
+exactly how every tmux block in this chapter was captured.
+
+## Try it yourself {.unnumbered}
+
+Use the running example (`sandbox/asset-pricing/`) and a server
+you can `ssh` to; if you have none yet, run the local steps in
+the sandbox and read the remote one.
+
+1. Start and detach. Run `tmux new -s build`, and inside it
+   start a slow step of the pipeline (for instance `make` from
+   the project root, or `python3 scripts/00_make_data.py`).
+   Detach with `Ctrl-b d` and confirm with `tmux ls` that the
+   session is still there.
+
+2. Watch it without attaching. Run
+   `tmux capture-pane -t build -p` twice, a few seconds apart,
+   and confirm the output has advanced. Explain in one sentence
+   why the job kept running while you were detached.
+
+3. Survive a disconnect. On a server, start the same job in a
+   `tmux` session over `ssh`, detach, and close the connection
+   entirely. Open a new `ssh` connection, run
+   `tmux attach -t build`, and confirm the job is still running.
+   State in one sentence why this would have failed without tmux
+   (recall Chapter 13's dropped connection).
+
+4. Clean up, and reason about limits. End the session with
+   `tmux kill-session -t build`. Then answer: if the server had
+   rebooted while you were disconnected, would the job have
+   survived? Why is a cluster `sbatch` job (Chapter 13) the
+   right *class* of tool when the answer must be yes, and what
+   does surviving an actual reboot then still depend on (recall
+   the section: the cluster's requeue policy and your own
+   checkpointing, not tmux)?

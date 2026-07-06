@@ -524,8 +524,9 @@ ends when you decide; over `ssh`, the connection is a lifeline.
 Close the laptop or lose the network and the remote shell
 receives `SIGHUP`, and by default the job dies with it. Chapter
 9's `nohup` is the fire-and-forget stopgap: the job survives
-the disconnect, but you cannot look in on it, only read its log
-afterward. The real answer, a session you can detach from, walk
+the disconnect, but you cannot reattach to it and drive it, only
+follow its log from the outside. The real answer, a session you
+can detach from, walk
 away, and reattach to later to watch a job run live, is `tmux`,
 which the next chapter is about.
 

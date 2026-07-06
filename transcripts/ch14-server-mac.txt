@@ -1,0 +1,62 @@
+# transcript
+chapter: 14
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: tmux over ssh (survive-a-disconnect)
+date: 2026-07-05
+captured-by: user-mac
+note: Connection A starts a detached tmux session running a stepwise
+note: job (ch14-job.sh, a book-provided counter that tees a log, Ch
+note: 10). Connections B, C, D are SEPARATE ssh one-shots (each opens
+note: and closes its own connection) that find the session still
+note: running and ADVANCING, then read the intact log. No connection
+note: stays open across the job. hostname, account, home, and any IP
+note: are masked at capture time; the session and job names are the
+note: book's own. In tmux ls, the author's unrelated pre-existing
+note: sessions are filtered out at capture time, leaving only the
+note: demo session job.
+---
+# Connection A: start the job in a DETACHED session, then return.
+$ ssh lab-server 'tmux new-session -d -s job "bash ch14-job.sh"'
+
+# Connection B (a fresh ssh): the session outlived connection A.
+$ ssh lab-server 'tmux ls'
+job: 1 windows (created Sun Jul  5 19:57:08 2026)
+
+# Connection C (another fresh ssh): read the pane, no attach.
+$ ssh lab-server 'tmux capture-pane -t job -p'
+step 1/30 done
+step 2/30 done
+step 3/30 done
+step 4/30 done
+step 5/30 done
+step 6/30 done
+step 7/30 done
+step 8/30 done
+
+# Connection D (later, fresh ssh): the job has MOVED ON by itself.
+$ ssh lab-server 'tmux capture-pane -t job -p'
+step 1/30 done
+step 2/30 done
+step 3/30 done
+step 4/30 done
+step 5/30 done
+step 6/30 done
+step 7/30 done
+step 8/30 done
+step 9/30 done
+step 10/30 done
+step 11/30 done
+step 12/30 done
+step 13/30 done
+step 14/30 done
+step 15/30 done
+
+# The Ch 10 log survives independently of the session:
+$ ssh lab-server 'tail -3 ~/ch14-job.log'
+step 14/30 done
+step 15/30 done
+step 16/30 done
+
+# Clean up: end the session and remove the demo files.
+$ ssh lab-server 'tmux kill-session -t job'

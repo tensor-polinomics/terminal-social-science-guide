@@ -39,11 +39,12 @@ and Ch 5 is drafted (in the G3 gate); Ch 9, 10, 12, 13, 14, 17
 remain stubs. Ch 2's PROSE still uses forward-contract wording
 for the chapters that were stubs when it was written ("will be
 taught / will pin / will handle / will return"); the notes below
-now flag which of those targets have since been drafted, and
-re-finalizing the prose wording to present tense is the tracked
-forward-language pass (see RESUME open flag: "Ch 1 provenance is
-a forward CONTRACT, re-finalize when Ch 12/13/14 exist"), done in
-one batch, not chapter by chapter.
+now flag which of those targets have since been drafted. All of
+Ch 2's forward targets (Ch 3-13) are now committed and Ch 14 is
+drafted, so its "will" pointers are reading-order narrative for a
+reader at Ch 2, not claims the targets are unwritten; the Ch 1
+present-tense re-finalize was completed with the Ch 14 closeout
+(Part III complete at G5).
 Either way, no Ch 2 reference claims a later chapter already
 teaches, runs, or verifies anything.
 

@@ -202,9 +202,12 @@ which is stronger than a doc citation:
 - **Ch 10 (tee/script logs, `set -euo pipefail`, locale),
   Ch 13 (SSH/remote long jobs, `~/.ssh` keys), Ch 14 (tmux
   persistent reattachable sessions), Ch 17 (startup files)** are
-  all referenced with forward "will" language (still stubs). The
+  referenced with forward "will" language appropriate to reading
+  order; Ch 10, 13, and 14 are now drafted and committed (Ch 17
+  remains a stub), so the "will" is a forward pointer for a
+  reader at Ch 9, not a claim the target is unwritten. The
   `nohup` section explicitly draws the line to tmux (Ch 14) and
-  remote work (Ch 13) as the fuller answers.
+  remote work (Ch 13) as the fuller answers, both now delivered.
 
 ## Counts (self-check, 2026-07-03)
 
