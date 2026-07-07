@@ -1,6 +1,393 @@
 # Modern CLI Kit and TUIs
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 15. eza, bat, fd,
-     ripgrep, zoxide, fzf, delta + TUIs (lazygit, btop, ncdu); the
-     portability tax ("not on the server"); honest cost/benefit.
-     Drafted in Phase 6. -->
+The commands in Parts I and II are the ones every Unix machine
+has had for decades: `ls`, `cat`, `cd`, `grep`, `find`. A newer
+generation of tools reimplements those same jobs with friendlier
+defaults, color, and a few genuinely useful extras, and adds a
+handful of full-screen programs for tasks the plain commands do
+awkwardly. On the laptop in front of you they are a real
+pleasure: `eza` shows a file's git status in the listing, `bat`
+prints a script with line numbers and syntax highlighting,
+`zoxide` jumps to a directory by a fragment of its name. This
+chapter is a curated tour of the kit a researcher actually
+benefits from, taught as ergonomic upgrades to commands you
+already know.
+
+It comes with an honest bill, and stating it plainly is the
+point of the chapter. None of these tools is on the bare Linux
+server you SSH into in Chapter 13. A fresh cloud VM or an HPC
+login node has `ls` and `cat` and `grep`; it does not have
+`eza` or `bat` or `zoxide`, and on a locked-down node you may
+not be able to install them. The risk is not the tools; it is
+the *habit*. Lean on them hard enough that your fingers forget
+the originals, wire them into a script, and the first time you
+land on a plain box the muscle memory fails. So the spine of
+this chapter is: adopt what makes your laptop nicer, and keep it
+a convenience layer that never becomes a dependency your work or
+your reflexes rely on. You have already met two members of this
+kit, `fd` and `ripgrep`, in Chapter 8; they carry the same tax,
+and this chapter is the rest of the family plus the accounting.
+
+A note on where the output comes from, and its shelf life. The
+whole kit is a set of separately installed binaries that this
+book's Linux sandbox cannot fetch (only `ripgrep` and `du` are
+preinstalled there, both already covered), so, like the AI-CLI
+chapter, this is a Mac-captured chapter. Every tool is
+version-stamped "current as of 2026-07-06" and pinned to its
+project repository (logged in `verification/chapter-15.md`); the
+exact versions on the author's Mac are `eza` 0.23.4, `bat`
+0.26.1, `delta` 0.19.2, `zoxide` 0.9.9, `fzf` 0.70.0, `lazygit`
+0.62.2, `btop` 1.4.7, and `ncdu` 2.9.2, alongside the `fd`
+10.4.2 and `ripgrep` 13.0.0 from Chapter 8. Every capture is run
+with color and icons turned OFF, because color and Nerd-Font
+icons are ANSI and Unicode that a transcript taken with color
+off does not carry, and being blunt about that is part of the
+honesty: each tool's own live color is a real part of its
+payoff, and it is exactly what these color-off captures leave
+out. The three pure
+full-screen tools (`lazygit`, `btop`, `ncdu`) are version-
+stamped but not run, because a full-screen program owns the
+terminal and cannot be captured in a transcript, the same reason
+Chapters 9 and 16 could not script an interactive session.
+Captures were masked (account, home path) at capture time, and
+`zoxide` was pointed at a throwaway database so the author's real
+directory history never appears.
+
+## eza: `ls` with a git column {.tier-beginner}
+
+`eza` is a drop-in-nicer `ls`. It takes the same everyday flags
+Chapter 4 taught, `-l` for a long listing, `-a` for hidden
+files, and prints them with better defaults: human-readable
+sizes without asking, and, on a project under version control,
+a column showing each file's git status.
+
+```bash
+$ eza -l --git scripts
+.rw-r--r--@ 7.9k [account]  6 Jul 22:09 -- 00_make_data.py
+.rw-r--r--@ 2.0k [account]  6 Jul 22:09 -- 01_clean.py
+.rw-r--r--@ 2.3k [account]  6 Jul 22:09 -M 02_portfolio.py
+.rw-r--r--@ 1.3k [account]  6 Jul 22:09 -- 03_figure.py
+.rw-r--r--@ 3.1k [account]  6 Jul 22:09 -- 04_regression.R
+.rw-r--r--@ 1.1k [account]  6 Jul 22:09 -- bootstrap_renv.R
+.rw-r--r--@ 3.7k [account]  6 Jul 22:09 -- check.py
+```
+
+Read it left to right and it is the `ls -l` layout from
+Chapter 4 with the sizes already humanized: the permission
+string (the `@` marks macOS extended attributes), the size, the
+owner (masked here), the date, then the git column, then the
+name. That git column is the reason to reach for `eza`. The two
+characters encode staged and unstaged status, `--` for a clean
+file and `-M` for one modified since the last commit, so
+`02_portfolio.py` here has an uncommitted edit and the rest are
+clean, all without a separate `git status`. `eza` can also draw
+the directory as a tree (`eza --tree`), a live alternative to
+the `ls -R` and hand-drawn maps of Chapter 5, though it uses
+Unicode branch glyphs (the box-drawing characters this book
+renders as ASCII), and it can prefix each file with a
+type icon if you have a Nerd Font installed. The icons and the
+color are the parts that do not survive print, and they are also
+the parts you can most happily live without: the git column is
+the substance.
+
+## bat: `cat` that shows structure {.tier-beginner}
+
+`bat` is `cat` (Chapter 6) with the reading experience improved.
+It prints a file with a line-number gutter, syntax highlighting
+for the language, and, in a git repository, a change gutter
+marking modified lines.
+
+```bash
+$ bat --style=numbers --decorations=always \
+      --color=never --paging=never \
+      --line-range=1:16 scripts/00_make_data.py
+   1 """Generate a synthetic firm-month panel for the
+   2 signal-sorted long-short example.
+   3
+   4 All data in this project are SIMULATED. Nothing here is
+   5 real CRSP, Compustat, or Bloomberg data. Generating from a
+   6 seeded script is the whole point: licensed data cannot live
+   7 in a repo, but a seed can, so anyone rebuilds the panel
+   8 from this file alone. See PLAN.md Section 7.
+   9
+  10 The data-generating process embeds one story: an accounting
+  11 signal earns a long-short return that the five Fama-French
+  12 factors do not span (the "mispricing" alpha). The
+  13 econometrics is illustrative scaffolding; the book teaches
+  14 the terminal, not asset pricing.
+  15
+  16   R(i,t) = RF_t + beta_i . factors_t
+```
+
+The line numbers on the left are what the capture keeps; in your
+terminal the Python keywords would be colored and, in a repo,
+changed lines flagged in the gutter, and those are exactly the
+parts this color-off capture cannot show. Two flags in that
+command are worth understanding, because they are not how you
+would type it day to day. Interactively you just run
+`bat scripts/00_make_data.py`. The capture adds
+`--decorations=always` because `bat` is deliberately terminal-
+aware: when its output is not a terminal (piped into another
+command, or redirected to a file as it is here), it quietly
+falls back to plain `cat`-like text with no gutter, so that
+`bat file | grep pattern` behaves exactly like `cat`. That
+fallback is a feature, and it is also why `bat` is one of the
+few tools here that is harmless in a pipeline: asked to feed
+another program, it gets out of the way. `--color=never` and
+`--paging=never` just fix the output for a static capture.
+
+## zoxide and fzf: getting there faster {.tier-beginner}
+
+Two tools change how you *move* rather than how you *look*.
+`zoxide` is a smarter `cd` (Chapter 4). It watches the
+directories you visit and builds a ranked database, so instead
+of typing a long path you type `z` and a fragment of the
+directory's name and it jumps to the best match. The `z` command
+itself comes from a shell hook you add to your startup file
+(`eval "$(zoxide init zsh)"`), which is a dotfiles concern
+Chapter 17 takes up; the underlying lookup is `zoxide query`,
+and pointing it at a throwaway database seeded with just the
+project shows the resolution directly:
+
+```bash
+$ zoxide query asset-pricing
+/Users/[account]/projects/asset-pricing
+
+$ zoxide query scripts
+/Users/[account]/projects/asset-pricing/scripts
+```
+
+The catch is in the word "watches": `zoxide` only knows
+directories you have already been to. On a machine you just
+logged into, its database is empty and `z` finds nothing until
+you have navigated around by hand for a while, which is the
+portability tax in miniature.
+
+`fzf` is a fuzzy finder: a general filter that takes any list on
+standard input, opens a full-screen box you type into to narrow
+it live, and prints the line you pick. The list can be files,
+git branches, command history, anything a command emits. The
+interactive box is the whole point and cannot be shown in a
+transcript, but its matching logic is exposed non-interactively
+with `--filter`, which takes a query and prints the matches with
+no UI:
+
+```bash
+$ ls scripts | fzf --filter portfolio
+02_portfolio.py
+```
+
+Interactively you would pipe a list into `fzf`, type `prt`, and
+watch it narrow to `02_portfolio.py` as you go. Its most-used
+form is a set of shell key bindings (a fuzzy history search on
+`Ctrl-R`, a file picker on `Ctrl-T`) that, like the `zoxide`
+hook, live in your startup files and belong to Chapter 17.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+The tempting next step is to make these permanent by aliasing
+the originals in your dotfiles: `alias ls=eza`, `alias cat=bat`,
+`cd` replaced by `z`. Do that and your fingers stop knowing the
+real commands, which is fine until you SSH into a bare server
+(Chapter 13) where none of the replacements exist, and suddenly
+`ls` behaves in an unfamiliar way (it is the real `ls` again),
+`z` is an unknown command, and a script you wrote that calls
+`bat` or `fd` fails outright. Two habits keep this bounded. Keep
+your own reflexes on the portable commands, treating the kit as
+a bonus rather than a replacement, and never let a convenience
+tool into a script or a pipeline that has to run somewhere else.
+Aliasing for interactive comfort is reasonable; Chapter 17 shows
+how to do it so it degrades gracefully when the tool is absent.
+:::
+
+## delta: readable diffs {.tier-advanced}
+
+`delta` is a pager for diffs. It does not produce diffs; it
+takes the output of `git diff` (or a plain `diff`) and re-renders
+it with syntax highlighting, line numbers, and an optional
+side-by-side layout, after you point git's pager at it in your
+git config. Because that rendering is inherently colored, it is
+the clearest case in the chapter of a payoff a printed page
+cannot reproduce, so the honest thing to show is the portable
+input `delta` consumes: the plain `git diff` it pages. This is
+the one-line edit from the review example in Chapter 16, a
+long-short sort quietly changed from deciles to quintiles:
+
+```bash
+$ git diff scripts/02_portfolio.py
+diff --git a/scripts/02_portfolio.py b/scripts/02_portfolio.py
+index ba00349..34d369a 100644
+--- a/scripts/02_portfolio.py
++++ b/scripts/02_portfolio.py
+@@ -20,7 +20,7 @@ import polars as pl
+ CLEAN = Path("data/clean/analysis.parquet")
+ FACTORS = Path("data/raw/factors.csv")
+ OUT = Path("data/clean/portfolio.parquet")
+-N_PORT = 10  # deciles
++N_PORT = 5  # quintiles
+
+
+ def main() -> None:
+```
+
+Piped through `delta`, that same diff gains colored additions
+and deletions, the file name in a header, and line numbers down
+the side, which on a large diff genuinely helps you find the
+change that matters. What it does not change is the information:
+the plain diff above already tells you, exactly, that one line
+moved from 10 to 5. `delta` makes a diff pleasanter to read; the
+diff itself, which is the thing your review depends on, is what
+git gives you on any machine, styled or not.
+
+## The TUIs: lazygit, btop, and ncdu {.tier-advanced}
+
+A TUI, a terminal user interface, is a full-screen program that
+takes over the whole terminal, redraws as you press keys, and
+hands the screen back only when you quit. That design is why the
+three tools here are described rather than shown: a TUI produces
+no line-by-line output to capture, it owns the display, so, like
+an editor or an interactive agent session (Chapters 9 and 16),
+it cannot honestly appear as a transcript. Their versions are
+real, captured on the Mac; the walkthroughs are prose.
+
+`lazygit` (0.62.2, current as of 2026-07-06) is a full-screen
+front end for git: it shows your status, staged and unstaged
+changes, branches, and log in panels you drive by keystroke, so
+you stage a hunk or rewrite a branch without typing the git
+commands. It complements the command-line git the companion Git
+book teaches; some people find it faster for interactive work,
+and nothing in this book requires it.
+
+`btop` (1.4.7) is a resource monitor, a friendlier `top`: live
+CPU, memory, network, and per-process usage in a color
+dashboard. It is genuinely handy for answering "what is pinning
+this machine right now," on your laptop or on a server you can
+run it on.
+
+`ncdu` (2.9.2) is the interactive, navigable `du` promised in
+Chapter 13: NCurses Disk Usage. It scans a directory tree once,
+then lets you walk it sorted by size to find what is filling a
+disk, which is precisely the "why is my quota full" task on a
+shared server. Of the tools in this chapter, `ncdu` is the one
+you are most likely to actually want on a server, and, as
+Chapter 13 noted, the one you can sometimes get there through a
+module system or a userspace install.
+
+## The portability tax {.tier-beginner}
+
+Everything above earns its place on your laptop and loses it on
+a bare server, so it is worth naming precisely what breaks and
+what does not. The table maps each tool to the command it
+upgrades, whether you can count on it on a plain server, and
+whether it belongs in a script, which doubles as your fallback
+list: when the modern tool is missing, the command in the
+second column is what you reach for.
+
+| Tool | Upgrades | On a bare server | Belongs in a script |
+|---|---|---|---|
+| eza | `ls -l` | no | no, use `ls` |
+| bat | `cat` | no | no, use `cat` |
+| zoxide | `cd` | no | no, use `cd` |
+| fzf | a picker | no | only via `--filter` |
+| delta | `git diff` | no | no, use `git diff` |
+| fd | `find` | rarely | no, use `find` |
+| ripgrep | `grep -r` | sometimes | only if installed |
+| lazygit | `git` (TUI) | no | no |
+| btop | `top` (TUI) | no | no |
+| ncdu | `du` (TUI) | sometimes | no |
+
+The "on a bare server" column is the whole tax in one place:
+almost every answer is no. What you can rely on anywhere is the
+first two Parts of this book, the portable commands that ship
+with the operating system. The kit sits on top of them for
+comfort; it never sits underneath your work.
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+The install story diverges hard, and that divergence is part of
+the tax. On your Mac it is `brew install`. On a Linux box you
+control it is `apt`/`dnf` or `cargo install`, and the binary
+names differ: to avoid clashing with packages that already own
+the short name, Debian and Ubuntu install `fd` from the
+`fd-find` package as `fdfind`, and `bat` as `batcat` (each
+tool's README suggests you symlink it back in `~/.local/bin`).
+The exact name depends on the distribution and release, so a
+script or alias that calls `fd` or `bat` by name can fail on a
+Linux box where the tool is in fact installed, just under a
+different name. On a locked-down
+login node with no sudo and no `cargo`, there is no install
+story at all: you get the coreutils the OS shipped and nothing
+more. Check a binary's real name on the box with `command -v`
+(Chapter 2) before relying on it. All current as of 2026-07-06.
+:::
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The reproducible pipeline depends on none of this kit. The
+Makefile of Chapter 11 builds the study with `uv run python`,
+`Rscript`, and `quarto`, and `make check` re-derives the locked
+hash and alpha with a Python script; nowhere does it call `eza`,
+`bat`, `delta`, or `zoxide`. Those are for the human reading the
+screen, never part of the build graph, and that boundary is the
+point: a convenience tool wired into a pipeline becomes a
+dependency that breaks the moment the pipeline runs where the
+tool is absent. The fail-loudly scripting of Chapter 10 and the
+Makefile of Chapter 11 stay on the tools the build actually
+needs; the kit stays at your prompt. What those build tools
+themselves require, `uv`, R, and Quarto, is a separate
+portability question, handled by Chapters 12 and 13.
+:::
+
+::: {.callout-tip .recovery title="RECOVERY"}
+When you land on a bare server and your reflexes misfire, `eza`
+and `bat` and `z` all "command not found," the recovery is not a
+fix but a fallback, and you already have it. Everything the kit
+does, the portable commands from Parts I and II do too:
+`ls -l` for the listing, `cat` or `less` to read a file, `cd`
+to move, `grep` and `find` to search. They are always there,
+which is the entire reason this book taught them first. Nothing
+is lost by the tools being absent, because they were only ever a
+comfort layer over commands that never left.
+:::
+
+Honest cost and benefit, then. On a daily-driver laptop this kit
+is a real ergonomic win, and adopting the pieces you like is a
+reasonable choice; `eza`'s git column and `ncdu`'s disk walk in
+particular pay for themselves quickly. The cost is not on the
+laptop. It is the portability tax, paid in two currencies:
+habits that strand you on a plain server, and any dependency you
+let creep into work that has to run somewhere else. Spend on the
+comfort, refuse the dependency, and the kit is all upside.
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5 and, in the
+last two, the remote box from Chapter 13.
+
+1. Install one or two of the kit with `brew install` (say `eza`
+   and `bat`), then run `eza -l --git scripts` and
+   `bat scripts/02_portfolio.py` in the project. Note what each
+   adds over the `ls -l` and `cat` you already know, and which
+   of those additions is color that a script or a pipe would not
+   see.
+
+2. Let `zoxide` learn a directory. With the `zoxide` shell hook
+   active, `cd` into the project once the long way, then from
+   your home directory run `z asset-pricing` and confirm it
+   jumps there. Then explain, in one line, why the same command
+   finds nothing on a machine you just logged into.
+
+3. See what `delta` adds and what it does not. Configure git to
+   page through `delta`, make a one-line edit to a script, and
+   run `git diff`; then turn `delta` off and run the same
+   `git diff`. Write down what changed in the *presentation* and
+   confirm the actual change reported is identical either way.
+
+4. Feel the tax. SSH into the bare server from Chapter 13 and
+   try `eza`, `bat`, and `z`. Watch them fail with "command not
+   found," then do the same jobs with `ls -l`, `cat`, and `cd`.
+   Name the one habit that would have slowed you down most if
+   you had aliased it away.
+
+5. Audit your pipeline. In the project, `grep` the `Makefile`
+   and `scripts/check.py` for `eza`, `bat`, `fd`, and `rg`.
+   Confirm the build graph calls none of them: the modern kit is
+   nowhere in the path that rebuilds the study, which is exactly
+   what keeps the study rebuildable without it.

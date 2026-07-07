@@ -1,0 +1,29 @@
+# transcript
+chapter: 15
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: git diff (portable baseline for the delta section)
+date: 2026-07-06
+captured-by: user-mac
+note: The delta section is describe-and-version-stamp (its color
+note: side-by-side view is exactly what a print PDF drops). This
+note: is the plain, portable `git diff` of the same decile ->
+note: quintile edit; the chapter describes how delta re-renders
+note: it. color.ui=never so the diff is plain text on any box.
+note: Run in the throwaway repo; paths are relative.
+---
+
+$ git diff scripts/02_portfolio.py
+diff --git a/scripts/02_portfolio.py b/scripts/02_portfolio.py
+index ba00349..34d369a 100644
+--- a/scripts/02_portfolio.py
++++ b/scripts/02_portfolio.py
+@@ -20,7 +20,7 @@ import polars as pl
+ CLEAN = Path("data/clean/analysis.parquet")
+ FACTORS = Path("data/raw/factors.csv")
+ OUT = Path("data/clean/portfolio.parquet")
+-N_PORT = 10  # deciles
++N_PORT = 5  # quintiles
+ 
+ 
+ def main() -> None:

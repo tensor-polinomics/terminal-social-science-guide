@@ -8,6 +8,71 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 15, "Modern CLI Kit and TUIs" (Phase 6, Part IV,
+  the FIRST of the two Part-IV chapters, so its commit does NOT
+  close gate G6, which needs Ch 15 + Ch 17. Drafted 2026-07-06;
+  validator 0/0 in the sandbox; the canonical Mac `uv run`
+  validator, the `quarto render book` check, the Codex blind
+  audit, and human review are the remaining gate steps. This
+  entry carries the pending Ch 14 `2611f22` CHANGELOG hash-line
+  touch, added above with this work since a commit cannot
+  contain its own hash; Ch 15's own hash line becomes the
+  pending touch for the Ch 17 commit.)** A curated, honest
+  survey of the modern CLI kit taught as ergonomic upgrades with
+  a loud portability tax. The spine: these tools make the laptop
+  in front of you faster, but the bare server of Chapter 13 has
+  none of them, so adopt them as a convenience layer that never
+  becomes a dependency of your work or your reflexes. Delivers
+  Chapter 16's opening line ("Chapter 15 added a kit of faster,
+  friendlier commands to the shell") and the `ncdu` routing
+  Chapter 13 made. Six content sections (4 beginner, 2 advanced)
+  plus unnumbered Try-it: `eza` (an `ls` upgrade, the git-status
+  column and `--tree`); `bat` (a `cat` upgrade, line numbers,
+  syntax, and tty-awareness); `zoxide` + `fzf` (a learning `cd`
+  and a fuzzy finder, driven non-interactively); `delta` (a
+  git-diff pager, described and version-stamped since its color
+  side-by-side view is what print drops); the pure TUIs
+  `lazygit`, `btop`, and `ncdu` (documented and version-stamped,
+  not run, because a full-screen program owns the terminal and
+  cannot be scripted, the Chapter 9 / 16 lesson); and the
+  portability tax (a comparison table plus the precise account
+  of what breaks where). Callouts: 1 PITFALL (aliasing
+  `ls`->eza / `cat`->bat / `cd`->z so muscle memory and
+  half-written scripts break on a bare server), 1 REPRODUCIBILITY
+  (the Chapter 11 Makefile builds with `uv run python` / `Rscript`
+  / `quarto` and never calls this kit, so eza/bat/delta are
+  human conveniences, not build dependencies), 1 RECOVERY (on a
+  bare server, fall back to the `ls`/`cat`/`cd`/`grep`/`find` of
+  Parts I-II), 1 DIVERGENCE (the install story diverges brew vs
+  cargo/apt/nothing, and Debian/Ubuntu rename `fd` to `fdfind`
+  and `bat` to `batcat`; the exact name depends on the release,
+  so check with `command -v`). No DANGER (this kit views and
+  navigates, it does not
+  destroy) and no new figure (the book's three stay Ch 2/5/13);
+  the device is a comparison table. Mac-captured, since the kit
+  is blocked in the Linux sandbox (only `ripgrep` and `du`
+  preinstalled, both already taught); every tool version-stamped
+  "current as of 2026-07-06" (`eza` 0.23.4, `bat` 0.26.1,
+  `delta` 0.19.2, `zoxide` 0.9.9, `fzf` 0.70.0, `lazygit`
+  0.62.2, `btop` 1.4.7, `ncdu` 2.9.2) and pinned to its repo in
+  `verification/chapter-15.md`. Every shown block is a real Mac
+  capture run with color and icons OFF (they are ANSI/Unicode
+  the PDF drops): the five fenced blocks are `eza -l --git`
+  (ASCII-safe git column; the Unicode `--tree` is described, not
+  shown), `bat` numbered (forced with `--decorations=always`
+  because bat auto-plains when piped), `zoxide query` (throwaway
+  database, so the author's real history never appears), `fzf
+  --filter`, and the plain `git diff` the `delta` section
+  describes. Scope held:
+  no re-teaching of `fd`/`ripgrep` (Ch 8, met there), `ls`/`cd`
+  (Ch 4), `cat` (Ch 6), `du` (Ch 13), install/PATH (Ch 3), or
+  git diff itself; alias/dotfile persistence is a forward "will"
+  to Chapter 17. Files: `book/chapters/15-modern-cli-tuis.qmd`,
+  five sandbox-blocked-so-Mac transcripts (`ch15-versions-mac.txt`,
+  `ch15-eza-mac.txt`, `ch15-bat-mac.txt`, `ch15-nav-mac.txt`,
+  `ch15-diff-mac.txt`), the tracked capture script
+  `transcripts/capture-ch15-mac.sh`, `verification/chapter-15.md`,
+  and handover `private/ch15-G6-handover.md`.
 - **Chapter 14, "Persistent Sessions" (Phase 5, Part III, the
   FOURTH and LAST Part-III chapter, so its commit CLOSES gate G5;
   Ch 11 "Make" is a committed Phase-2 exemplar and is skipped
@@ -38,12 +103,14 @@ are not part of this repo; this file is the repo-visible history.
   ASCII tree (the Ch 5 house device). The canonical Mac `uv run`
   validator passed 0/0 and `quarto render book` produced a fresh
   196-page PDF on 2026-07-06, with Ch 14 on pp. 170-178. Codex
-  final review and human review passed; this chapter's commit
-  CLOSES gate G5 (Ch 10 + 12 + 13 + 14 all in, Part III
-  complete), and it carries the pending Ch 13 `8c2cf09`
-  CHANGELOG hash-line touch below, since a commit cannot contain
-  its own hash. Ch 14's own hash-line becomes the pending touch
-  for the Ch 15 commit.)**
+  final review and human review passed; committed + pushed
+  2026-07-06 as `2611f22` (HEAD = origin/main =
+  refs/heads/main), which CLOSES gate G5 (Ch 10 + 12 + 13 + 14
+  all in, Part III complete), and it carries the pending Ch 13
+  `8c2cf09` CHANGELOG hash-line touch below, since a commit
+  cannot contain its own hash; Ch 14's own `2611f22` hash line,
+  added here after the push, becomes the pending touch and rides
+  with the Ch 15 commit.)**
   Delivers the forward promise Chapter 9 (`nohup` section) and
   Chapter 13 (closing line) both made, on one spine: the
   connection is disposable, the session is not. In Chapter 13 a
