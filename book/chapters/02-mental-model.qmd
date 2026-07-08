@@ -396,8 +396,8 @@ what makes an *attacker-controlled* early directory
 dangerous, the PATH-hijacking risk that Chapter 6 pairs with
 `curl | sh` and Chapter 16 revisits for AI agents. Where
 PATH itself gets set, and how to change yours safely, is
-startup-file territory: Chapter 3 will set you up and Chapter
-17 will make it stick.
+startup-file territory: Chapter 3 sets you up and Chapter
+17 makes it stick.
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 `command -v python3` is the one-line answer to a question

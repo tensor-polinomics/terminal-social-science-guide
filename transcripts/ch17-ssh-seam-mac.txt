@@ -1,0 +1,28 @@
+# transcript
+chapter: 17
+os: Linux (user's remote server, over ssh)
+shell: bash (server login shell)
+tool: OpenSSH client -> remote bash
+date: 2026-07-07
+captured-by: user-mac
+note: A non-interactive ssh 'cmd' skips the login/rc files;
+note: forcing bash -lc DOES execute the server's real login
+note: profile (this is read-only in the sense that it runs
+note: only echo / command -v and writes nothing, but it does
+note: read the server's profile; only the resulting PATH is
+note: captured). Remote account/home/hostname masked to
+note: [account] / /home/[account] / [hostname]; machine-
+note: specific /mnt mount paths to /mnt/[mount].
+---
+
+$ ssh [hostname] 'echo $PATH'
+/home/[account]/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/mnt/[mount]
+
+$ ssh [hostname] 'command -v uv || echo "uv: not found"'
+uv: not found
+
+$ ssh [hostname] 'bash -lc "echo \$PATH"'
+/home/[account]/.local/bin:/home/[account]/.cargo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/mnt/[mount]
+
+$ ssh [hostname] 'bash -lc "command -v uv || echo \"uv: not found\""'
+/home/[account]/.local/bin/uv

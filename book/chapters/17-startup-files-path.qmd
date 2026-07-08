@@ -1,7 +1,468 @@
 # Startup Files, PATH, and Portable Dotfiles
 
-<!-- STUB (Phase 0). Scope: PLAN.md Section 8, Ch 17. Startup-file order
-     (.zshrc / .bashrc / .bash_profile; login vs interactive vs
-     noninteractive), remote-shell startup ("works in terminal, fails
-     in script/SSH/cron"). + Scheduled/non-interactive contexts: cron
-     vs launchd vs CI and why PATH/env differ. Drafted in Phase 6. -->
+The shell you type into is not the shell your scripts, your
+`ssh host 'cmd'` calls, and your cron jobs run in. They are
+often different shells entirely (a cron job usually runs
+`/bin/sh`, a script may run bash, your terminal may run zsh),
+invoked in different modes, and each reads different startup
+files, or none at all. A setting that lives in
+a file only your interactive terminal reads is invisible to all
+three of the others, which is why the single most common shell
+complaint is some version of "it works when I type it, but the
+script (or the SSH command, or the cron job) cannot find it." The
+fix is almost never a new setting; it is putting the setting
+where the situation that needs it will actually read it.
+
+This chapter cashes the promissory notes the earlier chapters
+left here: the `cp -i`/`mv -i` aliases of Chapter 4, the
+`set -o noclobber` of Chapter 6, the history hygiene of
+Chapter 9, and the `zoxide`/`fzf` hooks and guarded aliases of
+Chapter 15 all live in a startup file, and this is where they go.
+But the deliverable is not the list of lines. It is the
+placement rule, because the same line helps or does nothing
+depending only on which file you put it in.
+
+A note on where the output comes from. The bash startup order and
+the non-interactive environment are captured in this book's Linux
+sandbox (GNU bash 5.1.16); the zsh order, the macOS bash 3.2
+floor, `launchd`, and a terminal's login state are captured on
+the author's Mac (macOS 26.5.1, zsh 5.9, bash 3.2.57); and the
+"fails over SSH" seam is captured from the Mac against a real
+Linux server, the machine of Chapter 13. Startup-file behavior is
+the most folklore-ridden topic in this book, so every ordering
+claim here is confirmed by a real invocation and only pinned to
+the bash and zsh manuals for the reasons behind it
+(`verification/chapter-17.md`, all accessed 2026-07-07). The
+local order demos were run against a throwaway `HOME` seeded with
+demo rc files, so no real local dotfile was read; the one
+exception is the remote SSH capture, which forces a login shell
+(`bash -lc`) and so does execute the server's real login profile,
+but it runs only `echo`/`command -v`, writes nothing, and shows
+only the resulting `PATH`. Paths and the account name are masked
+(`/home/[account]`, machine-specific mounts to `/mnt/[mount]`),
+and long `PATH` tails are
+elided with a marked `[...]`.
+
+## Which file loads when {.tier-beginner}
+
+Two yes/no questions decide which startup files a shell reads. Is
+it a *login* shell (the first shell of a session, the one a fresh
+terminal tab usually gives you)? And is it *interactive* (reading
+commands you type, as opposed to running a script)? Bash answers
+those two questions with three different files. A login shell
+reads `/etc/profile` and then the first of `~/.bash_profile`,
+`~/.bash_login`, `~/.profile` that exists. An interactive shell
+that is not a login shell reads `~/.bashrc`. A non-interactive
+shell, one running a script, reads neither. The demo below puts a
+marker in each file and then asks bash to run `true` (a
+do-nothing command) in each mode:
+
+```bash
+$ tail -n +1 .bash_profile .bashrc .profile
+==> .bash_profile <==
+echo 'reading ~/.bash_profile'
+
+==> .bashrc <==
+echo 'reading ~/.bashrc'
+
+==> .profile <==
+echo 'reading ~/.profile'
+
+$ bash -lc 'true'          # login (a macOS Terminal tab)
+reading ~/.bash_profile
+
+$ bash -i -c 'true' 2>/dev/null   # non-login interactive
+reading ~/.bashrc
+
+$ bash -c 'true'           # non-interactive: script, ssh 'cmd'
+```
+
+The third command printed nothing: a non-interactive bash read no
+startup file at all. (The one exception is the `BASH_ENV`
+variable: if it names a file, a script sources it first. Almost
+no one sets it, and you should not rely on it being set.) One
+more wrinkle worth knowing is the fallback: a login shell reads
+the first of the three profile files that exists, so on a machine
+with only `~/.profile` and no `~/.bash_profile`, the login shell
+reads `~/.profile`.
+
+Zsh answers the same two questions with a different, and in one
+way more forgiving, set of files:
+
+```bash
+$ zsh -l -i -c 'true' 2>/dev/null   # login + interactive
+reading ~/.zshenv
+reading ~/.zprofile
+reading ~/.zshrc
+reading ~/.zlogin
+
+$ zsh -i -c 'true' 2>/dev/null      # non-login interactive
+reading ~/.zshenv
+reading ~/.zshrc
+
+$ zsh -c 'true'                      # non-interactive script
+reading ~/.zshenv
+```
+
+The headline is the last block: `~/.zshenv` runs even for a
+non-interactive `zsh -c` script, where bash read nothing. That
+makes `~/.zshenv` the natural home for anything every zsh must
+see, and the zsh manual specifically warns to keep it small for
+exactly that reason. The rest follows the same login/interactive
+logic as bash: a login shell adds `~/.zprofile` and, last,
+`~/.zlogin`; an interactive shell adds `~/.zshrc`. Put the two
+shells side by side and the whole map is one table:
+
+| Invoked as | bash reads | zsh reads |
+|---|---|---|
+| login + interactive | `/etc/profile`, then the first of `~/.bash_profile`, `~/.bash_login`, `~/.profile` | `.zshenv`, `.zprofile`, `.zshrc`, `.zlogin` |
+| non-login interactive | `~/.bashrc` | `.zshenv`, `.zshrc` |
+| non-interactive (`bash -c`, `ssh host 'cmd'`, a script) | nothing, unless `$BASH_ENV` names a file | `.zshenv` only |
+
+::: {.callout-note .divergence title="DIVERGENCE"}
+Whether a new terminal tab is a *login* shell is decided by the
+terminal emulator, not the operating system, and this is where
+the folklore "macOS opens a login shell" is only half a truth.
+On the author's Mac, both Terminal.app and WezTerm open a
+login + interactive shell (`[[ -o login ]]` reports `login shell`
+in a real tab), so a Mac tab reads `.zprofile` *and* `.zshrc`.
+Many Linux terminal emulators instead open a non-login
+interactive shell, so a Linux tab reads only `.bashrc` (or
+`.zshrc`), never the profile. That is why the same
+`.bash_profile`-versus-`.bashrc` split bites differently on the
+two platforms, and why a PATH edit a Mac user puts in
+`.bash_profile` can silently do nothing for a Linux user, and the
+reverse. Test your own tab with `[[ -o login ]]` in zsh or
+`shopt -q login_shell` in bash; do not use `echo $0`, whose
+leading-dash convention is a bash-only heuristic and does not
+report login state in zsh.
+:::
+
+## PATH, and why order matters {.tier-beginner}
+
+`PATH` is the list of directories the shell searches to turn a
+command name into a program (Chapter 2). Two things about it are
+a startup-file question: where you set it so it persists, and in
+what order its directories sit. Chapter 3 left both here. When
+Homebrew's installer finishes, it prints a line to add,
+`eval "$(/opt/homebrew/bin/brew shellenv)"`, and appends it to
+`~/.zprofile`; tools installed by `uv` and many Rust programs
+land in `~/.local/bin`, which has to be on PATH the same way. The
+question this chapter answers is which file those lines go in,
+and the answer follows directly from the table above.
+
+`~/.zprofile` is a login file, which on a Mac covers every
+Terminal tab, so the `brew shellenv` line there makes `brew` and
+its packages work in your interactive shells. But a login file is
+*not* read by a non-interactive `zsh -c` or a script, so if a
+scheduled job or an `ssh host 'cmd'` needs `brew`'s PATH, the
+line belongs in `~/.zshenv` instead, the file read on every
+invocation. The trade is real: `~/.zshenv` runs for every shell,
+including the fast ones, so keep it to the few `export` lines
+that truly must be universal. A short, honest split is:
+
+```bash
+# ~/.zshenv  (read on EVERY zsh invocation: PATH and env only)
+export PATH="$HOME/.local/bin:$PATH"
+
+# ~/.zprofile  (login shells; Homebrew's installer added it)
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+Order is the second half. The shell searches PATH left to right
+and runs the first match, so a directory placed at the front
+shadows the same-named program further back. Prepending
+`~/.local/bin` is usually what you want: your `uv`-installed tool
+wins over an older system copy. But front-of-PATH is also the
+hijack risk Chapters 3 and 6 raised: a writable directory early
+on PATH lets anything dropped into it, a fake `ls` or `git`,
+shadow the real command. So prepend only directories you trust
+and control, and if you ever add a project-local `bin`, append it
+rather than prepend it. You can see the ordering take effect: a
+PATH edit made in an interactive rc puts its directory at the
+front of the list the next interactive shell sees.
+
+```bash
+$ cat .bashrc
+export PATH="$HOME/.local/bin:$PATH"
+echo 'reading ~/.bashrc'
+
+$ bash -i -c 'echo "$PATH"' 2>/dev/null   # rc ran
+reading ~/.bashrc
+/home/[account]/.local/bin:/usr/local/sbin:[...]
+```
+
+## The portable dotfile {.tier-beginner}
+
+Now the promissory notes come due. The aliases, the `noclobber`
+setting, the history option, and the modern-kit hooks are all
+*interactive* comforts: things you want at a prompt, not in a
+script. So they belong in the interactive file, `~/.zshrc` (or
+`~/.bashrc`), and nowhere else. Here is a compact, portable
+version that delivers each promise in one line:
+
+```bash
+# ~/.zshrc  (interactive niceties, read by interactive shells)
+
+# safety at the prompt (Chapters 4 and 6)
+alias cp='cp -i'
+alias mv='mv -i'
+set -o noclobber
+
+# history hygiene (Chapter 9)
+setopt HIST_IGNORE_SPACE   # bash: HISTCONTROL=ignorespace
+
+# modern kit, only if it is installed (Chapter 15)
+command -v eza    >/dev/null && alias ls='eza'
+command -v bat    >/dev/null && alias cat='bat'
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+command -v fzf    >/dev/null && source <(fzf --zsh)
+```
+
+That last line is the `fzf` shell integration Chapter 15
+deferred: it installs the `Ctrl-R` history search and `Ctrl-T`
+file picker key bindings, and, being guarded, it is skipped on a
+box without `fzf`.
+
+Two features of that file matter more than the individual lines.
+First, the `command -v <tool> >/dev/null &&` guard in front of
+each kit line is the graceful degradation Chapter 15 promised:
+the alias or hook is installed only if the tool is actually
+present, so the very same `~/.zshrc`, copied to a bare server
+from Chapter 13 where `eza` and `zoxide` do not exist, simply
+skips those lines. `ls` stays the real `ls`, nothing errors, and
+your dotfile is portable instead of a pile of "command not found"
+on every login. Second, the placement itself: putting these in an
+interactive file is not just tidy, it is a correctness boundary,
+because an alias or option set here protects you at the prompt
+and *does not* protect a script. A script runs non-interactively,
+never reads `~/.zshrc`, and does not expand your aliases anyway;
+so `set -o noclobber` in your rc will not stop a script's `>`
+from clobbering a file, and `alias rm='rm -i'` will not make a
+script's `rm` ask. That is the same interactive-only caveat
+Chapters 4 and 6 attached to these settings, and it is why a
+script that must be safe sets its own options (Chapter 10) rather
+than trusting your prompt's.
+
+It helps to see the files as a set and remember which loads when.
+The listing beside the tree is a real throwaway home; the tree is
+the map, and the live order demos above are the proof each file
+fires when the map says.
+
+```text
+$ ls -a
+. .. .zlogin .zprofile .zshenv .zshrc
+```
+
+```text
+~/                home directory
+|-- .zshenv       zsh: EVERY invocation (put PATH/env here)
+|-- .zprofile     zsh: login shells only
+|-- .zshrc        zsh: interactive (aliases, hooks, prompt)
+|-- .zlogin       zsh: login, after .zshrc
+|-- .bash_profile bash: login (usually sources ~/.bashrc)
+|-- .bashrc       bash: interactive non-login (aliases/hooks)
+`-- .profile      sh login fallback (portable PATH/env)
+```
+
+A word on what this chapter is *not*. Dotfiles are a rabbit hole:
+frameworks like oh-my-zsh, prompt themes, plugin managers, and
+dotfile-syncing tools (`chezmoi`, `stow`) all exist and all have
+enthusiasts. None of them is needed to make config that survives,
+and each adds a layer that can itself fail on a bare server. Keep
+your dotfiles small, plain, and guarded, and they travel.
+
+## Works in terminal, fails over SSH {.tier-advanced}
+
+The sharpest version of the whole problem is the seam Chapter 13
+flagged: a non-interactive `ssh host 'cmd'` runs a shell that
+reads none of your interactive startup files, so it starts from
+the server's bare `PATH`, and a tool you installed in
+`~/.local/bin` is simply not found. Run against the real server,
+the contrast is exact. The non-interactive command gets a PATH
+without `~/.local/bin`, so `uv` is missing; forcing a login shell
+with `bash -lc` reads the profile and PATH is restored:
+
+```bash
+$ ssh [hostname] 'echo $PATH'
+/home/[account]/.cargo/bin:/usr/local/sbin:[...]
+
+$ ssh [hostname] 'command -v uv || echo "uv: not found"'
+uv: not found
+
+$ ssh [hostname] 'bash -lc "echo \$PATH"'
+/home/[account]/.local/bin:/home/[account]/.cargo/bin:[...]
+```
+
+Adding `bash -lc` to the last form and asking again finds it:
+`command -v uv` then prints `/home/[account]/.local/bin/uv`,
+because the login shell read the profile that puts `~/.local/bin`
+on PATH. This is also the place to retire a piece of folklore.
+"SSH reads your `.bashrc`" is only sometimes true, and not
+something to rely on. The bash manual says bash *can* read
+`~/.bashrc` when it detects it was started by a remote daemon
+such as `sshd`, but that is a build-time option (not guaranteed
+to be on), it never applies when bash runs as `sh`, and, decisive
+here, a stock `~/.bashrc` on Debian and Ubuntu opens with a guard
+(`case $- in *i*) ;; *) return;; esac`) that returns immediately
+when the shell is non-interactive. So even where bash does source
+it, the file does nothing. The net effect on a typical Ubuntu
+server is the capture above: your interactive PATH edits do not
+reach `ssh host 'cmd'`. Do not reason from the folklore; run the
+one-line probe and read what the server actually does.
+
+::: {.callout-warning .pitfall title="PITFALL"}
+A `PATH` entry, an alias, or a tool hook that lives only in your
+interactive rc is invisible to a script, to an `ssh host 'cmd'`,
+and to a cron job, because none of those reads that file. So "it
+works in my terminal" is not evidence it works anywhere else, and
+the failure is silent: not an error, just a command that is not
+found or an option that is not set, in exactly the automated
+context you were not watching. The moment a command has to run
+somewhere non-interactive, assume your rc did not run.
+:::
+
+::: {.callout-tip .recovery title="RECOVERY"}
+When something works at your prompt but fails in a script, over
+SSH, or under cron, debug the seam directly instead of guessing.
+Ask the failing context what it actually sees:
+`ssh host 'echo $PATH'` and `bash -lc 'echo $PATH'` show the two
+PATHs side by side; echoing a marker from each rc (as this
+chapter's demos do) shows which files fired; and comparing an
+interactive run to `bash -c '...'` locally reproduces the gap
+without a server. Then fix it at the source: move the setting to
+the file the failing context reads (`~/.zshenv` for env every
+shell needs), or, better for anything a pipeline depends on, have
+the script or Makefile set its own environment the Chapter 10
+way rather than trusting a dotfile ran.
+:::
+
+## Scheduled and non-interactive contexts: cron, launchd, CI {.tier-advanced}
+
+Scheduled jobs are the same seam, one step further from your
+terminal, and the reason they surprise people is that they start
+from an even barer environment than an SSH command. `cron` sets
+up only a minimal environment for a job: per `crontab(5)`, it
+exports `SHELL=/bin/sh` and takes `HOME` and `LOGNAME` from your
+`/etc/passwd` line, and it reads none of your shell startup
+files. Whatever `PATH` a job gets is a minimal default from the
+daemon and its `/bin/sh`, never your login `PATH`, so a job that
+calls `uv` or an `~/.local/bin` tool by bare name fails with
+"command not found" even though the same command works when you
+type it. You can see the stripped environment a scheduled job
+starts from by clearing the environment with `env -i`, which is
+close to what `cron` hands a job, and contrasting it with the
+non-interactive shell that already skipped your rc:
+
+```bash
+$ bash -c 'echo "$PATH"'      # non-interactive: rc skipped
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+$ env -i bash -c 'echo "$PATH"'   # stripped env, like cron
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+```
+
+The fix is to set the environment where the job reads it, not in
+your dotfiles. A crontab takes `name = value` lines directly, so
+you set `PATH` at the top of the crontab itself (shown here as a
+line you would write, not run):
+
+```text
+# crontab: set the environment the job needs, explicitly
+PATH=/home/you/.local/bin:/usr/local/bin:/usr/bin:/bin
+0 6 * * *  cd ~/project && make report
+```
+
+macOS uses `launchd` rather than `cron` for scheduled and
+GUI-launched work, and it behaves the same way for our purposes:
+a process `launchd` starts inherits `launchd`'s environment, not
+your shell's. On the author's Mac `launchctl getenv PATH` prints
+nothing, so a Mac app or LaunchAgent begins with no PATH from
+your dotfiles at all; a `launchd` job sets its environment in the
+job's `plist` (an `EnvironmentVariables` key), not in `~/.zshrc`.
+A CI runner is the same story a third time: it executes each step
+in a non-interactive shell whose environment comes from the CI
+configuration, not your dotfiles, which is exactly why CI files
+spell out `PATH` and tool setup explicitly. Three different
+schedulers, one rule: they do not read your interactive config,
+so you give them their environment where they look for it.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+A reproducible pipeline must not depend on interactive shell
+config, because the machine that reruns it, a cron job, a CI
+runner, a colleague's `ssh host 'make'`, is precisely the
+non-interactive shell that never reads your rc. This is the
+reason Chapter 10's scripts pin their own `LC_ALL` and `TZ` and
+do not assume a PATH: the script carries the environment it needs
+so it behaves the same whether you launch it or a scheduler does.
+Config that survives is config the job sets for itself, not
+config it inherits from the human who happened to write it.
+:::
+
+## Config that survives all three {.tier-beginner}
+
+The whole chapter reduces to one rule: put each setting where the
+situation that needs it will actually read it. Sort your config
+by who needs it. Environment that *every* shell needs, chiefly
+`PATH`, goes in the widest-read file. In zsh that is `~/.zshenv`,
+read on every invocation including non-interactive scripts. Bash
+has no such file: a non-interactive bash reads no user startup
+file at all (only `$BASH_ENV`, if set), so the bash convention is
+to put `PATH` in `~/.profile` or `~/.bash_profile` for login
+shells and source `~/.bashrc` for interactive ones, and to let
+child shells inherit the exported `PATH` from a login parent;
+a non-interactive bash that has no such parent gets nothing from
+a dotfile and must have `PATH` set for it. Interactive comforts,
+aliases, prompt, key bindings, and the guarded kit hooks, go in
+`~/.zshrc` or `~/.bashrc`, where they help you and stay out of
+scripts. And anything a *script, job, or pipeline* needs is set
+inside that script, crontab, or plist, never assumed from your
+dotfiles, because the automated context does not read them.
+
+Read the chapter's own captures back through that rule and they
+line up: PATH edits reached the interactive shell but not
+`bash -c` or `ssh host 'cmd'`; `.zshenv` reached even the script;
+`cron` and `launchd` reached none of it. The dotfile is a
+convenience for you at the prompt, the same posture Chapter 15
+urged for the modern kit; the pipeline carries its own
+environment, the posture Chapter 10 built in. Keep those two
+straight and your config works the same whether you type the
+command or a machine does.
+
+## Try it yourself {.unnumbered}
+
+These use the asset-pricing project from Chapter 5 and the remote
+server from Chapter 13.
+
+1. Map your own shell. In a scratch directory, put a distinct
+   `echo` marker in a demo `.bash_profile`, `.bashrc`, and
+   `.profile` (or the zsh four), point `HOME` (and `ZDOTDIR` for
+   zsh) at it, then run `bash -lc true`, `bash -ic true`, and
+   `bash -c true` and note which markers fire. Confirm the result
+   against the table in the first section, and check your real
+   terminal tab with `[[ -o login ]]`.
+
+2. Break it on purpose. Add `export PATH="$HOME/.local/bin:$PATH"`
+   to your interactive rc and confirm a tool there runs at the
+   prompt. Then run the same command through `ssh localhost '...'`
+   or `bash -c '...'` and watch it fail with "command not found",
+   because the non-interactive shell never read the rc.
+
+3. Fix the placement. Move that `PATH` line to the file the
+   non-interactive shell reads (`~/.zshenv` for zsh), or set
+   `PATH` inside the script itself the Chapter 10 way, and rerun
+   the non-interactive command. Confirm it now works, and say in
+   one sentence why.
+
+4. Guard an alias. Add
+   `command -v eza >/dev/null && alias ls='eza'` to your rc and
+   confirm `ls` is `eza` where `eza` exists. Then open a shell on
+   the bare server from Chapter 13 with the same line and confirm
+   `ls` is the real `ls` with no error, the graceful degradation
+   that keeps a dotfile portable.
+
+5. Audit the pipeline. In the project, confirm the `Makefile` and
+   scripts set their own environment (shebang, `LC_ALL`/`TZ`) and
+   rely on nothing from your dotfiles. Explain why that is exactly
+   what lets `make` reproduce the study under cron or CI, where
+   your rc never runs.

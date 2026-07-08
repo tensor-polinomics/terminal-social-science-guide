@@ -270,7 +270,7 @@ added; with tools that install into `~/.local/bin` (many Python
 and Rust tools do) it is that directory missing from PATH. The
 diagnosis is Chapter 2's `command -v <name>`, which tells you
 whether the shell can find it at all; the fix is to put the right
-directory on your PATH, which Chapter 17 will make stick across
+directory on your PATH, which Chapter 17 makes stick across
 new shells. Add only directories you trust and mind their order:
 an attacker-controlled directory early on PATH is the
 PATH-hijacking risk Chapter 6 raised, and it applies to anything

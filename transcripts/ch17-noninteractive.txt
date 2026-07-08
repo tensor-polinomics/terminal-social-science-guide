@@ -1,0 +1,26 @@
+# transcript
+chapter: 17
+os: Ubuntu 22.04 (workspace sandbox)
+shell: 5.1.16(1)-release (aarch64-unknown-linux-gnu)
+tool: GNU bash (non-interactive environment)
+date: 2026-07-07
+captured-by: sandbox
+note: Throwaway HOME with a demo .bashrc that extends PATH;
+note: the real rc files are never read. A clean baseline
+note: PATH is set first so the contrast is deterministic.
+note: HOME path and account masked to /home/[account].
+---
+
+$ cat .bashrc
+export PATH="$HOME/.local/bin:$PATH"
+echo 'reading ~/.bashrc'
+
+$ bash -i -c 'echo "$PATH"' 2>/dev/null   # rc ran
+reading ~/.bashrc
+/home/[account]/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+$ bash -c 'echo "$PATH"'      # non-interactive: rc skipped
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+$ env -i bash -c 'echo "$PATH"'   # stripped env, like cron
+/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

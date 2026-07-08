@@ -8,16 +8,105 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Added
 
+- **Chapter 17, "Startup Files, PATH, and Portable Dotfiles"
+  (Phase 6, Part IV, the SECOND and LAST Part-IV chapter, so its
+  commit CLOSES gate G6 and completes Part IV; Ch 16 "AI in the
+  terminal" is a committed Phase-2 exemplar and is skipped here.
+  Drafted 2026-07-07; canonical Mac validator 0/0; `quarto render
+  book` produced a fresh 211-page PDF with Ch 17 on pp. 197-205;
+  Codex blind audit cleared after three rounds; human review
+  approved 2026-07-08. This entry CARRIES the pending Ch 15
+  `91d8e4b` CHANGELOG hash-line touch, added to the Ch 15 entry
+  below with this work since a commit cannot contain its own hash,
+  and it flips that entry's gate tail to committed-and-pushed
+  language; Ch 17's own hash becomes the pending touch for the
+  first Phase-7 commit.)**
+  The spine: the shell you type into is not the shell your
+  scripts, `ssh host 'cmd'` calls, and cron jobs run in, and a
+  setting in a file only your interactive shell reads is invisible
+  to all three, so put each setting where the situation that needs
+  it will actually read it. The chapter cashes the promissory
+  notes the earlier chapters left here, each delivered as one line
+  of config plus the placement rule, never a re-teaching: the
+  `cp -i`/`mv -i` aliases (Ch 4), `set -o noclobber` (Ch 6),
+  history hygiene (Ch 9, `HIST_IGNORE_SPACE` / `HISTCONTROL`), the
+  `zoxide`/`fzf` hooks and guarded aliases (Ch 15), the
+  `brew shellenv` line and `~/.local/bin` PATH persistence (Ch 3),
+  and the remote-shell seam (Ch 13). Six content sections (4
+  beginner, 2 advanced) plus unnumbered Try-it: which file loads
+  when (the bash/zsh login-vs-interactive invocation matrix, shown
+  as a table, the device); PATH placement and search order plus
+  the front-of-PATH hijack risk (Ch 3/6); the portable dotfile
+  (aliases, `noclobber`, history, kit hooks, each guarded with
+  `command -v <tool> >/dev/null &&` graceful degradation, plus an
+  annotated ASCII dotfile tree, the Ch 5 house device); works in
+  terminal, fails over SSH (the Ch 13 seam, captured on a real
+  server); scheduled and non-interactive contexts (cron, launchd,
+  CI, why each starts from a stripped environment); and the
+  durable rule, config that survives all three. Callouts: 1
+  PITFALL (config in an interactive rc is invisible to a script,
+  an `ssh host 'cmd'`, and cron), 1 RECOVERY (debug the seam:
+  `ssh host 'echo $PATH'`, `bash -lc`, echo a marker from each rc,
+  or set the env in the script the Ch 10 way), 1 DIVERGENCE (bash
+  vs zsh startup files, and login-ness is decided by the terminal
+  emulator, not the OS: macOS Terminal.app opens a login +
+  interactive shell, many Linux emulators open a non-login
+  interactive shell), 1 REPRODUCIBILITY (a reproducible pipeline
+  must not depend on interactive config; Ch 10 pins its own
+  `LC_ALL`/`TZ`). No DANGER (config, not destruction) and no new
+  figure (the book's three stay Ch 2/5/13); the devices are the
+  matrix table and the ASCII dotfile tree. Mixed-capture: the bash
+  startup order and the non-interactive environment are real Linux
+  sandbox captures (GNU bash 5.1.16); the zsh order, the macOS
+  bash 3.2 floor, `launchd`, and a terminal's login state are Mac
+  captures (macOS 26.5.1, zsh 5.9, bash 3.2.57); the "fails over
+  SSH" seam is captured from the Mac against a real Linux server.
+  The local order demos ran against a THROWAWAY `HOME` (and
+  `ZDOTDIR`) with demo rc files, so no real LOCAL dotfile was read
+  (the Ch 15 throwaway-db mask applied to whole dotfiles); the one
+  exception is the remote ssh capture, which forces a login shell
+  (`bash -lc`) that does execute the server's real login profile
+  but runs only `echo`/`command -v`, writes nothing, and shows
+  only the resulting masked PATH. Paths and account masked at
+  capture time (machine-specific mounts to `/mnt/[mount]`), long
+  PATH tails elided with `[...]`. Two folklore claims were
+  corrected by running it: "SSH reads `.bashrc`" (only under a
+  build-time option not to be relied on, and the stock `~/.bashrc`
+  self-guards by returning immediately when non-interactive, so a
+  non-interactive `ssh host 'cmd'` does not pick up your PATH
+  edits), and "test login with `echo $0`" (a bash-only heuristic;
+  in zsh `echo $0` is `/bin/zsh` regardless, so the chapter uses
+  `[[ -o login ]]`). Sources pinned + accessed 2026-07-07: the
+  bash(1) INVOCATION section, the zsh manual "Startup/Shutdown
+  Files", and `crontab(5)` (`verification/chapter-17.md`).
+  Closeout: two forward-`will` references to Ch 17 were flipped
+  to present tense (`02-mental-model.qmd`, "Chapter 3 sets you up
+  and Chapter 17 makes it stick", which also retired a stale
+  forward-`will` for the now-committed Ch 3; and `03-setup.qmd`);
+  the other Ch 17 forward pointers (Ch 4/6/9/13/15) are already
+  present-tense parentheticals; the Ch 1 roadmap does not
+  reference Ch 17. Files:
+  `book/chapters/17-startup-files-path.qmd`, two sandbox
+  transcripts (`ch17-bash-order.txt`, `ch17-noninteractive.txt`),
+  five Mac transcripts (`ch17-versions-mac.txt`,
+  `ch17-zsh-order-mac.txt`, `ch17-launchd-mac.txt`,
+  `ch17-ssh-seam-mac.txt`, `ch17-login-shell-mac.txt`), the two
+  tracked capture scripts (`transcripts/capture-ch17-mac.sh`,
+  `transcripts/capture-ch17-ssh-mac.sh`),
+  `verification/chapter-17.md`, and handover
+  `private/ch17-G6-handover.md`.
 - **Chapter 15, "Modern CLI Kit and TUIs" (Phase 6, Part IV,
   the FIRST of the two Part-IV chapters, so its commit does NOT
   close gate G6, which needs Ch 15 + Ch 17. Drafted 2026-07-06;
-  validator 0/0 in the sandbox; the canonical Mac `uv run`
-  validator, the `quarto render book` check, the Codex blind
-  audit, and human review are the remaining gate steps. This
-  entry carries the pending Ch 14 `2611f22` CHANGELOG hash-line
-  touch, added above with this work since a commit cannot
-  contain its own hash; Ch 15's own hash line becomes the
-  pending touch for the Ch 17 commit.)** A curated, honest
+  validator 0/0 in the sandbox and under the canonical Mac
+  `uv run`; `quarto render book` produced a fresh 203-page PDF
+  with Ch 15 on pp. 179-186; cleared two Codex blind-audit
+  rounds; human review passed; committed + pushed 2026-07-07 as
+  `91d8e4b`. This entry carries the pending Ch 14 `2611f22`
+  CHANGELOG hash-line touch, added above with this work since a
+  commit cannot contain its own hash; Ch 15's own `91d8e4b`
+  hash line, added here after the push, becomes the pending
+  touch and rides with the Ch 17 commit.)** A curated, honest
   survey of the modern CLI kit taught as ergonomic upgrades with
   a loud portability tax. The spine: these tools make the laptop
   in front of you faster, but the bare server of Chapter 13 has
