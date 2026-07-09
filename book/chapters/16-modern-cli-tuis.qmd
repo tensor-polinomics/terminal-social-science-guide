@@ -103,19 +103,19 @@ $ bat --style=numbers --decorations=always \
       --line-range=1:16 scripts/00_make_data.py
    1 """Generate a synthetic firm-month panel for the
    2 signal-sorted long-short example.
-   3
+   3 
    4 All data in this project are SIMULATED. Nothing here is
    5 real CRSP, Compustat, or Bloomberg data. Generating from a
    6 seeded script is the whole point: licensed data cannot live
    7 in a repo, but a seed can, so anyone rebuilds the panel
    8 from this file alone. See PLAN.md Section 7.
-   9
+   9 
   10 The data-generating process embeds one story: an accounting
   11 signal earns a long-short return that the five Fama-French
   12 factors do not span (the "mispricing" alpha). The
   13 econometrics is illustrative scaffolding; the book teaches
   14 the terminal, not asset pricing.
-  15
+  15 
   16   R(i,t) = RF_t + beta_i . factors_t
 ```
 
@@ -224,8 +224,8 @@ index ba00349..34d369a 100644
  OUT = Path("data/clean/portfolio.parquet")
 -N_PORT = 10  # deciles
 +N_PORT = 5  # quintiles
-
-
+ 
+ 
  def main() -> None:
 ```
 

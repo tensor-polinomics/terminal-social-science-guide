@@ -128,8 +128,10 @@ both kinds of name:
 ```bash
 $ pwd
 /tmp/ch02-fs/project
+
 $ ls /tmp/ch02-fs/project/notes.txt
 /tmp/ch02-fs/project/notes.txt
+
 $ ls notes.txt
 notes.txt
 ```
@@ -154,6 +156,7 @@ shell abbreviates it `~`. On the author's Mac, home is under
 ```bash
 $ echo $HOME
 /Users/[account]
+
 $ ls /
 Applications
 Library
@@ -207,6 +210,7 @@ and `ps` will report on it:
 ```bash
 $ echo $$
 5
+
 $ ps -o pid,ppid,comm -p $$
     PID    PPID COMMAND
       5       2 bash
@@ -225,6 +229,7 @@ because each run is a fresh process:
 ```bash
 $ bash -c 'echo $$'
 7
+
 $ bash -c 'echo $$'
 8
 ```
@@ -249,6 +254,7 @@ and the reason is the process model from the last section.
 ```bash
 $ type cd
 cd is a shell builtin
+
 $ type ls
 ls is /usr/bin/ls
 ```
@@ -318,6 +324,7 @@ child cannot see it until you `export` it:
 $ DATASET=panel_v2
 $ bash -c 'echo "child sees: ${DATASET:-unset}"'
 child sees: unset
+
 $ export DATASET
 $ bash -c 'echo "child sees: ${DATASET:-unset}"'
 child sees: panel_v2
@@ -367,6 +374,7 @@ layout:
 ```bash
 $ echo $PATH
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 $ command -v python3
 /usr/bin/python3
 ```
@@ -527,10 +535,13 @@ anything else means failure.** Still inside the project:
 $ ls data/raw
 factors.csv
 firm_panel.csv
+
 $ echo $?
 0
+
 $ ls nope_dir
 ls: cannot access 'nope_dir': No such file or directory
+
 $ echo $?
 2
 ```

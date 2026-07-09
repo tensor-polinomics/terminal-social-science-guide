@@ -242,3 +242,29 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   "the request looks different." The claim is corroborated by
   the archived article, the PoC repo, and multiple independent
   search hits.
+
+## Review-response Session 2 (2026-07-09): forward pointers to the Ch 11 primer
+
+No behavior claim changed and no transcript was touched. Two
+prose parentheticals were added so the constructs the chapter
+*uses* are pointed at their single teaching home, the scripting
+primer added to Chapter 11 ("Reading a script: tests, branches,
+and loops"), instead of being explained here:
+
+- **Quoting section, the `for w in $f` word-splitting demo:** a
+  note that the `for` loop is taught in Chapter 11's primer and
+  here only illustrates word-splitting. The two `for` blocks and
+  their output are unchanged (still backed by
+  `transcripts/ch06-quoting.txt`).
+- **Redirecting-to-files / REPRODUCIBILITY, the
+  `{ ...; } > run.log 2>&1` block:** a note that the `{ ...; }`
+  grouping is explained in Chapter 11's primer. The block itself
+  is unchanged (still backed by `transcripts/ch06-provenance.txt`).
+
+The review memo's point 13 flagged relocating a `[ ]`-spacing
+lesson "from the pipes chapter," but there is no `[ ]` test in
+this chapter to relocate (the `nullglob` demo is the literal
+`echo "matches:[" *.xyz "]"`, not a `test`); the `[ ]`-vs-`[[ ]]`
+spacing lesson is authored fresh in the Chapter 11 primer, as
+the memo's own correction anticipated. Cross-references into the
+primer already use the current numbering (Chapter 11).

@@ -1,10 +1,12 @@
 # Source-verification log: Chapter 11 (Scripts that fail loudly)
 
 Per PLAN.md Section 10. Chapter 11 is largely executable: the
-shebang, `set -euo pipefail`, exit codes, the `trap`, the
-`set -e` footguns, `bash -x`, `tee`, `/usr/bin/time -v`, the
-`TZ`/`LC_ALL` behavior, and the `verify.sh` anchor are real
-sandbox captures. Four blocks are captured on the user's Mac
+shebang, `set -euo pipefail`, the control-flow primer
+(`if`/`[[ ]]`/`[ ]`/`for`/`while`/`{ ...; }`), exit codes, the
+`trap`, the `set -e` footguns, `bash -x`, `tee`,
+`/usr/bin/time -v`, the `TZ`/`LC_ALL` behavior, and the
+`verify.sh` anchor are real sandbox captures. Four blocks are
+captured on the user's Mac
 (ShellCheck, shfmt, the bash-3.2 floor, BSD `/usr/bin/time`/`date`)
 because the sandbox cannot produce them; those were drafted from
 best-known values and RECONCILED byte-for-byte 2026-07-03 against
@@ -26,7 +28,19 @@ pinned to official docs, fetched 2026-07-03.
   `ch10-debug.txt`, `ch10-tee.txt`, `ch10-time.txt`,
   `ch10-locale.txt`, `ch10-verify.txt`. Every sandbox block the
   chapter shows was diffed against its transcript as a contiguous
-  substring (14 blocks, all byte-identical; see counts).
+  substring (14 blocks, all byte-identical; see counts). The
+  control-flow primer's 8 blocks are in `ch10-primer.txt`;
+  that one file was recorded in the CURRENT sandbox image
+  (Ubuntu 24.04.4, GNU bash 5.2.21, GNU coreutils 9.4) rather
+  than the 22.04/bash 5.1.16 image of the other `ch10-*` files,
+  because the constructs it shows (`grep -q` exit status, `if`,
+  `[[ ]]`, `[ ]`, `for`, `while`, `{ ...; }` grouping) have no
+  version-dependent output (no version strings, no build- or
+  locale-sensitive formatting), so bash 5.1.16 is expected to
+  reproduce them; all 8 blocks were diffed against the transcript
+  as contiguous substrings. (Watch item
+  for the author: if strict single-image provenance is wanted,
+  re-run the capture on the 22.04 image; output is unchanged.)
 - **Mac-backed, RECONCILED byte-for-byte 2026-07-03 (4 blocks):**
   the bash-3.2 floor (`/bin/bash --version` + `declare -A`
   failure), ShellCheck on `unsafe.sh` (SC2086), shfmt on
@@ -64,6 +78,24 @@ pinned to official docs, fetched 2026-07-03.
 
 Each of these was run and its output captured before the chapter
 asserted it:
+
+- **The control-flow primer runs as shown** (`ch10-primer.txt`):
+  `grep -q` sets exit status 0 when the firm id is present and 1
+  when absent; `if grep -q ...` takes the `then` arm on 0;
+  `[[ -f ]]` / `-gt` / `==` and the single-bracket `[ -f ]` set
+  the expected 0/1, and `[ -f factors.csv]` with no space before
+  `]` errors ``bash: [: missing `]'`` and exits 2; `for`,
+  `while` (counter), and `while IFS= read -r` iterate over the
+  firm ids; `{ echo ...; echo ...; } > f` sends both echoes to
+  one file. All of it is plain control-flow output with no
+  version-dependent content (captured on bash 5.2.21; not
+  re-captured on 5.1.16). Per the 2026-07-09 author decision the
+  `for`/`while`/`while read` demos use the book's hand-wrapped,
+  no-`>` convention (one line where they fit; `\`-continuation
+  for `while read`) rather than showing the PS2 `>` prompt;
+  `ch10-primer.txt` was updated to match and the output is
+  unchanged, so all 8 primer blocks stay contiguous substrings.
+  See `verification/session2-byte-faithfulness.md`.
 
 - **`set -e` stops on the first failed command** and yields its
   nonzero status; the following line does not run (`ch10-set.txt`,
@@ -118,7 +150,15 @@ asserted it:
 - **Ch 7 `pipefail`** is carried as part of `set -euo pipefail`,
   reinforced not re-derived; the DANGER is framed as the scripted
   sibling of Ch 7's `pipefail` trap. The **`tee`** promise Ch 7
-  made ("Chapter 11") is delivered here.
+  made ("Chapter 11") is delivered here. Ch 7's `for` loop and
+  `{ ...; }` grouping now point FORWARD to this chapter's
+  scripting primer (their single teaching home) instead of being
+  re-explained in Ch 7; the two pointers were added in this
+  session.
+- **Ch 4** (How to Read a Shell Command) is the primer's base:
+  it draws on Ch 4's bracket table for `[[ ]]`, `{ ...; }`
+  grouping, and `$(( ))` arithmetic rather than redefining them,
+  and reads a command per Ch 4 before reading the script grammar.
 - **Ch 2** exit codes / `$?` / `set -e` are made operational
   (explicit `exit N`, `trap ERR`, `bash -x`), delivering Ch 2's
   forward "will."
@@ -178,15 +218,16 @@ asserted it:
 
 ## Counts (self-check)
 
-- **7 numbered content sections** (5 beginner, 2 advanced) +
+- **8 numbered content sections** (6 beginner, 2 advanced) +
   unnumbered `## Try it yourself`:
   1. The shebang and the bash target (beginner)
   2. Fail loudly: `set -euo pipefail` (beginner)
-  3. Exit codes you can act on: `exit`, `$?`, `trap` (beginner)
-  4. Lint before you run: ShellCheck and shfmt (beginner)
-  5. Leave a run log you can trust (advanced)
-  6. Pin the environment: `LC_ALL` and `TZ` (beginner)
-  7. Putting it together: a `verify.sh` for the project (advanced)
+  3. Reading a script: tests, branches, and loops (beginner)
+  4. Exit codes you can act on: `exit`, `$?`, `trap` (beginner)
+  5. Lint before you run: ShellCheck and shfmt (beginner)
+  6. Leave a run log you can trust (advanced)
+  7. Pin the environment: `LC_ALL` and `TZ` (beginner)
+  8. Putting it together: a `verify.sh` for the project (advanced)
 - **Callouts: 1 DANGER, 1 PITFALL, 2 DIVERGENCE,
   1 REPRODUCIBILITY, 1 RECOVERY.** DANGER: a no-`set -e` script
   writes a silent empty output. PITFALL: the three `set -e`
@@ -195,7 +236,9 @@ asserted it:
   header. RECOVERY: debug a failed script with `bash -x`. No
   figure (command/output driven).
 - Mechanical: `grep -E '^## ' | grep -v 'Try it yourself' | wc -l`
-  = 7; `grep -c '{.tier-beginner}'` = 5; `grep -c
+  = 8; `grep -c '{.tier-beginner}'` = 6; `grep -c
   '{.tier-advanced}'` = 2; em-dashes = 0; validator 0/0 (sandbox
-  AND canonical Mac `uv run`, Codex 2026-07-03); widest typed
-  line 62 (<= 64, output exempt).
+  this session, 2026-07-09; re-run canonical Mac `uv run` +
+  `quarto render book` + Codex + human review before commit);
+  widest typed line 62 (<= 64, output exempt); the primer adds
+  no callout (counts above unchanged).

@@ -136,6 +136,7 @@ author's Mac, home is under `/Users`:
 ```bash
 $ echo $HOME
 /Users/[account]
+
 $ echo ~
 /Users/[account]
 ```

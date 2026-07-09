@@ -8,8 +8,107 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 2: scripting primer in Chapter 11 +
+  back-references from Chapter 7 (2026-07-09; NOT yet committed as
+  of this writing; validator 0/0 in-sandbox on the two changed
+  files; canonical Mac `uv run` + `quarto render book` + Codex
+  blind audit + human review pending before commit).** The author
+  review (Preface-Ch12) asked that the shell-script constructs be
+  taught before they are used. A new BEGINNER section "Reading a
+  script: tests, branches, and loops" was added to Chapter 11
+  ("Scripts that fail loudly"), placed after "Fail loudly:
+  `set -euo pipefail`" and before "Exit codes you can act on", so
+  `if`/`then`/`else`/`fi`, `[[ ]]` tests (with `!` negation), the
+  `[ ]`-vs-`[[ ]]` spacing lesson, `for...do...done`, `while`
+  (counter and `while read`), reading exit status via `$?`, and
+  `{ ...; }` command grouping are all defined before the chapter's
+  `guard.sh` first uses `if [[ ! -f ... ]]`. Chapter 11 now has 8
+  content sections (6 beginner, 2 advanced; was 7 / 5 / 2); the
+  primer adds no callout. The two constructs the Pipes chapter
+  (Chapter 7) uses without defining, its `for w in $f`
+  word-splitting loop and its `{ ...; } > run.log 2>&1` grouping,
+  now carry one-line forward pointers to the Chapter 11 primer
+  instead of being re-explained; no Chapter 7 behavior claim
+  changed. While Chapter 7 was open, a Codex blind audit caught
+  two pre-existing byte-faithfulness drifts there, now repaired so
+  each shown block is again a contiguous transcript substring: a
+  dropped `echo $?` / `1` in the `noclobber` DANGER block (vs
+  `transcripts/ch06-redirect.txt`) and a dropped blank line in the
+  quoting `for` block (vs `transcripts/ch06-quoting.txt`). The
+  same audit corrected two shell claims in the new Chapter 11
+  primer: `[[ ! -f x ]]` is true when `x` is not a regular file
+  (not only when it is absent), and for `{ ...; }` grouping the
+  space after `{` plus a `;`/newline before `}` are what is
+  required (not "spaces inside both braces"). Real output for the
+  primer is captured in the new
+  `transcripts/ch10-primer.txt`; all 8 shown blocks are
+  byte-identical to it. That transcript was recorded in the
+  CURRENT sandbox image (Ubuntu 24.04.4, GNU bash 5.2.21) rather
+  than the 22.04 / bash 5.1.16 image of the sibling `ch10-*`
+  files, and is frozen at the `ch10-` prefix per the Session-1
+  transcript freeze; the control-flow output has no
+  version-dependent content, so bash 5.1.16 is expected to
+  reproduce it (not re-captured there), and the author may
+  re-capture on the 22.04 image for single-image provenance.
+  `verification/chapter-11.md` (counts,
+  provenance, a new "primer runs as shown" bullet) and
+  `verification/chapter-07.md` (the two forward pointers) updated.
+  The review memo's point-13 `[ ]`-relocation was a no-op: there
+  is no `[ ]` test in Chapter 7 to move, so the spacing lesson is
+  authored fresh in the primer.
+
+- **Review-response Session 2 book-wide byte-faithfulness sweep
+  (2026-07-09; part of the Session-2 change set, NOT yet
+  committed).** After Codex flagged two byte-faithful drifts in
+  Chapter 7, all 256 shown `$`/`>` code blocks across the chapters
+  were checked against `transcripts/*.txt` (a block must be a
+  contiguous transcript substring, modulo the accepted `\`
+  line-wrapping; marked `[...]` elisions exempt). Chapter 7 came
+  back clean after its two fixes. Eighteen pre-existing blocks were
+  repaired: dropped blank lines between merged commands restored in
+  Chapters 2 (8 blocks), 3 (1), 5 (1), and 12 (3); trailing
+  whitespace restored to two Chapter 16 blocks; two Chapter 3
+  blocks split into per-command fences (their commands are not
+  contiguous in the capture); and Chapter 12's `sed`/`make check`
+  failure block de-wrapped onto one line and its two dropped blank
+  lines restored. Author policy set here: restore transcript blank
+  lines book-wide, and present wrapped typed commands hand-wrapped
+  with `\` and no shell `>` continuation prompt (transcripts are
+  the raw capture and may keep the real `>`; the byte-faithful
+  contract is on output). Under that policy the Chapter 11 primer's
+  `for`/`while`/`while read` demos were reformatted off the PS2
+  `>` style (one line where they fit; `\`-wrap for `while read`),
+  with `transcripts/ch10-primer.txt` updated to match and output
+  unchanged. Every changed chapter re-validated 0 errors / 0
+  warnings. The one block whose output was in no transcript,
+  Chapter 12's `stat -f '%Fm  %N' output/tables/ff5_alpha.tex
+  report.html`, was captured on the Mac (new
+  `transcripts/capture-ch11-mtime-mac.sh` ->
+  `transcripts/ch11-mtime-mac.txt`, macOS 26.5.2, BSD stat) and
+  the block de-wrapped onto one line + updated to the real mtimes
+  (2.14 s apart), so it now matches byte-for-byte (prose gap
+  updated to 2.14 s). A Codex round-2 audit then caught four
+  Chapter 12 `make` blocks that carried a marked `[...]` elision
+  but ALSO silently dropped other real output (or spliced two
+  runs) -- a blind spot in the first byte checker. The checker was
+  rebuilt to be elision- and truncation-aware, and the four blocks
+  were repaired into honest contiguous transcript slices; the
+  `touch scripts/04_regression.R; make` splice was resolved with a
+  fresh Mac capture (`transcripts/capture-ch11-touch-regression-mac.sh`
+  -> `transcripts/ch11-touch-regression-mac.txt`; a `sleep` before
+  the touch dodges the one-second tie so the report reliably
+  re-renders), and the chapter now shows that real `touch; make`
+  run byte-faithful, with the chapter's original prose restored. After that, every shown block
+  in the book is transcript-backed except one accepted non-defect:
+  Chapter 5's wrapped `stat` block, where the transcript keeps the
+  real `>` and the chapter strips it per the wrapping convention.
+  Full record: `verification/session2-byte-faithfulness.md`.
+
 - **Structural renumber to insert the shell-literacy mini-chapter
-  (2026-07-08; NOT yet committed).** An author review called for a
+  (2026-07-08; committed 2026-07-09 as `d0653ed`,
+  `d0653edf40111fa20978e3de057eb49530c75921`, message "Add shell-literacy
+  chapter and renumber book"; this hash-line rides in the next commit since
+  a commit cannot contain its own hash).** An author review called for a
   "How to Read a Shell Command" on-ramp before navigation. It is
   slotted as the new Chapter 4 in Part I "Literacy Foundation", so the
   former Chapters 4-17 shift up by one to 5-18. This entry records the
@@ -65,7 +164,7 @@ are not part of this repo; this file is the repo-visible history.
 ### Added
 
 - **Chapter 4, "How to Read a Shell Command" (shell-literacy
-  mini-chapter; 2026-07-08; NOT yet committed).** A tight,
+  mini-chapter; 2026-07-08; committed 2026-07-09 as `d0653ed`).** A tight,
   reference-style BEGINNER on-ramp placed after
   Setup and before Navigation. Teaches the reader to *read* a command
   before the later chapters use syntax at speed: the shape of a command

@@ -248,19 +248,24 @@ paper, crossing three languages on the way:
 ```bash
 $ make
 uv run python scripts/00_make_data.py
+[...]
 wrote data/raw/factors.csv  months=180
 wrote data/raw/firm_panel.csv  rows=54000  firms=300
 seed=20260629  lambda=0.00149  sigma=0.06
 content-sha256=49b3a1733cf2...
 uv run python scripts/01_clean.py
 wrote data/clean/analysis.parquet  rows=53700  cols=4
+months=179  firms=300
 uv run python scripts/02_portfolio.py
 wrote data/clean/portfolio.parquet  months=179
+wrote data/clean/portfolio.csv
 mean ls_ret=0.004126  sd=0.016625
 uv run python scripts/03_figure.py
-wrote output/figures/cumret.png  ... =103.95%
+wrote output/figures/cumret.png  final cumulative return=103.95%
 Rscript scripts/04_regression.R
+
 alpha (monthly) = 0.0034   t = 2.635
+alpha %/mo = 0.3412   nobs = 179
 quarto render report.qmd --to html
 [...]
 Output created: report.html
@@ -302,10 +307,18 @@ table, and the report:
 
 ```bash
 $ touch scripts/02_portfolio.py
+
 $ make
 uv run python scripts/02_portfolio.py
+wrote data/clean/portfolio.parquet  months=179
+wrote data/clean/portfolio.csv
+mean ls_ret=0.004126  sd=0.016625
 uv run python scripts/03_figure.py
+wrote output/figures/cumret.png  final cumulative return=103.95%
 Rscript scripts/04_regression.R
+
+alpha (monthly) = 0.0034   t = 2.635
+alpha %/mo = 0.3412   nobs = 179
 quarto render report.qmd --to html
 [...]
 Output created: report.html
@@ -318,8 +331,12 @@ upstream of the regression depends on it:
 
 ```bash
 $ touch scripts/04_regression.R
+
 $ make
 Rscript scripts/04_regression.R
+
+alpha (monthly) = 0.0034   t = 2.635
+alpha %/mo = 0.3412   nobs = 179
 quarto render report.qmd --to html
 [...]
 Output created: report.html
@@ -330,6 +347,7 @@ To preview what a build *would* do without running anything,
 
 ```bash
 $ touch scripts/04_regression.R
+
 $ make -n
 Rscript scripts/04_regression.R
 quarto render report.qmd --to html
@@ -354,9 +372,11 @@ up to date:
 
 ```bash
 $ touch -t 202606301200.00 in.txt out.txt
+
 $ stat -f '%Fm  %N' in.txt out.txt
 1782835200.000000000  in.txt
 1782835200.000000000  out.txt
+
 $ make
 make: `out.txt' is up to date.
 ```
@@ -366,9 +386,11 @@ second newer and the recipe runs:
 
 ```bash
 $ touch -t 202606301200.01 in.txt
+
 $ stat -f '%Fm  %N' in.txt out.txt
 1782835201.000000000  in.txt
 1782835200.000000000  out.txt
+
 $ make
 cp in.txt out.txt
 ```
@@ -393,13 +415,12 @@ The mtimes from one run that did rebuild correctly show the
 margin involved:
 
 ```bash
-$ stat -f '%Fm  %N' output/tables/ff5_alpha.tex \
-    report.html
-1782846398.406904276  output/tables/ff5_alpha.tex
-1782846400.062016681  report.html
+$ stat -f '%Fm  %N' output/tables/ff5_alpha.tex report.html
+1783601038.862631182  output/tables/ff5_alpha.tex
+1783601041.000129705  report.html
 ```
 
-Here the table and the report are 1.66 seconds apart, in
+Here the table and the report are 2.14 seconds apart, in
 different integer seconds, so Make rebuilt correctly. Shave
 that gap below a second and 3.81 cannot tell them apart.
 
@@ -441,8 +462,8 @@ script or CI job built on top of it. To see the failure path,
 corrupt the table by hand and re-run:
 
 ```bash
-$ sed -i '' 's/0.0034/0.0099/' \
-    output/tables/ff5_alpha.tex
+$ sed -i '' 's/0.0034/0.0099/' output/tables/ff5_alpha.tex
+
 $ make check
 uv run python scripts/check.py
 smoke checks:
@@ -450,6 +471,7 @@ smoke checks:
   PASS  long-short alpha = 0.0034 (t=2.64)
   PASS  figure exists (output/figures/cumret.png)
   FAIL  output/tables/ff5_alpha.tex: alpha 0.0099 != locked 0.0034 (stale table?)
+
 1 check(s) FAILED
 make: *** [check] Error 1
 ```
@@ -516,12 +538,16 @@ final cumulative return (103.95%):
 $ make output/figures/cumret.png
 uv run python scripts/00_make_data.py
 [... uv installs the pinned environment ...]
+wrote data/raw/factors.csv  months=180
+wrote data/raw/firm_panel.csv  rows=54000  firms=300
 seed=20260629  lambda=0.00149  sigma=0.06
 content-sha256=49b3a1733cf2...
 uv run python scripts/01_clean.py
+[...]
 uv run python scripts/02_portfolio.py
+[...]
 uv run python scripts/03_figure.py
-wrote output/figures/cumret.png  ... =103.95%
+wrote output/figures/cumret.png  final cumulative return=103.95%
 ```
 
 Naming a specific target, `make output/figures/cumret.png`,

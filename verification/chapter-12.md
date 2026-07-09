@@ -6,6 +6,25 @@ this log pins the external/version-volatile claims to
 authoritative sources. Access date for all web sources below:
 2026-06-30.
 
+> **RESOLVED 2026-07-09 (Session-2 byte-faithfulness sweep):** the
+> `stat -f '%Fm  %N' output/tables/ff5_alpha.tex report.html`
+> block (the mtime-margin demo) previously showed output that was
+> in no transcript. It is now captured in
+> `transcripts/ch11-mtime-mac.txt` (macOS 26.5.2, BSD stat) via
+> the new `transcripts/capture-ch11-mtime-mac.sh` (forced
+> `make -B report.html` rebuild, then `stat`). The block was
+> de-wrapped onto one line and updated to the real mtimes
+> (`1783601038.862631182  ...` / `1783601041.000129705  ...`,
+> 2.14 s apart), and is now a byte-exact contiguous substring of
+> that transcript; the "2.14 seconds apart" prose matches. These
+> mtimes are NON-deterministic (a one-time record, like the
+> `/usr/bin/time` figures), so re-running the capture means
+> re-syncing the block. The sweep also restored dropped blank
+> lines in the two `touch`/`stat`/`make` blocks and de-wrapped +
+> reblanked the `sed`/`make check` failure block in this chapter
+> (all contiguous substrings of
+> `ch11-timestamp-mac`/`ch11-make-mac`).
+
 ### Automatic variables: $@ is the target, $< the first prereq, $^ all prereqs
 - chapter/section: Ch 12, "Automatic variables"
 - source: GNU Make manual, "Automatic Variables"

@@ -140,6 +140,8 @@ times you mean it:
 $ set -o noclobber
 $ echo 'third version' > note.txt
 bash: note.txt: cannot overwrite existing file
+$ echo $?
+1
 $ echo 'forced' >| note.txt
 $ cat note.txt
 forced
@@ -155,7 +157,9 @@ unset, so treat it as one guard rail, not the guard rail.
 Redirection has a quieter, constructive use that matters for
 reproducibility: it captures what happened. Merging a
 command's stdout and stderr into one log file (the `2>&1` is
-the next section) gives you a record you can commit alongside
+the next section; the `{ ...; }` that groups the two commands
+so one `> run.log` covers both is explained in Chapter 11's
+scripting primer) gives you a record you can commit alongside
 results, so "what did that run actually print" has an answer
 months later:
 
@@ -371,14 +375,17 @@ $ wc -l "$f"
 181 fy 2011.csv
 ```
 
-The same splitting governs loops, which is where it quietly
-corrupts batch jobs. Unquoted, the loop iterates over the
-*words*; quoted, over the *value*:
+The same splitting governs loops (the `for` loop is taught in
+Chapter 11's scripting primer; here it is only the vehicle for
+showing word-splitting), which is where it quietly corrupts
+batch jobs. Unquoted, the loop iterates over the *words*;
+quoted, over the *value*:
 
 ```bash
 $ for w in $f; do echo "  arg: $w"; done
   arg: fy
   arg: 2011.csv
+
 $ for w in "$f"; do echo "  arg: $w"; done
   arg: fy 2011.csv
 ```

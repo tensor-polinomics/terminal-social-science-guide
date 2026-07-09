@@ -35,7 +35,14 @@ pipefail`, exit codes, the `trap`, the `set -e` footguns,
 pinning, and the `verify.sh` anchor are executed in this book's
 Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16, GNU coreutils
 8.32, util-linux 2.37.2; the `ch10-*` transcripts), in throwaway
-`/tmp` scratch directories. Four things run on the author's Mac
+`/tmp` scratch directories. The `if`/`[[ ]]`/`for`/`while` primer
+and `{ ...; }` grouping are captured the same way in
+`ch10-primer.txt`; that capture used a newer sandbox image
+(bash 5.2.21). Its shown output carries no version-dependent
+values (no version strings, no locale- or build-sensitive
+formatting), so re-capturing on the 22.04/bash 5.1.16 image of
+the other `ch10-*` files is expected to reproduce it, though
+that was not done. Four things run on the author's Mac
 (`transcripts/capture-ch10-mac.sh`) because the sandbox cannot
 produce them: ShellCheck and shfmt (blocked release binaries,
 like DuckDB in Chapter 8 and `fd` in Chapter 9), the macOS
@@ -205,12 +212,189 @@ turns the missing input into an immediate nonzero exit, which is
 the whole point of the previous block.
 :::
 
+## Reading a script: tests, branches, and loops {.tier-beginner}
+
+The scripts in this chapter, and the Make pipeline of Chapter
+12, lean on a small grammar that reads an exit code, branches
+on it, and repeats a step over a list. Chapter 4 showed how to
+read a single command; this section reads the constructs that
+turn a list of commands into a script, and every one of them
+rests on the exit code from Chapter 2.
+
+Start with that exit code, because it is the value all the
+branching acts on. Every command returns a code, zero for
+success and nonzero for failure, and `$?` holds the most recent
+one. In a script the code is not just a report you read
+afterward; it is the condition the shell tests. `grep -q` shows
+it cleanly, printing nothing and only setting the code, zero
+when the pattern is found and nonzero when it is not:
+
+```bash
+$ grep -q F0000 firms.txt; echo $?
+0
+$ grep -q F9999 firms.txt; echo $?
+1
+```
+
+`F0000` is in the file so the first `grep` exits 0; the absent
+`F9999` exits 1. That 0-or-1 is what the next constructs branch
+on.
+
+An `if` runs a command and takes a branch on its exit code. The
+shape is `if COMMAND; then ...; else ...; fi`, and `COMMAND` is
+really run: exit 0 takes the `then` branch, anything else takes
+the `else`. There is no separate boolean type; the exit code is
+the condition:
+
+```bash
+$ cat check.sh
+#!/usr/bin/env bash
+if grep -q F0000 firms.txt; then
+  echo "found F0000"
+else
+  echo "no F0000"
+fi
+$ ./check.sh
+found F0000
+```
+
+`grep -q` succeeded, so the `then` branch ran. `elif` adds
+another condition, `else` is the fallthrough, and `fi` (`if`
+spelled backward) closes the block. The one token you cannot
+drop is the `;` or newline before `then`.
+
+Most conditions are not a command like `grep` but a test: does
+this file exist, is this string empty, is this number bigger
+than that one. bash's test keyword is `[[ ... ]]`, and like any
+command it sets an exit code you can read on its own:
+
+```bash
+$ [[ -f factors.csv ]]; echo $?
+0
+$ [[ -f missing.csv ]]; echo $?
+1
+$ [[ 180 -gt 100 ]]; echo $?
+0
+$ [[ F0000 == F* ]]; echo $?
+0
+```
+
+`-f` asks whether a regular file exists (0 yes, 1 no); `-gt`
+compares two integers, with `-lt`, `-le`, `-ge`, `-eq`, and
+`-ne` for the other five; `==` matches a string against a glob
+pattern, so `F0000` matches `F*`. The tests you reach for most
+are `-f` (file), `-d` (directory), `-z` (empty string), and
+`-n` (non-empty), and a leading `!` negates any of them, so
+`[[ ! -f x ]]` is true whenever `x` is not a regular file,
+whether it is missing or exists as something else (a directory,
+say). Dropped into an `if`, that is the guard the next section
+builds: `if [[ ! -f data/clean.csv ]]; then ...`.
+
+You will also meet the older single-bracket test `[ -f file ]`
+in scripts, and its spaces are load-bearing. The `[` is not
+punctuation; it is an actual command, a synonym for `test`, and
+the `]` is a required final argument. Because `[` is a command,
+it needs a space after it and before the `]`, or the shell
+never finds the word boundaries:
+
+```bash
+$ [ -f factors.csv ]; echo $?
+0
+$ [ -f factors.csv]; echo $?
+bash: [: missing `]'
+2
+```
+
+The spaced form works; remove the space before `]` and `[`
+never sees its closing argument. This book writes `[[ ]]`
+instead: it is a shell keyword rather than a command, so it
+does not word-split its contents (an unquoted empty variable
+can turn `[ $x = y ]` into a syntax error, while `[[ ]]`
+tolerates it), it accepts `==` patterns and `&&`/`||`, and it
+behaves the same in bash and zsh. Write `[[ ]]`; recognize
+`[ ]` when you read it, and mind its spaces.
+
+To repeat a step over a list, `for NAME in LIST; do ...; done`
+runs its body once per item with `NAME` bound to each. With
+semicolons between the parts it fits on one line:
+
+```bash
+$ for id in F0000 F0001 F0002; do echo "row for $id"; done
+row for F0000
+row for F0001
+row for F0002
+```
+
+The `;` before `do` and before `done` are what let the loop sit
+on one line; you can also type it across several lines, pressing
+Enter after `do`. The list is usually a glob rather than typed
+ids, so `for f in *.csv; do ...; done` walks the matching files,
+and inside the body you quote the variable as `"$f"` for the
+reason Chapter 7 makes central: an unquoted `$f` word-splits on
+spaces.
+
+Where `for` walks a known list, `while TEST; do ...; done`
+repeats as long as its test keeps succeeding. A counter is the
+plain shape:
+
+```bash
+$ n=1
+$ while [[ $n -le 3 ]]; do echo "attempt $n"; n=$((n+1)); done
+attempt 1
+attempt 2
+attempt 3
+```
+
+`$(( ))` does the integer arithmetic (Chapter 4). The form you
+reach for most on data is `while read`, which streams a file
+one line at a time until it runs out. The command below is
+wrapped across lines with a trailing `\`, the continuation the
+book uses for any command too wide for the page:
+
+```bash
+$ while IFS= read -r id; do \
+      echo "processing $id"; \
+  done < firms.txt
+processing F0000
+processing F0001
+processing F0002
+```
+
+`read` pulls one line per pass and stops at end of file; the
+`IFS=` prefix and `-r` flag keep leading spaces and backslashes
+intact, the safe defaults for reading real data.
+
+One last construct ties the loops back to redirection. Braces
+run several commands as a unit so a single redirection covers
+all of them. Chapter 4's bracket table introduced `{ ...; }` as
+command grouping; in a script its everyday job is to send a
+whole block's output to one place:
+
+```bash
+$ { echo "line 1"; echo "line 2"; } > grouped.log
+$ cat grouped.log
+line 1
+line 2
+```
+
+Both lines land in `grouped.log` because the `>` applies to the
+group, not just the last `echo`. Two bits of punctuation are
+load-bearing: `{` must be followed by a space, and a `;` or a
+newline (not a space) must come before the closing `}`.
+Chapter 7 used this exact form to capture a pipeline's output
+and errors in one log; now the braces are not a mystery.
+
+Those are the moving parts the rest of this chapter and the
+Make pipeline are built from: a test sets an exit code, `if`
+branches on it, `for` and `while` repeat, and `{ ...; }`
+groups. The next section puts the first two to work in a guard
+that stops a script before it touches missing data.
+
 ## Exit codes you can act on: `exit`, `$?`, and `trap` {.tier-beginner}
 
-Chapter 2 taught that every command hands back an exit code,
-zero for success and nonzero for failure, and that `$?` holds
-the most recent one. In a script you go from *reading* that code
-to *setting* it. When your script detects a problem it should
+The primer read an exit code with `$?` and branched on it with
+`if`; here the move is from *reading* a code to *setting* it.
+When your script detects a problem it should
 stop with a nonzero `exit` and a message on stderr, so its
 caller learns something went wrong and, if you choose your
 numbers, what:

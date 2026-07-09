@@ -1,0 +1,54 @@
+# transcript
+chapter: 10
+os: Ubuntu 24.04.4 (workspace sandbox)
+shell: bash 5.2.21
+tool: GNU bash 5.2.21, GNU coreutils 9.4
+date: 2026-07-09
+captured-by: sandbox
+note: control-flow primer demos; throwaway /tmp scratch, no personal data. Frozen at ch10-* per the Session-1 transcript freeze (this chapter is now Chapter 11), so it groups with its siblings and Session 7 renames them together. Captured in the current sandbox image (bash 5.2.21), not the 22.04/bash 5.1.16 image of the other ch10-* transcripts; the shown output (grep -q exit status, if, [[ ]], [ ], for, while, and { ...; } grouping) carries no version-dependent values (no version strings, no locale- or build-sensitive formatting), so the 22.04/bash 5.1.16 image is expected to reproduce it, though it was not re-captured there.
+---
+$ grep -q F0000 firms.txt; echo $?
+0
+$ grep -q F9999 firms.txt; echo $?
+1
+$ cat check.sh
+#!/usr/bin/env bash
+if grep -q F0000 firms.txt; then
+  echo "found F0000"
+else
+  echo "no F0000"
+fi
+$ ./check.sh
+found F0000
+$ [[ -f factors.csv ]]; echo $?
+0
+$ [[ -f missing.csv ]]; echo $?
+1
+$ [[ 180 -gt 100 ]]; echo $?
+0
+$ [[ F0000 == F* ]]; echo $?
+0
+$ [ -f factors.csv ]; echo $?
+0
+$ [ -f factors.csv]; echo $?
+bash: [: missing `]'
+2
+$ for id in F0000 F0001 F0002; do echo "row for $id"; done
+row for F0000
+row for F0001
+row for F0002
+$ n=1
+$ while [[ $n -le 3 ]]; do echo "attempt $n"; n=$((n+1)); done
+attempt 1
+attempt 2
+attempt 3
+$ while IFS= read -r id; do \
+      echo "processing $id"; \
+  done < firms.txt
+processing F0000
+processing F0001
+processing F0002
+$ { echo "line 1"; echo "line 2"; } > grouped.log
+$ cat grouped.log
+line 1
+line 2
