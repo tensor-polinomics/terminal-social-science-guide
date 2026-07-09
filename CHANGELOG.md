@@ -6,7 +6,81 @@ are not part of this repo; this file is the repo-visible history.
 
 ## [Unreleased]
 
+### Changed
+
+- **Structural renumber to insert the shell-literacy mini-chapter
+  (2026-07-08; NOT yet committed).** An author review called for a
+  "How to Read a Shell Command" on-ramp before navigation. It is
+  slotted as the new Chapter 4 in Part I "Literacy Foundation", so the
+  former Chapters 4-17 shift up by one to 5-18. This entry records the
+  mechanical renumber; the mini-chapter itself is under Added below.
+  Scope of the shift (working tree only, pre-commit):
+  - `book/chapters/NN-*.qmd` filenames 04-17 renamed to 05-18
+    (semantic slugs unchanged) and `_quarto.yml` reordered.
+  - ~314 reader-facing chapter references bumped across the book:
+    every prose "Chapter N" / "Ch N" and Oxford-comma or range list
+    with N >= 4 (verified: Chapters 1-3 untouched; a tokenizing pass
+    with a 0-anomaly cross-check, not a blind sed).
+  - Figure labels and their asset files are FROZEN at their original
+    chapter number, exactly like transcripts: a `fig-chNN` label is
+    internal and never shown to a reader (Quarto auto-numbers the
+    figure by its new chapter), and the assets live at
+    `assets/figures/chNN/`. No `fig-*` label or figure path was
+    changed, so none points at a missing asset.
+  - `verification/chapter-04..17.md` renamed to `05..18.md` with their
+    internal "Chapter N" (N>=4) and `.qmd` filename references bumped;
+    a new `verification/chapter-04.md` documents the mini-chapter.
+  - `cheatsheet.qmd` seeded with the common-command shortlist.
+
+  | Old | New | Chapter |
+  |----:|----:|---|
+  | 4 | 5 | Navigation and file operations |
+  | 5 | 6 | Organizing a project |
+  | 6 | 7 | Pipes, redirection, and danger |
+  | 7 | 8 | Text and tabular data |
+  | 8 | 9 | Finding things |
+  | 9 | 10 | Processes, permissions, secrets |
+  | 10 | 11 | Scripts that fail loudly |
+  | 11 | 12 | The Make pipeline |
+  | 12 | 13 | Environments |
+  | 13 | 14 | SSH and remote compute |
+  | 14 | 15 | Persistent sessions |
+  | 15 | 16 | Modern CLI and TUIs |
+  | 16 | 17 | AI in the terminal |
+  | 17 | 18 | Startup files, PATH, dotfiles |
+
+  Not renumbered in this session: the ~80 `transcripts/` capture
+  files (`chNN-*`, incl. the `chapter:` header field) and the
+  `assets/figures/chNN/` figure files and their `fig-chNN` labels.
+  This is **temporary** scaffolding: a dedicated final consistency pass
+  will rename them to the current numbering so no `ch(N-1)` offset
+  survives the revision. Permanently frozen (pinned to their commits):
+  the dated historical narrative in this CHANGELOG, `RESUME.md`, and the
+  handover trail. Those record work by the chapter
+  number in effect when it happened and stay pinned to immutable git
+  messages/hashes; the transcript freeze and old->new mapping are
+  documented in `transcripts/README.md`. Under the new numbering, a
+  chapter N in 5..18 is backed by `ch(N-1)-*` transcripts.
+
 ### Added
+
+- **Chapter 4, "How to Read a Shell Command" (shell-literacy
+  mini-chapter; 2026-07-08; NOT yet committed).** A tight,
+  reference-style BEGINNER on-ramp placed after
+  Setup and before Navigation. Teaches the reader to *read* a command
+  before the later chapters use syntax at speed: the shape of a command
+  line, then Table A (command anatomy and the three quoting rows), a
+  brackets-vs-docs decoder plus a one-rule "when to quote", and a
+  common-command shortlist table (also seeded into `cheatsheet.qmd`).
+  One read-only "Try it yourself" decoding exercise tied to the
+  asset-pricing example; nothing is executed, so the chapter has no
+  transcripts and pins no external claims (the Shotts further-reading
+  cite is routed through paper-wiki in a later session). Each content
+  section is tiered `{.tier-beginner}` per the current contract; the
+  planned book-wide switch to ADVANCED-only labeling is a later pass.
+  Sandbox pre-check `python3 tools/validate_book.py book` = 0 errors, 0
+  warnings; the canonical Mac `uv run` validator + `quarto render book`
+  + Codex audit + human review remain to run before commit.
 
 - **Chapter 17, "Startup Files, PATH, and Portable Dotfiles"
   (Phase 6, Part IV, the SECOND and LAST Part-IV chapter, so its

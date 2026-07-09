@@ -1,6 +1,6 @@
 # Pipes, Redirection, and the Danger Chapter
 
-Chapter 5 gave the project a place for everything: raw data
+Chapter 6 gave the project a place for everything: raw data
 here, scripts there, output in its own folder. This chapter is
 about the plumbing that moves data between those places. Every
 command you run reads from somewhere and writes to somewhere,
@@ -146,7 +146,7 @@ forced
 ```
 
 Turning on `noclobber` (many people put `set -o noclobber` in
-their shell startup file, Chapter 17) converts a silent
+their shell startup file, Chapter 18) converts a silent
 overwrite into a loud refusal. It does not protect against
 `>|`, against `rm`, or against a script that runs with it
 unset, so treat it as one guard rail, not the guard rail.
@@ -172,9 +172,9 @@ run: distinct-firm count
 A result you cannot trace back to the command that produced it
 is a result you have to take on faith. Redirecting a run into a
 dated log file, or `make`-ing the report from a graph as in
-Chapter 11, is how a shell session leaves a paper trail instead
+Chapter 12, is how a shell session leaves a paper trail instead
 of a screenful of text that scrolls away. When you want the log
-*and* the output on screen at the same time, `tee` (Chapter 10)
+*and* the output on screen at the same time, `tee` (Chapter 11)
 splits the stream in two; here a plain `>` is enough. The
 discipline is the same one the Git book argues for results:
 prefer the artifact you can regenerate and inspect over the one
@@ -397,7 +397,7 @@ and the `"$*"` form both mangle arguments that contain spaces
 and are almost never what you want. Deliberate word-splitting
 (feeding a command a list you built on purpose) exists, but
 until you know exactly why you want it, quote everything. A
-linter enforces this for you: ShellCheck (Chapter 10) flags
+linter enforces this for you: ShellCheck (Chapter 11) flags
 every unquoted expansion, which is reason enough to run it on
 every script.
 :::
@@ -407,7 +407,7 @@ every script.
 The shell expands a handful of wildcard characters into matching
 filenames *before* the command runs. This is **globbing**, and
 it is not the same language as the regular expressions that
-`grep` and `sed` use (Chapter 7 and Chapter 8 draw that line
+`grep` and `sed` use (Chapter 8 and Chapter 9 draw that line
 carefully). A glob's `*` matches any run of characters in a
 filename, `?` matches exactly one, and `[...]` matches one
 character from a set. Listing the CSV files in a directory is
@@ -508,7 +508,7 @@ the same intact, spaced names. The warning is about the
 *unsafe* version: a naive `find | xargs` breaks identically on
 both platforms (BSD `wc` even reports `open: No such file`), so
 this is not a divergence you can dodge by switching machines. Write the
-null-safe form everywhere. Chapter 8 returns to `find` and `fd`
+null-safe form everywhere. Chapter 9 returns to `find` and `fd`
 for searching; this is the safety half of the same tool.
 :::
 
@@ -591,7 +591,7 @@ disk the blocks are often still there until something overwrites
 them, so the worst thing you can do is keep working in that
 directory. The honest recovery, though, is the one you set up
 *beforehand*: a recent commit (for files Git was tracking), a
-backup (Time Machine, `rsync` snapshots, Chapter 13), or the
+backup (Time Machine, `rsync` snapshots, Chapter 14), or the
 seed-based regeneration this book's example relies on, where
 `make` rebuilds a deleted `output/` from code. For an untracked,
 unbacked-up raw file, there may be no recovery at all, which is
@@ -657,18 +657,18 @@ sh install.sh              # only after the first three
 ```
 
 The checksum step uses the same `sha256sum` the pipeline uses to
-lock its data hash in Chapter 11; a hash is only as trustworthy
+lock its data hash in Chapter 12; a hash is only as trustworthy
 as the channel that delivered the expected value, so take the
 expected hash from the project's documentation, not from the
 same page that served the script. This is the supply-chain
 thread the book returns to in the setup chapter (Chapter 3,
-verifying installers) and the AI chapter (Chapter 16, where an
+verifying installers) and the AI chapter (Chapter 17, where an
 agent that can run shell commands can run exactly this kind of
 line on your behalf).
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5. Do the
+These use the asset-pricing project from Chapter 6. Do the
 destructive ones in a copy, or in `/tmp`, never in your real
 project.
 
@@ -687,7 +687,7 @@ project.
 3. Turn on `set -o noclobber` and try to overwrite an existing
    file with `>`. Read the refusal, then overwrite it on purpose
    with `>|`. Add `set -o noclobber` to your shell startup file
-   if you want it by default (Chapter 17).
+   if you want it by default (Chapter 18).
 
 4. Make a copy of a data file with a space in its name (`cp
    factors.csv 'fy 2011.csv'`). Count its lines through an

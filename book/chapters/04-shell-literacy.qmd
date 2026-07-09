@@ -1,0 +1,140 @@
+# How to Read a Shell Command
+
+Setup (Chapter 3) gave you a working shell and a prompt waiting
+for input. Before the next chapter puts you to work moving
+through the file tree, this short chapter teaches you to *read*
+a command: to look at a line like `ls -la data/` or
+`cut -d, -f1 returns.csv | sort` and see its parts, rather than
+a wall of punctuation. Every later chapter leans on this. The
+commands there are taught inside real workflows, at speed, and
+they assume you can already tell a flag from an argument and say
+why one value is quoted and the next is not.
+
+Nothing here needs to be memorized. The goal is recognition:
+enough of the grammar that an unfamiliar command is something
+you can take apart, not a spell you copy and hope. When a symbol
+still looks strange, come back to the two tables at the end, or
+ask the command itself with `man ls`, `ls --help`, or `tldr ls`,
+the habit Chapter 3 started. Learning the logic of how a command
+is built is worth far more than memorizing any one command's
+options, and it is what lets you read the next command you have
+never seen.
+
+## The shape of a command {#sec-command-anatomy .tier-beginner}
+
+A command line is a program name, then zero or more options and
+arguments, separated by spaces. In `ls -la data/`, the program
+is `ls`, the option `-la` changes how it behaves, and `data/` is
+the argument it acts on. The shell splits the line on spaces
+into those words before `ls` ever runs, which is why spaces are
+meaningful and why a value that itself contains a space has to
+be quoted. @tbl-command-anatomy names each part you will meet
+and the one rule that trips up newcomers most: when a value
+needs quotes.
+
+| Element | Example | What it is |
+|---|---|---|
+| command | `ls` | the program, builtin, function, or alias that runs |
+| short flag | `-l` | one dash plus one letter; several bundle as `-la` |
+| long flag | `--all` | two dashes plus a word; may take a value, as in `--mode=755` |
+| argument | `data/` | what the command acts on; words are split on spaces |
+| comment | `# note` | at the start of an unquoted word, begins a comment; the rest of the line is ignored |
+| no quotes | `$VAR *.csv` | word-splitting **and** every expansion happen |
+| double quotes | `"$VAR"` | keeps variables and substitutions; blocks globbing and word-splitting |
+| single quotes | `'$VAR'` | fully literal; nothing inside expands |
+| backslash | `two\ words` | escape one character, or continue a line at its end |
+
+: Anatomy of a command, and when a value needs quoting {#tbl-command-anatomy}
+
+The three quoting rows are the ones worth rereading. Unquoted,
+the shell expands `$VAR`, splits the result on spaces, and
+matches `*.csv` against filenames. Double quotes keep the value
+whole while still letting `$` do its work, so `"$VAR"` is one
+word even if the variable holds `my data`. Single quotes turn
+everything off, so `'$VAR'` is the four literal characters
+`$VAR`. Backslash escapes a single character, and at the very
+end of a line it joins that line to the next.
+
+## Reading the brackets {.tier-beginner}
+
+Brackets mean one thing in a book's documentation and something
+else at the shell, which is a common source of confusion.
+@tbl-brackets keeps the two apart.
+
+| Symbol | In documentation | In the shell |
+|---|---|---|
+| `[ ]` | an optional item | a character class in a glob; or the `test` command (spaces required inside) |
+| `{ }` | n/a | brace expansion `{a,b}` or `{1..9}`; or grouping `{ ...; }` |
+| `( )` | n/a | a subshell |
+| `$( )` | n/a | command substitution: run the command, insert its output |
+| `$(( ))` | n/a | integer arithmetic |
+| `\|` | one choice among several | a pipe: send the left command's output into the right |
+
+: What brackets and bars mean in docs versus in the shell {#tbl-brackets}
+
+Later chapters use every row of this table in real work: pipes
+and command grouping when pipelines and redirection arrive
+(Chapter 7), globs and `test` when scripts start making
+decisions (Chapter 11). You do not need them yet; you need to
+recognize them when they appear.
+
+> **When to quote, in one rule.** Quote any value that might
+> contain a space or be empty, above all `"$var"` and
+> `"$(command)"`. Reach for single quotes to pass a glob or a
+> regular expression through untouched, as in `grep '^F0000'`
+> or `'*.csv'`, so the shell hands the pattern to the command
+> instead of expanding it first.
+
+## Common commands at a glance {.tier-beginner}
+
+@tbl-common-commands is the short list you will see again and
+again. Treat it as a map, not a syllabus: each command gets its
+real introduction, with live output, in the chapter that needs
+it. The reference copy lives in the [cheatsheet](../cheatsheet.qmd)
+at the back of the book.
+
+| Command | Purpose |
+|---|---|
+| `pwd` | print the working directory |
+| `cd` | change directory (`cd -` returns to the previous one) |
+| `ls` | list a directory (`-l` long, `-a` all, `-d` the dir itself) |
+| `cat` | print a file, or concatenate several |
+| `less` | page through a file one screen at a time |
+| `head` | first N lines (`-n`) |
+| `tail` | last N lines (`-n +K` starts at line K) |
+| `cp` | copy (`-r` recursive, `-i` prompt before overwrite) |
+| `mv` | move or rename (`-i` prompt before overwrite) |
+| `rm` | remove; destructive, no undo (`-r` recursive, `-i` prompt); see Chapter 7 |
+| `mkdir` | make a directory (`-p` also makes parents) |
+| `touch` | create an empty file, or update its timestamp (`-t`) |
+| `grep` | print the lines matching a pattern |
+| `sort` | sort lines |
+| `uniq` | drop or count adjacent duplicate lines (`-c`) |
+| `wc` | count lines, words, or bytes (`-l` lines) |
+| `cut` | pick columns (`-d` delimiter, `-f` field) |
+| `find` | search the file tree (`-name`) |
+| `xargs` | build command lines from input |
+| `chmod` | change permissions (`600`, `644`, `755`) |
+| `tar` | bundle a tree (`-czf` to create, `-xzf` to extract) |
+| `echo` | print its arguments |
+| `printf` | formatted print (`\n` newline, `\t` tab) |
+| `man`, `tldr` | show help for a command |
+
+: A working reader's shortlist of common commands {#tbl-common-commands tbl-colwidths="[15,85]"}
+
+## Try it yourself
+
+Read this line, but do not run it yet, and name the parts. It is
+the kind of one-liner you will build for real in Chapter 8:
+
+`cut -d, -f1 data/returns.csv | sort | uniq -c`
+
+Ask yourself: which word is the command at each stage, which
+tokens are flags and which are arguments, and what does the `|`
+do between them. Then answer the quoting question: if the file
+were named `asset returns.csv` instead, which single change
+would the line need. (The command is `cut`, then `sort`, then
+`uniq`; `-d,` and `-f1` and `-c` are flags, `data/returns.csv`
+is the argument, and each `|` feeds one command's output into
+the next. A space in the name would force quotes:
+`cut -d, -f1 "data/asset returns.csv"`.)

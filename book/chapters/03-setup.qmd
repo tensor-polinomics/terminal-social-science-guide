@@ -36,7 +36,7 @@ install), and the PowerShell sidebar. One rule holds across all
 three tracks and is the reason the quarantine is so large: this
 chapter shows the real output of *inspection* commands, but it
 never runs an *installer*, on any machine, for exactly the reason
-Chapter 6 would not run a blind `curl | sh`. One deliberate mask,
+Chapter 7 would not run a blind `curl | sh`. One deliberate mask,
 as in Chapter 2: where a Mac path would show the account name it
 reads `/Users/[account]`, a scrub for this public book; the
 brackets are a placeholder your own machine fills in.
@@ -60,7 +60,7 @@ On **Linux**, if you are working at a desktop the terminal is a
 built-in application (GNOME Terminal, Konsole, and others, opened
 from the applications menu). More often, as a researcher, you
 reach a Linux shell by connecting to a server over SSH, which
-Chapter 13 will cover; when you do, you land at a shell prompt
+Chapter 14 will cover; when you do, you land at a shell prompt
 directly with no window of your own to open. Either way the
 default shell is almost always bash.
 
@@ -126,7 +126,7 @@ the small difference Chapter 1 told you to notice: macOS defaults
 to zsh, while most Linux systems and the WSL2 Ubuntu shell
 default to bash. The two are close relatives, and for interactive
 use the difference rarely matters. It matters for *scripts*, and
-this book takes a firm position that Chapter 10 will act on: write
+this book takes a firm position that Chapter 11 will act on: write
 scripts for bash, with portable habits, never in zsh-only syntax.
 zsh is fine at the prompt; it is not the target you write
 automation against.
@@ -141,7 +141,7 @@ under the GPLv3, which Apple declines to ship; the author's
 shell run bash 5.x (the sandbox's 5.1.16 above). A script that
 uses a bash-4-or-later feature, associative arrays are the usual
 one, runs fine on Linux and fails on a Mac's `/bin/bash`. This is
-the macOS bash-3.2 floor, and Chapter 10 returns to it when it
+the macOS bash-3.2 floor, and Chapter 11 returns to it when it
 sets the scripting target; the fix is to install a modern bash
 through Homebrew (below) and point your scripts at that, because
 the *system* `/bin/bash` will stay at 3.2 no matter what you
@@ -196,7 +196,7 @@ Other Linux families differ: Fedora and RHEL use `dnf`, Arch uses
 `pacman`. This book does not teach them, but the shape is the
 same, and you route to your distribution's manager the way you
 route to your platform's. (Ubuntu's own docs note a wrinkle worth
-carrying to Chapter 10: `apt` is meant for interactive use, and
+carrying to Chapter 11: `apt` is meant for interactive use, and
 `apt-get` is the stable interface to call from scripts.)
 
 That `tldr` above is not a random example. Chapter 2 introduced
@@ -257,7 +257,7 @@ ahead of the system directories). You do
 not need to understand the startup-file machinery yet, only that
 this line is what connects "I installed it" to "I can run it";
 where that line lives, and the login-versus-interactive shell
-rules that decide when it runs, is Chapter 17's subject.
+rules that decide when it runs, is Chapter 18's subject.
 
 ::: {.callout-warning .pitfall title="PITFALL"}
 The most common setup failure is a tool that installed cleanly but
@@ -270,10 +270,10 @@ added; with tools that install into `~/.local/bin` (many Python
 and Rust tools do) it is that directory missing from PATH. The
 diagnosis is Chapter 2's `command -v <name>`, which tells you
 whether the shell can find it at all; the fix is to put the right
-directory on your PATH, which Chapter 17 makes stick across
+directory on your PATH, which Chapter 18 makes stick across
 new shells. Add only directories you trust and mind their order:
 an attacker-controlled directory early on PATH is the
-PATH-hijacking risk Chapter 6 raised, and it applies to anything
+PATH-hijacking risk Chapter 7 raised, and it applies to anything
 you prepend here.
 :::
 
@@ -281,7 +281,7 @@ you prepend here.
 
 Homebrew has to be installed before you can use it, and the way
 its own homepage tells you to do that is, uncomfortably, the exact
-pattern Chapter 6 spent a whole section refusing to run (Homebrew
+pattern Chapter 7 spent a whole section refusing to run (Homebrew
 homepage, current as of 2026-07-01, shown wrapped to fit; it is a
 single line there):
 
@@ -293,7 +293,7 @@ install/HEAD/install.sh)"
 ```
 
 This downloads a script and pipes it straight into `bash`, which
-runs it as you, with your permissions. Chapter 6's rule was blunt:
+runs it as you, with your permissions. Chapter 7's rule was blunt:
 never run code you have not read, fetched over a network you do
 not control. Homebrew is not an anonymous stranger, and that is
 the honest nuance here. It is a well-known project, the download
@@ -302,7 +302,7 @@ careful script that prints exactly what it will do and pauses for
 your confirmation before doing it (its own docs say so). That is
 why many careful people run it as printed. But the *mechanism* is
 identical to the one that is dangerous in general, so the maximally
-safe path, and the one this book teaches, is Chapter 6's: separate
+safe path, and the one this book teaches, is Chapter 7's: separate
 downloading from running, so there is a moment in between to look.
 
 ```text
@@ -341,7 +341,7 @@ picks the SHA-256 algorithm). As the two blocks above show, they
 produce byte-identical digests, so a hash a project publishes
 verifies the same either way; only the command you type to compute
 it differs. On a Mac reach for `shasum -a 256`, on Linux for
-`sha256sum`, and Chapter 11's `make check` uses this same hashing
+`sha256sum`, and Chapter 12's `make check` uses this same hashing
 to lock the running example's data.
 :::
 
@@ -351,7 +351,7 @@ including the Homebrew one-liner above, runs code you have not read
 with your full user privileges: free to modify your shell startup
 files, your SSH keys, or your PATH. A tampered or
 man-in-the-middled download runs just the same, and the timing
-side channel Chapter 6 described means a server can even serve
+side channel Chapter 7 described means a server can even serve
 clean code to anyone who saves the file and malicious code to
 anyone piping it. Homebrew earns a measure of trust through its
 official HTTPS source and a script that shows its plan and pauses,
@@ -360,8 +360,8 @@ reckless one. But the safe habit generalizes and its exceptions do
 not: prefer fetch-read-run, take the expected checksum from a
 *different* channel than the one that served the download (never
 from the same page), and never pipe an *unfamiliar* project's
-installer into a shell at all. Chapter 6 owns the mechanics of
-this hazard, and Chapter 16 returns to it because an AI agent can
+installer into a shell at all. Chapter 7 owns the mechanics of
+this hazard, and Chapter 17 returns to it because an AI agent can
 compose and run exactly this line on your behalf.
 :::
 
@@ -388,7 +388,7 @@ by Windows editors, which can quietly break shell scripts and
 throw off the checksums this chapter just taught. `/mnt/c` is
 there for when you genuinely need to reach a Windows file; it is
 not where your repository should live. The line-ending issue
-returns in Chapter 10, which will pin the locale and text settings
+returns in Chapter 11, which will pin the locale and text settings
 that keep results stable across machines.
 
 ## The PowerShell sidebar {.tier-advanced}
@@ -472,7 +472,7 @@ installs `tldr`, a small helper worth keeping.
    asset-pricing project and run `python3 --version` and, if you
    use it, `uv --version`. If `uv` is missing, name the command
    you would use to install it on your platform; the operational
-   use of uv to pin the environment is Chapter 12's subject, not
+   use of uv to pin the environment is Chapter 13's subject, not
    this chapter's.
 
 6. Install `tldr` and cash in Chapter 2's promise. Use your

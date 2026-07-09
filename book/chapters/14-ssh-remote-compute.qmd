@@ -2,7 +2,7 @@
 
 Chapter 1 promised a motion: the analysis leaves the laptop,
 runs on a remote Linux machine where the heavy work happens,
-and the results come back. Chapter 12 ended on the other half
+and the results come back. Chapter 13 ended on the other half
 of that promise, that `uv sync` and `renv::restore()` would
 rebuild the project's environment "when this project moves to a
 remote server." This chapter is where both promises come due.
@@ -16,7 +16,7 @@ Linux boundary flagged where it bites. `ssh` opens a shell on
 the remote box and runs commands there; a key and a config
 file make the connection authenticated and repeatable; `rsync`
 moves the project across and the results back without
-destroying either side; the Chapter 12 lockfiles rebuild the
+destroying either side; the Chapter 13 lockfiles rebuild the
 environment on arrival; and you learn to recognize the two
 larger remote worlds, GPU pods and HPC schedulers, without this
 book pretending to teach them in depth. Everything here is
@@ -70,7 +70,7 @@ ends to each other and encrypts everything on the wire, so you
 know which machine you reached and no one between can read the
 traffic. It does not, by itself, make the server "secure" or
 your data safe there; those depend on how the box is
-administered and on the habits from Chapter 9. The first time
+administered and on the habits from Chapter 10. The first time
 you connect, `ssh` records the server's host key in
 `~/.ssh/known_hosts` and adds new hosts automatically; if that
 key ever changes, it "warns about this and disables password
@@ -132,7 +132,7 @@ server (one key per line); anyone holding the matching private
 key can then log in as you. That is exactly why the private key
 must stay private, and OpenSSH enforces this through file
 permissions. It refuses to use a private key that other users
-can read. Lock it down with Chapter 9's `chmod`:
+can read. Lock it down with Chapter 10's `chmod`:
 
 ```bash
 $ chmod 600 demo_key
@@ -187,7 +187,7 @@ and `sshd` ignores an `authorized_keys` file (or a `~/.ssh`
 directory, or the home directory) that others can write to. The
 checklist: private key `600`, `~/.ssh` `700`, `authorized_keys`
 `600` or `644`, and the home directory not group-writable, on
-both machines. Chapter 9's `chmod` fixes all of them; the key
+both machines. Chapter 10's `chmod` fixes all of them; the key
 material is rarely the problem.
 :::
 
@@ -307,7 +307,7 @@ this directory' as opposed to 'copy the directory by name'."
 recurses.
 
 To push the running example to the server, exclude the two
-directories Chapter 12 said never travel: the built
+directories Chapter 13 said never travel: the built
 environments. The lockfiles go; `.venv/` and `renv/library/`
 stay home and are rebuilt on the far side:
 
@@ -344,7 +344,7 @@ scripts
 The `(DRY RUN)` marker and the intact `OLD_RESULT.csv` confirm
 nothing happened yet. Only when the dry run shows exactly what
 you expect do you drop the `-n`. The same file discipline as
-Chapter 6's `rm -rf`: look before you leap.
+Chapter 7's `rm -rf`: look before you leap.
 :::
 
 ::: {.callout-note .divergence title="DIVERGENCE"}
@@ -380,7 +380,7 @@ exists.
 
 Moving data is not the same as moving it *intact*, and on
 restricted or licensed data an undetected truncation is a real
-hazard. Chapter 10 built a manifest of `sha256sum` hashes;
+hazard. Chapter 11 built a manifest of `sha256sum` hashes;
 across two machines, the check is the same idea, run on both
 ends. After the push, hash the moved files on the server and on
 the laptop and compare:
@@ -420,7 +420,7 @@ bytes* sit on both machines: the raw data is identical, not
 merely "copied." Rebuilding the environment from the lockfiles
 (next section) means the *same package versions* run on both
 machines. Same inputs, same code versions, on the laptop and on
-the server. Neither Chapter 10's manifest nor Chapter 12's
+the server. Neither Chapter 11's manifest nor Chapter 13's
 lockfile is re-credited for the other's job; together they are
 what let a result computed on a server be believed back on the
 laptop.
@@ -460,12 +460,12 @@ Filesystem      Size  Used Avail Use% Mounted on
 
 `ncdu` is the interactive, navigable version of `du`; because
 it is a full-screen TUI rather than a one-shot command, it
-belongs with the modern-kit tools in Chapter 15.
+belongs with the modern-kit tools in Chapter 16.
 
 ## Rebuilding the environment, and surviving a disconnect {.tier-advanced}
 
 The project is now on the server without its environments, and
-this is the moment Chapter 12 was built for. `uv sync` reads
+this is the moment Chapter 13 was built for. `uv sync` reads
 `uv.lock` and rebuilds the Python environment, resolving the
 universal lock for whatever interpreter the server has:
 
@@ -480,13 +480,13 @@ Installed 18 packages in 217ms
 
 Eighteen packages here, resolved for the server's CPython 3.12;
 the same lock gave 20 on the sandbox's CPython 3.10, because a
-universal lockfile resolves per interpreter (Chapter 12's
+universal lockfile resolves per interpreter (Chapter 13's
 divergence, live on a third machine). `statsmodels` lands at
 `0.14.6`, the locked version. Note the explicit
 `~/.local/bin/uv`: a non-interactive `ssh host 'cmd'` does not
 read your login shell's startup files, so a tool installed in
 `~/.local/bin` is not on `PATH` unless you name it in full, a
-seam Chapter 17 returns to.
+seam Chapter 18 returns to.
 
 R rebuilds the same way, though more slowly. This server had no
 `renv` and no copy of the library, so `renv::restore()`, run
@@ -507,14 +507,14 @@ Successfully installed 35 packages in 420 seconds.
 ```
 
 Seven minutes of compilation, and the library matches the lock:
-`fixest 0.14.2`, the same version Chapter 7 read and Chapter 12
+`fixest 0.14.2`, the same version Chapter 8 read and Chapter 13
 committed. Two details are worth seeing. `lattice` and `nlme`
 show `[old -> new]` because the server already had system
 copies that `renv` overrides to the locked versions; the rest
 show `[* -> version]` because they were absent. Either way the
 installed versions are the lock's, not whatever the server
 happened to have: a lockfile pins *packages*, not the R
-interpreter itself, exactly the honest edge Chapter 12 drew
+interpreter itself, exactly the honest edge Chapter 13 drew
 (renv tracks the R version but does not install it, so a
 server on a different R patch release restores the same
 packages, not the same R).
@@ -523,7 +523,7 @@ One new hazard comes with remoteness. On your laptop, a job
 ends when you decide; over `ssh`, the connection is a lifeline.
 Close the laptop or lose the network and the remote shell
 receives `SIGHUP`, and by default the job dies with it. Chapter
-9's `nohup` is the fire-and-forget stopgap: the job survives
+10's `nohup` is the fire-and-forget stopgap: the job survives
 the disconnect, but you cannot reattach to it and drive it, only
 follow its log from the outside. The real answer, a session you
 can detach from, walk

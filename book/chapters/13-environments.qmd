@@ -1,7 +1,7 @@
 # Environments from the Shell
 
-Chapter 10 made a script stop the moment a step fails, and
-Chapter 11 made `make check` re-derive the pipeline's locked
+Chapter 11 made a script stop the moment a step fails, and
+Chapter 12 made `make check` re-derive the pipeline's locked
 result. Both guards can pass and the analysis can still go
 wrong a year later, because the code does not run against
 nothing: it runs against an interpreter and a stack of
@@ -14,17 +14,17 @@ A reproducible analysis therefore needs a reproducible
 against, captured in a file you can commit, and restored from
 that file on any machine.
 
-This chapter delivers a promise Chapter 5 made when it toured
+This chapter delivers a promise Chapter 6 made when it toured
 the project layout: `pyproject.toml` and `uv.lock` were named
 as the Python environment's files and `renv.lock` as R's, with
-their operational use deferred to here. Chapter 7 used
+their operational use deferred to here. Chapter 8 used
 `renv.lock` as raw material for `jq` and left its meaning to
 this chapter too. The companion Git book introduces uv and
 renv and argues why pinned environments matter; this book does
 not re-argue that case. Here you drive both tools from the
 shell: restore an environment from its lockfile, run code
 inside it, change it deliberately, and read the files well
-enough to trust them. This is also the layer Chapter 11's
+enough to trust them. This is also the layer Chapter 12's
 Makefile already leans on, since every Python node in the
 build graph is invoked as `uv run python` and the R node
 expects renv's library; Make orchestrates the steps, and this
@@ -49,7 +49,7 @@ transcript notes.
 The word "environment" is doing two jobs in this book, and
 they must not blur. Chapter 2 taught the *shell* environment:
 named strings like `PATH` and `HOME` that every child process
-inherits, and Chapter 9 put secrets in them; Chapter 10 pinned
+inherits, and Chapter 10 put secrets in them; Chapter 11 pinned
 two of them (`LC_ALL`, `TZ`). This chapter is about a
 different thing, a *language* environment: the interpreter
 plus the exact set of installed packages a program imports at
@@ -159,7 +159,7 @@ Checked 20 packages in 0.72ms
 
 What did `uv sync` actually build? A directory, and its layout
 is worth one look. The map below is a labeled sketch (the
-house tree device from Chapter 5), and the real listing beside
+house tree device from Chapter 6), and the real listing beside
 it is the evidence:
 
 ```text
@@ -211,7 +211,7 @@ content-sha256=49b3a1733cf22f5339f1f56edb50bcb6ae02e8d6a029b8f894f279cdf55dbccb
 This is the restored environment doing real work: step 0 of
 the pipeline, in a copy that had no `.venv/` five minutes ago,
 regenerates the data and prints the same content hash
-`49b3a173...` that Chapter 11's `make check` re-derives. Be
+`49b3a173...` that Chapter 12's `make check` re-derives. Be
 precise about what did what: the *numbers* are identical
 because the generator is deterministic by design, seeded with
 `20260629` (the running example's locked invariant, built in
@@ -221,8 +221,8 @@ computing them* is the same everywhere: the same `polars`, the
 same `statsmodels`, the same everything, so no version drift
 can change an API, a default, or a result between your laptop
 and the server. Seed pins the randomness; lock pins the
-software; Chapter 10's header pins the shell around both. This
-`uv run` is also exactly what Chapter 11's Makefile writes at
+software; Chapter 11's header pins the shell around both. This
+`uv run` is also exactly what Chapter 12's Makefile writes at
 every Python node (`PY := uv run python`), so a `make` in this
 project has been running inside the locked environment all
 along.
@@ -299,7 +299,7 @@ discovers by reading the project's own code (it scans for
 `library()` calls and their relatives); what was *chosen* is
 recorded in the lockfile, `renv.lock`, a JSON file pinning the
 R version and the exact version of every package so
-discovered. You met it as `jq` practice in Chapter 7; now read
+discovered. You met it as `jq` practice in Chapter 8; now read
 it for what it says, in the real project directory:
 
 ```bash
@@ -310,7 +310,7 @@ $ jq -r '.Packages.fixest.Version' renv.lock
 ```
 
 The lock pins R 4.5.3 and `fixest` 0.14.2, the regression
-engine behind Chapter 11's `04_regression.R`, along with the
+engine behind Chapter 12's `04_regression.R`, along with the
 whole `knitr`/`rmarkdown` stack, 36 packages in all. The verbs
 map one-to-one onto uv's. `renv::init()` sets a project up
 once (the running example ran it in
@@ -351,7 +351,7 @@ staging
 
 R runs `.Rprofile` at startup in that directory, so any R
 started in the project, interactively, by `Rscript`, or by
-Chapter 11's `make` invoking `Rscript scripts/04_regression.R`,
+Chapter 12's `make` invoking `Rscript scripts/04_regression.R`,
 is switched to the project's own library in `renv/library/`
 before your first line of code runs. That is why the Makefile
 needs no special wrapper for its R node: the project directory
@@ -359,7 +359,7 @@ itself is the switch.
 
 ## Provenance: what did this run against? {.tier-beginner}
 
-Chapter 10 taught the run log: `tee` what a job printed, so
+Chapter 11 taught the run log: `tee` what a job printed, so
 there is a record of what happened. The environment deserves
 the same treatment, because "what happened" includes what
 versions it happened on. The receipt for a Python environment
@@ -394,7 +394,7 @@ tzdata            2026.2
 Twenty packages, twenty versions, agreeing with the lockfile
 they were installed from; save that beside the run log
 (`uv pip list > logs/env-$(date -u +%Y%m%d).txt`, the Chapter
-10 dated-log habit) and the question "what did the June run
+11 dated-log habit) and the question "what did the June run
 use?" has an answer on file. R's receipts run on the author's
 Mac (`transcripts/ch12-renv-mac.txt`, like the renv blocks
 above); the short ones name the interpreter and the package
@@ -412,7 +412,7 @@ section: the environment on disk matches the environment on
 record, which is what a clean `renv::status()` asserted. The
 fuller R receipt is `sessionInfo()`, which reports the R
 version, the platform, the BLAS in use, the locale (Chapter
-10's `LC_ALL` showing up on the R side), and the version of
+11's `LC_ALL` showing up on the R side), and the version of
 every attached package; the capture script records one full
 `sessionInfo()` for this project in the transcript, and the
 Try-it has you save your own. It is the standard first
@@ -420,11 +420,11 @@ attachment when you report a puzzling result to anyone.
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 The reproducibility stack of Part III has three layers, and it
-helps to say which tool pins which. Chapter 10's script header
+helps to say which tool pins which. Chapter 11's script header
 pins the *shell* around a run (`LC_ALL`, `TZ`, fail-loud
 options). This chapter's lockfiles pin the *language
 environment* the code imports (package versions, exactly).
-Chapter 11's Make wires the steps together and its
+Chapter 12's Make wires the steps together and its
 `make check` re-derives the result, catching whatever still
 drifted. The seed pins the randomness inside the code. Be
 honest about the edges: `uv.lock` and `renv.lock` pin
@@ -432,7 +432,7 @@ packages, not the world. renv records the R version but
 cannot install R for you; neither tool pins the operating
 system or system libraries (that is a container's job, named
 at the end of this chapter); and no lockfile protects data
-that changed on disk, which is what Chapter 10's `verify.sh`
+that changed on disk, which is what Chapter 11's `verify.sh`
 checksums are for. Each layer covers a specific drift; the
 habit is running all of them, not trusting one.
 :::
@@ -459,12 +459,12 @@ $ readlink .venv/bin/python
 
 The environment's own config records which machine's Python
 built it (`home = /usr/bin`), and its `python` is not even a
-copy, just a symlink (Chapter 4) to that machine's
+copy, just a symlink (Chapter 5) to that machine's
 interpreter. Copy this `.venv/` to a Mac and the link dangles
 or points at the wrong binary; the compiled libraries inside
 (`numpy`, `pyarrow`) are built for this OS and CPU besides.
 The project's `.gitignore` already draws the right line, and
-Chapter 5's tracked-versus-regenerated rule named it: commit
+Chapter 6's tracked-versus-regenerated rule named it: commit
 the recipe, regenerate the artifact.
 
 ```bash
@@ -516,7 +516,7 @@ environment directories are unimportant, only that they are
 *regenerated, not shipped*. On a new machine, or after a
 suspected corruption, the recovery is never to hunt for a copy
 of `.venv/`; it is `uv sync` and `renv::restore()`, which
-Chapter 13 will lean on when this project moves to a remote
+Chapter 14 will lean on when this project moves to a remote
 server.
 
 ## Beyond uv and renv {.tier-advanced}
@@ -550,7 +550,7 @@ with lockfiles committed, uv and renv carry the load.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5. Do the
+These use the asset-pricing project from Chapter 6. Do the
 throwaway steps in `/tmp`; the real project directory is never
 modified.
 
@@ -564,14 +564,14 @@ modified.
 2. Run inside it. In the restored copy, run
    `uv run python scripts/00_make_data.py` and check the
    printed `content-sha256` against the locked hash in the
-   project README (the one Chapter 11's `make check`
+   project README (the one Chapter 12's `make check`
    re-derives). State in one sentence what the seed pinned
    and what the lockfile pinned.
 
 3. Read the locks. Find `statsmodels` in `uv.lock` with
    `grep -n '^name = "statsmodels"' -A1 uv.lock`, and the R
    and `fixest` versions in `renv.lock` with `jq` (Chapter
-   7's tool, Chapter 12's question). Say which file a human
+   8's tool, Chapter 13's question). Say which file a human
    edits and which files only tools write.
 
 4. Change and observe. In the scratch copy, `uv add` a small

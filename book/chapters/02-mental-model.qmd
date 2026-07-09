@@ -85,12 +85,12 @@ Keep one sentence from this section if you keep nothing else:
 division of labor around it is the map of your toolkit. Git
 versions files; that discipline is the companion Git book's
 entire subject. Make decides *which* commands need to run and
-in what order, then hands them to the shell (Chapter 11). uv
-and renv, which the Git book introduces and Chapter 12 will
+in what order, then hands them to the shell (Chapter 12). uv
+and renv, which the Git book introduces and Chapter 13 will
 teach operationally, reproduce the package environment your
 commands run inside. Tools like `rsync`, run from the shell,
-will move your data between machines in Chapter 13. And the
-AI agents of Chapter 16 decide which commands to run and hand
+will move your data between machines in Chapter 14. And the
+AI agents of Chapter 17 decide which commands to run and hand
 them to this same shell. Every one of those tools is a
 customer of the same narrow service, and when something
 breaks, the first diagnostic question is always: which layer
@@ -144,7 +144,7 @@ happen to be standing. When a later chapter's command fails
 with "No such file or directory" on a file you can see in a
 window, the working directory is the first suspect. Moving
 around the tree, and the file operations that go with it, is
-Chapter 4's subject; here you only need the model.
+Chapter 5's subject; here you only need the model.
 
 Two locations get shorthand names. Your **home directory** is
 where your login starts and where your own files live; the
@@ -193,7 +193,7 @@ The shape is the same everywhere: one rooted tree, your
 territory a few levels down inside your home. The project
 layout discipline for what goes where *inside* your territory
 is the companion Git book's canonical-layout argument;
-Chapter 5 will build that layout from the shell.
+Chapter 6 will build that layout from the shell.
 
 ## A command becomes a process {.tier-beginner}
 
@@ -236,9 +236,9 @@ program. That distinction is why you can run two copies of
 the same script side by side, and it is what makes the
 remote-compute chapters possible at all: a long job is just a
 process that must be kept alive, which is exactly what tmux
-will do for you in Chapter 14. Managing processes you have
+will do for you in Chapter 15. Managing processes you have
 started, pausing them, backgrounding them, stopping them, is
-Chapter 9's subject.
+Chapter 10's subject.
 
 ## Why `cd` is not a program {.tier-advanced}
 
@@ -300,7 +300,7 @@ $ env | wc -l
 ```
 
 (The `| wc -l` counts the lines instead of printing them;
-the pipe machinery is Chapter 6's subject.) The environment
+the pipe machinery is Chapter 7's subject.) The environment
 matters because of how it moves: when the shell starts a
 child process, the child inherits a **copy** of the shell's
 environment. That is the mechanism by which your settings
@@ -340,7 +340,7 @@ exported variables die with it unless a startup file
 recreates them; wiring settings so they exist in every new
 shell, and understanding why a script run by `cron` or over
 SSH sees a much smaller environment than your terminal does,
-is Chapter 17's subject. When in doubt, make the process
+is Chapter 18's subject. When in doubt, make the process
 print its own view, as the `bash -c` probe above does; what
 *it* sees is the only thing that counts.
 :::
@@ -348,11 +348,11 @@ print its own view, as the `bash -c` probe above does; what
 The environment is also quietly a reproducibility surface:
 variables like `LC_ALL` and `TZ` change how tools sort text
 and parse dates, which can change results between machines.
-Chapter 10 will pin them in scripts. And because environment
+Chapter 11 will pin them in scripts. And because environment
 variables are so convenient for configuration, they are a
 favorite place to put secrets like API keys, which makes them
 a leak surface too; keeping keys out of the environment and
-your shell history is part of Chapter 9's job, alongside the
+your shell history is part of Chapter 10's job, alongside the
 Git book's rules for keeping them out of repositories.
 
 ## How the shell finds a command: `PATH` {.tier-beginner}
@@ -393,11 +393,11 @@ a directory the PATH does not list; and two installed
 versions of the same tool means the earlier directory
 silently decides which one you get. First-match-wins is also
 what makes an *attacker-controlled* early directory
-dangerous, the PATH-hijacking risk that Chapter 6 pairs with
-`curl | sh` and Chapter 16 revisits for AI agents. Where
+dangerous, the PATH-hijacking risk that Chapter 7 pairs with
+`curl | sh` and Chapter 17 revisits for AI agents. Where
 PATH itself gets set, and how to change yours safely, is
 startup-file territory: Chapter 3 sets you up and Chapter
-17 makes it stick.
+18 makes it stick.
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 `command -v python3` is the one-line answer to a question
@@ -412,7 +412,7 @@ in any useful sense. The cure is to make the choice explicit
 and portable: project environments (uv for Python, renv for
 R), which put a known interpreter first on the PATH while a
 project is active and pin its packages. The companion Git
-book introduces those tools; Chapter 12 will drive them from
+book introduces those tools; Chapter 13 will drive them from
 the shell. Until then, the habit is the diagnostic: when a
 result surprises you, ask `command -v` before you ask
 anything else.
@@ -484,8 +484,8 @@ regression, one table, and one figure in a short rendered
 report. The data files are not stored in the repository;
 because the generator is seeded, running it recreates them
 identically, which is itself a reproducibility lesson.
-That is all the finance you need: Chapter 5 will tour the
-project directory piece by piece, and Chapter 11 rebuilds
+That is all the finance you need: Chapter 6 will tour the
+project directory piece by piece, and Chapter 12 rebuilds
 the entire study with one command. Here the files are
 simply realistic material to point commands at.
 
@@ -507,7 +507,7 @@ interleaved them. (`wc` still prints a total for what it
 *could* read, which is exactly the kind of polite
 partial-success that hides missing inputs from you; the exit
 code in the next section is the honest witness.) Keeping the
-two output streams apart is what will let you, in Chapter 6,
+two output streams apart is what will let you, in Chapter 7,
 save clean results to a file while errors still print, or
 chain commands into pipelines without the diagnostics
 polluting the data. That chapter owns all the mechanics of
@@ -547,11 +547,11 @@ are the only signal the *machinery* can act on. A human reads
 "No such file or directory"; a Makefile, a script, or an AI
 agent reads `$?`. Everything this book builds later stands on
 this convention: Make stops a build when a recipe exits
-nonzero (Chapter 11), scripts will stop on the first failure
-via `set -e` (Chapter 10), and pipelines have a whole trap of
-their own with `pipefail`, which Chapter 6 demonstrates. A
+nonzero (Chapter 12), scripts will stop on the first failure
+via `set -e` (Chapter 11), and pipelines have a whole trap of
+their own with `pipefail`, which Chapter 7 demonstrates. A
 tool that lies about its exit code, and some do, breaks every
-one of those layers at once, which is why Chapter 10 will
+one of those layers at once, which is why Chapter 11 will
 teach you to check what your own scripts report.
 
 ::: {.callout-warning .pitfall title="PITFALL"}
@@ -573,7 +573,7 @@ save it first (`rc=$?`) if you need it later. This chapter's
 own capture process tripped exactly this trap on its first
 attempt, an `echo` slipped between the failing command and
 the check and reported a clean 0, so treat it as a when,
-not an if. In scripts, `set -e` (Chapter 10) will remove
+not an if. In scripts, `set -e` (Chapter 11) will remove
 the need to babysit `$?` by hand.
 :::
 
@@ -722,7 +722,7 @@ it; only exercises 1 and 4 need it.
 3. Ask `command -v python3` and `type -a python3` on your
    machine. Is the interpreter that answers the one you
    thought you were using? If you have R, repeat for `R`.
-   Keep the answer somewhere; when Chapter 12 introduces
+   Keep the answer somewhere; when Chapter 13 introduces
    project environments, rerun both and watch the answer
    change while a project is active.
 

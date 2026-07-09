@@ -15,7 +15,7 @@ already know.
 
 It comes with an honest bill, and stating it plainly is the
 point of the chapter. None of these tools is on the bare Linux
-server you SSH into in Chapter 13. A fresh cloud VM or an HPC
+server you SSH into in Chapter 14. A fresh cloud VM or an HPC
 login node has `ls` and `cat` and `grep`; it does not have
 `eza` or `bat` or `zoxide`, and on a locked-down node you may
 not be able to install them. The risk is not the tools; it is
@@ -25,7 +25,7 @@ land on a plain box the muscle memory fails. So the spine of
 this chapter is: adopt what makes your laptop nicer, and keep it
 a convenience layer that never becomes a dependency your work or
 your reflexes rely on. You have already met two members of this
-kit, `fd` and `ripgrep`, in Chapter 8; they carry the same tax,
+kit, `fd` and `ripgrep`, in Chapter 9; they carry the same tax,
 and this chapter is the rest of the family plus the accounting.
 
 A note on where the output comes from, and its shelf life. The
@@ -34,11 +34,11 @@ book's Linux sandbox cannot fetch (only `ripgrep` and `du` are
 preinstalled there, both already covered), so, like the AI-CLI
 chapter, this is a Mac-captured chapter. Every tool is
 version-stamped "current as of 2026-07-06" and pinned to its
-project repository (logged in `verification/chapter-15.md`); the
+project repository (logged in `verification/chapter-16.md`); the
 exact versions on the author's Mac are `eza` 0.23.4, `bat`
 0.26.1, `delta` 0.19.2, `zoxide` 0.9.9, `fzf` 0.70.0, `lazygit`
 0.62.2, `btop` 1.4.7, and `ncdu` 2.9.2, alongside the `fd`
-10.4.2 and `ripgrep` 13.0.0 from Chapter 8. Every capture is run
+10.4.2 and `ripgrep` 13.0.0 from Chapter 9. Every capture is run
 with color and icons turned OFF, because color and Nerd-Font
 icons are ANSI and Unicode that a transcript taken with color
 off does not carry, and being blunt about that is part of the
@@ -48,7 +48,7 @@ out. The three pure
 full-screen tools (`lazygit`, `btop`, `ncdu`) are version-
 stamped but not run, because a full-screen program owns the
 terminal and cannot be captured in a transcript, the same reason
-Chapters 9 and 16 could not script an interactive session.
+Chapters 10 and 17 could not script an interactive session.
 Captures were masked (account, home path) at capture time, and
 `zoxide` was pointed at a throwaway database so the author's real
 directory history never appears.
@@ -56,7 +56,7 @@ directory history never appears.
 ## eza: `ls` with a git column {.tier-beginner}
 
 `eza` is a drop-in-nicer `ls`. It takes the same everyday flags
-Chapter 4 taught, `-l` for a long listing, `-a` for hidden
+Chapter 5 taught, `-l` for a long listing, `-a` for hidden
 files, and prints them with better defaults: human-readable
 sizes without asking, and, on a project under version control,
 a column showing each file's git status.
@@ -73,7 +73,7 @@ $ eza -l --git scripts
 ```
 
 Read it left to right and it is the `ls -l` layout from
-Chapter 4 with the sizes already humanized: the permission
+Chapter 5 with the sizes already humanized: the permission
 string (the `@` marks macOS extended attributes), the size, the
 owner (masked here), the date, then the git column, then the
 name. That git column is the reason to reach for `eza`. The two
@@ -82,7 +82,7 @@ file and `-M` for one modified since the last commit, so
 `02_portfolio.py` here has an uncommitted edit and the rest are
 clean, all without a separate `git status`. `eza` can also draw
 the directory as a tree (`eza --tree`), a live alternative to
-the `ls -R` and hand-drawn maps of Chapter 5, though it uses
+the `ls -R` and hand-drawn maps of Chapter 6, though it uses
 Unicode branch glyphs (the box-drawing characters this book
 renders as ASCII), and it can prefix each file with a
 type icon if you have a Nerd Font installed. The icons and the
@@ -92,7 +92,7 @@ the substance.
 
 ## bat: `cat` that shows structure {.tier-beginner}
 
-`bat` is `cat` (Chapter 6) with the reading experience improved.
+`bat` is `cat` (Chapter 7) with the reading experience improved.
 It prints a file with a line-number gutter, syntax highlighting
 for the language, and, in a git repository, a change gutter
 marking modified lines.
@@ -139,13 +139,13 @@ another program, it gets out of the way. `--color=never` and
 ## zoxide and fzf: getting there faster {.tier-beginner}
 
 Two tools change how you *move* rather than how you *look*.
-`zoxide` is a smarter `cd` (Chapter 4). It watches the
+`zoxide` is a smarter `cd` (Chapter 5). It watches the
 directories you visit and builds a ranked database, so instead
 of typing a long path you type `z` and a fragment of the
 directory's name and it jumps to the best match. The `z` command
 itself comes from a shell hook you add to your startup file
 (`eval "$(zoxide init zsh)"`), which is a dotfiles concern
-Chapter 17 takes up; the underlying lookup is `zoxide query`,
+Chapter 18 takes up; the underlying lookup is `zoxide query`,
 and pointing it at a throwaway database seeded with just the
 project shows the resolution directly:
 
@@ -181,21 +181,21 @@ Interactively you would pipe a list into `fzf`, type `prt`, and
 watch it narrow to `02_portfolio.py` as you go. Its most-used
 form is a set of shell key bindings (a fuzzy history search on
 `Ctrl-R`, a file picker on `Ctrl-T`) that, like the `zoxide`
-hook, live in your startup files and belong to Chapter 17.
+hook, live in your startup files and belong to Chapter 18.
 
 ::: {.callout-warning .pitfall title="PITFALL"}
 The tempting next step is to make these permanent by aliasing
 the originals in your dotfiles: `alias ls=eza`, `alias cat=bat`,
 `cd` replaced by `z`. Do that and your fingers stop knowing the
 real commands, which is fine until you SSH into a bare server
-(Chapter 13) where none of the replacements exist, and suddenly
+(Chapter 14) where none of the replacements exist, and suddenly
 `ls` behaves in an unfamiliar way (it is the real `ls` again),
 `z` is an unknown command, and a script you wrote that calls
 `bat` or `fd` fails outright. Two habits keep this bounded. Keep
 your own reflexes on the portable commands, treating the kit as
 a bonus rather than a replacement, and never let a convenience
 tool into a script or a pipeline that has to run somewhere else.
-Aliasing for interactive comfort is reasonable; Chapter 17 shows
+Aliasing for interactive comfort is reasonable; Chapter 18 shows
 how to do it so it degrades gracefully when the tool is absent.
 :::
 
@@ -209,7 +209,7 @@ git config. Because that rendering is inherently colored, it is
 the clearest case in the chapter of a payoff a printed page
 cannot reproduce, so the honest thing to show is the portable
 input `delta` consumes: the plain `git diff` it pages. This is
-the one-line edit from the review example in Chapter 16, a
+the one-line edit from the review example in Chapter 17, a
 long-short sort quietly changed from deciles to quintiles:
 
 ```bash
@@ -245,7 +245,7 @@ takes over the whole terminal, redraws as you press keys, and
 hands the screen back only when you quit. That design is why the
 three tools here are described rather than shown: a TUI produces
 no line-by-line output to capture, it owns the display, so, like
-an editor or an interactive agent session (Chapters 9 and 16),
+an editor or an interactive agent session (Chapters 10 and 17),
 it cannot honestly appear as a transcript. Their versions are
 real, captured on the Mac; the walkthroughs are prose.
 
@@ -264,12 +264,12 @@ this machine right now," on your laptop or on a server you can
 run it on.
 
 `ncdu` (2.9.2) is the interactive, navigable `du` promised in
-Chapter 13: NCurses Disk Usage. It scans a directory tree once,
+Chapter 14: NCurses Disk Usage. It scans a directory tree once,
 then lets you walk it sorted by size to find what is filling a
 disk, which is precisely the "why is my quota full" task on a
 shared server. Of the tools in this chapter, `ncdu` is the one
 you are most likely to actually want on a server, and, as
-Chapter 13 noted, the one you can sometimes get there through a
+Chapter 14 noted, the one you can sometimes get there through a
 module system or a userspace install.
 
 ## The portability tax {.tier-beginner}
@@ -321,18 +321,18 @@ more. Check a binary's real name on the box with `command -v`
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 The reproducible pipeline depends on none of this kit. The
-Makefile of Chapter 11 builds the study with `uv run python`,
+Makefile of Chapter 12 builds the study with `uv run python`,
 `Rscript`, and `quarto`, and `make check` re-derives the locked
 hash and alpha with a Python script; nowhere does it call `eza`,
 `bat`, `delta`, or `zoxide`. Those are for the human reading the
 screen, never part of the build graph, and that boundary is the
 point: a convenience tool wired into a pipeline becomes a
 dependency that breaks the moment the pipeline runs where the
-tool is absent. The fail-loudly scripting of Chapter 10 and the
-Makefile of Chapter 11 stay on the tools the build actually
+tool is absent. The fail-loudly scripting of Chapter 11 and the
+Makefile of Chapter 12 stay on the tools the build actually
 needs; the kit stays at your prompt. What those build tools
 themselves require, `uv`, R, and Quarto, is a separate
-portability question, handled by Chapters 12 and 13.
+portability question, handled by Chapters 13 and 14.
 :::
 
 ::: {.callout-tip .recovery title="RECOVERY"}
@@ -358,8 +358,8 @@ comfort, refuse the dependency, and the kit is all upside.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5 and, in the
-last two, the remote box from Chapter 13.
+These use the asset-pricing project from Chapter 6 and, in the
+last two, the remote box from Chapter 14.
 
 1. Install one or two of the kit with `brew install` (say `eza`
    and `bat`), then run `eza -l --git scripts` and
@@ -380,7 +380,7 @@ last two, the remote box from Chapter 13.
    `git diff`. Write down what changed in the *presentation* and
    confirm the actual change reported is identical either way.
 
-4. Feel the tax. SSH into the bare server from Chapter 13 and
+4. Feel the tax. SSH into the bare server from Chapter 14 and
    try `eza`, `bat`, and `z`. Watch them fail with "command not
    found," then do the same jobs with `ls -l`, `cat`, and `cd`.
    Name the one habit that would have slowed you down most if

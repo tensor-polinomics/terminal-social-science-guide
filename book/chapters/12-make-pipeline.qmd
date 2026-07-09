@@ -1,6 +1,6 @@
 # Make as Cross-Language Pipeline Glue
 
-Chapter 10 turned a single analysis step into a script that
+Chapter 11 turned a single analysis step into a script that
 fails loudly. A real project is not one step. Ours generates
 synthetic data, cleans it, forms a portfolio, draws a figure,
 runs a regression in a different language, and renders a
@@ -46,7 +46,7 @@ runs a fixed list of commands every time. Make decides *which*
 commands need to run and in *what order*, then hands them to
 the shell. It does not version your files (that is Git, the
 companion book) and it does not reproduce your environment
-(that is uv and renv, Chapter 12). It orchestrates. That
+(that is uv and renv, Chapter 13). It orchestrates. That
 narrow job is exactly what a multi-step, multi-language
 pipeline needs.
 
@@ -497,7 +497,7 @@ In our Makefile it deletes only generated, regenerable files
 (data, figures, the report), which is safe by design. But a
 `clean` recipe is just shell, and a wrong path in one, for
 example `rm -rf $(BUILD)/` when `BUILD` is empty and expands
-to `rm -rf /`, is the kind of irreversible mistake Chapter 6
+to `rm -rf /`, is the kind of irreversible mistake Chapter 7
 warns about. Read a `clean` recipe before you trust it, keep
 its paths inside the project, and never let a variable that
 could be empty sit next to `rm -rf`.

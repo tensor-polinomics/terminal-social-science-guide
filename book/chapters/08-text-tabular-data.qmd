@@ -1,6 +1,6 @@
 # Text and Tabular Data as Data
 
-Chapter 6 built the plumbing: streams, redirection, and pipes
+Chapter 7 built the plumbing: streams, redirection, and pipes
 that move text from one command to the next. This chapter is
 about what flows through that plumbing, because for a
 researcher the answer is usually your own data. A CSV file is
@@ -21,7 +21,7 @@ second pass treats files as **tables**: `jq` for JSON, and the
 DuckDB command-line client, which runs real SQL directly over
 CSV and Parquet files and is where this book sends you the
 moment a question involves a join or a group-by. Along the way
-the chapter draws the line Chapter 6 deferred here: shell
+the chapter draws the line Chapter 7 deferred here: shell
 globs and regular expressions look alike, and are different
 languages for different jobs.
 
@@ -114,7 +114,7 @@ this chapter, which parse fields instead of scanning lines.
 
 ## Globs match filenames, regex matches content {.tier-beginner}
 
-Chapter 6 introduced globbing, the shell's own wildcard
+Chapter 7 introduced globbing, the shell's own wildcard
 language, and promised that this chapter would separate it
 from regular expressions. Here is the line. A **glob** is
 expanded by the *shell*, before the command runs, and it
@@ -140,7 +140,7 @@ portfolio.csv
 The first line is a glob: the shell expands
 `data/clean/*.csv` into matching *paths* and hands them to
 `ls` as arguments. The second is a regex: `ls` writes every
-name in the directory to its stdout, one per line as Chapter 6
+name in the directory to its stdout, one per line as Chapter 7
 showed, and `grep` keeps the lines that match. The patterns
 are spelled differently because the languages differ. In the
 glob, `*` alone means "any run of characters" and the dot is
@@ -194,7 +194,7 @@ That is as deep as this book goes into regex syntax: literal
 text, `.`, `^`, `$`, character classes like `[0-9]`, and
 `-E`'s alternation cover nearly every data-file question in
 practice. The durable point is the division of labor: globs
-for *which files*, regex for *which lines*. Chapter 8 will
+for *which files*, regex for *which lines*. Chapter 9 will
 draw the same line from the other side, when it searches file
 trees and their contents.
 
@@ -222,7 +222,7 @@ collaborator's code expects the market column to be called
 `mkt_excess` instead of `mkt_rf`. The `1s/old/new/` form
 applies the substitution to line 1 only, the header, and the
 result is redirected to a **new file** in scratch, exactly the
-raw-in, generated-out discipline Chapter 5 set for this
+raw-in, generated-out discipline Chapter 6 set for this
 project:
 
 ```bash
@@ -271,8 +271,8 @@ month,mkt_rf,smb,hml,rmw,cma,rf
 
 ::: {.callout-caution .danger title="DANGER"}
 `sed -i` on a data file is an irreversible overwrite, the same
-hazard as Chapter 6's `>` clobber wearing an editor's clothes.
-Chapter 5's rule is that raw data is immutable: a raw input
+hazard as Chapter 7's `>` clobber wearing an editor's clothes.
+Chapter 6's rule is that raw data is immutable: a raw input
 edited in place is a raw input **destroyed**, and the
 provenance chain from the original file to your results is
 broken at its first link, silently. The discipline that avoids
@@ -324,7 +324,7 @@ month,mkt_rf
 2011-02,0.040907
 ```
 
-Chapter 6 already chained `cut` into a pipe to count distinct
+Chapter 7 already chained `cut` into a pipe to count distinct
 firms. The same idea with `uniq -c`, which collapses *adjacent*
 duplicate lines and prefixes each with its count, turns the
 firm column into a frequency table, the fastest balance check
@@ -365,7 +365,7 @@ No error, no warning, just a wrong answer three hundred times
 too large. The rule is mechanical: `uniq` is always `sort |
 uniq` unless you can state exactly why the input is already
 grouped. (`sort -u` fuses the pair when you only need the
-distinct values, as Chapter 6's firm count did; you need the
+distinct values, as Chapter 7's firm count did; you need the
 separate `uniq -c` when you want the counts.)
 :::
 
@@ -463,7 +463,7 @@ before every lowercase one; `en_US.UTF-8` uses dictionary
 order, interleaving them. Neither is wrong, but they are
 different, and difference is fatal to anything downstream that
 hashes the stream, like the checksums this book's pipeline
-uses to lock its data (Chapter 11):
+uses to lock its data (Chapter 12):
 
 ```bash
 $ ls | LC_ALL=C sort | sha256sum
@@ -483,7 +483,7 @@ locale name like `en_US.UTF-8` promises a language, not a byte
 order, and collation comes from each platform's own locale
 data, which need not match. The safe habit is to stop
 depending on it, and pin the locale, `LC_ALL=C`, in any script
-whose output order matters; Chapter 10 will make that pin part
+whose output order matters; Chapter 11 will make that pin part
 of this book's standard script header rather than teaching it
 here.
 :::
@@ -583,7 +583,7 @@ package lockfiles, and tool configuration are JSON, nested
 braces that `cut` and `awk` cannot parse, and the tool for
 them is `jq`: it reads JSON, applies a small query, and prints
 the result. The project has a real JSON file to practice on,
-`renv.lock`, the R package lockfile that Chapter 12 will teach
+`renv.lock`, the R package lockfile that Chapter 13 will teach
 (for now it is just structured data). Orientation first,
 because `keys` is to a JSON file what `head -1` is to a CSV:
 
@@ -696,7 +696,7 @@ assets,DOUBLE,YES,NULL,NULL,NULL
 Identifiers came in as text and every measure as a double, so
 the inference is sane. Aggregation is one query, and it
 reproduces the two counts this chapter has already computed
-the hard way (the `wc -l` pipe in Chapter 6, the `uniq -c`
+the hard way (the `wc -l` pipe in Chapter 7, the `uniq -c`
 table above):
 
 ```bash
@@ -711,7 +711,7 @@ Now the query that is the section's whole argument, the one no
 line tool does well: **join** the panel to the factor file on
 month, and compare the average firm return to the market each
 month. Longer SQL reads better on multiple lines, so this run
-feeds a heredoc (Chapter 6's redirection family, aimed at
+feeds a heredoc (Chapter 7's redirection family, aimed at
 stdin) to the client:
 
 ```bash
@@ -752,14 +752,14 @@ the division of labor this chapter ends on: the line tools for
 looking, anchoring, and gluing; DuckDB the moment the question
 is relational or the file is columnar; and your versioned
 Python and R scripts, not the prompt, for the estimation and
-figures that go in the paper (the pipeline Chapter 11 wires
+figures that go in the paper (the pipeline Chapter 12 wires
 together). DuckDB's SQL goes far beyond what is shown here;
 the CSV and Parquet readers are documented at duckdb.org,
 pinned in this chapter's verification log.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5. Everything
+These use the asset-pricing project from Chapter 6. Everything
 here is read-only except item 4, which writes new files; do
 that one in `/tmp`, never in your real project. The DuckDB
 item needs `duckdb` installed (`brew install duckdb`).
@@ -797,6 +797,6 @@ item needs `duckdb` installed (`brew install duckdb`).
 6. In one DuckDB query, compute the average long-short return
    (`ls_ret`) from `data/clean/portfolio.parquet`, and compare
    it to the pipeline's locked monthly alpha of 0.0034 from
-   Chapter 11. (They will not match, and the gap is the
+   Chapter 12. (They will not match, and the gap is the
    point: one is a raw mean, the other a factor-adjusted
    intercept.)

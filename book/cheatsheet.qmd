@@ -1,4 +1,38 @@
 # Portable Command Cheat Sheet {#sec-cheatsheet .unnumbered}
 
-<!-- STUB (Phase 0). Appendix C: one-page portable command reference,
-     each command cross-referenced to its chapter. Drafted in Phase 7. -->
+<!-- SEEDED (Session 1, structural). Common-command shortlist copied
+     from Chapter 4 (How to Read a Shell Command). The full one-page
+     reference, with each command cross-referenced to the chapter that
+     introduces it, is drafted in Phase 7. -->
+
+A working shortlist of the commands this book uses most. Each one
+gets its real introduction, with live output, in the chapter that
+needs it; this page is the map. See @sec-command-anatomy for how to
+read the flags and arguments below.
+
+| Command | Purpose |
+|------|----------------------------------|
+| `pwd` | print the working directory |
+| `cd` | change directory (`cd -` returns to the previous one) |
+| `ls` | list a directory (`-l` long, `-a` all, `-d` the dir itself) |
+| `cat` | print a file, or concatenate several |
+| `less` | page through a file one screen at a time |
+| `head` | first N lines (`-n`) |
+| `tail` | last N lines (`-n +K` starts at line K) |
+| `cp` | copy (`-r` recursive, `-i` prompt before overwrite) |
+| `mv` | move or rename (`-i` prompt before overwrite) |
+| `rm` | remove; destructive, no undo (`-r` recursive, `-i` prompt); see Chapter 7 |
+| `mkdir` | make a directory (`-p` also makes parents) |
+| `touch` | create an empty file, or update its timestamp (`-t`) |
+| `grep` | print the lines matching a pattern |
+| `sort` | sort lines |
+| `uniq` | drop or count adjacent duplicate lines (`-c`) |
+| `wc` | count lines, words, or bytes (`-l` lines) |
+| `cut` | pick columns (`-d` delimiter, `-f` field) |
+| `find` | search the file tree (`-name`) |
+| `xargs` | build command lines from input |
+| `chmod` | change permissions (`600`, `644`, `755`) |
+| `tar` | bundle a tree (`-czf` to create, `-xzf` to extract) |
+| `echo` | print its arguments |
+| `printf` | formatted print (`\n` newline, `\t` tab) |
+| `man`, `tldr` | show help for a command |

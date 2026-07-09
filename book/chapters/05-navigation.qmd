@@ -20,7 +20,7 @@ existing file silently, with no prompt and no undo, so the
 cheap insurance is to `ls` the target first and read what is
 really there before you change it. The outright destructive
 commands, `rm -rf` and clobbering a file with `>`, are
-Chapter 6's subject; this chapter teaches the safe copy and
+Chapter 7's subject; this chapter teaches the safe copy and
 move habits and points there for the parts that cannot be
 undone.
 
@@ -178,7 +178,7 @@ when a relative path fails, and running `pwd` (or `ls`) before
 a command that matters is the habit that prevents it. When a
 script must not depend on where it was launched from, it uses
 absolute paths or `cd`s to a known directory first, a
-discipline Chapter 10 will build into scripts that fail loudly.
+discipline Chapter 11 will build into scripts that fail loudly.
 :::
 
 ## Looking closely: `ls -l`, `-a`, and `stat` {.tier-beginner}
@@ -228,7 +228,7 @@ a directory means permission to *enter* it (to `cd` in and
 reach what is inside). That is enough to answer "may I change
 this file, and who else can see it." Changing permissions with
 `chmod`, the octal shorthand like `644` and `755`, and who
-owns a file are Chapter 9's subject; here you only need to
+owns a file are Chapter 10's subject; here you only need to
 read what `ls -l` already shows.
 
 The `-a` option reveals what plain `ls` hides: names beginning
@@ -286,7 +286,7 @@ Change: 2026-07-02 12:09:44.604001299 -0400
 That is more than a daily listing needs, but the three
 timestamps matter later: the modification time is what `make`
 compares to decide whether a step needs rerunning (Chapter
-11), so knowing how to read it by hand is worth the one
+12), so knowing how to read it by hand is worth the one
 command. `stat` also takes a format string, `-c`, to print
 just the fields you want:
 
@@ -395,7 +395,7 @@ results/2026/figures:
 contains `2026`, which contains `figures`. Because `mkdir -p`
 does not complain when a directory already exists, it is the
 form you want in scripts, where a run should not fail just
-because a folder is already there. Chapter 5 will lean on it to
+because a folder is already there. Chapter 6 will lean on it to
 scaffold the whole project layout in one line.
 
 `rmdir` is the deliberately safe way to remove a directory: it
@@ -414,7 +414,7 @@ refusal is a feature, not an obstacle. Clearing out a
 directory that still has contents means removing those contents
 first, and doing *that* recursively in one command is `rm -r`,
 which has no such guard rail and no undo. That command, and the
-care it demands, is Chapter 6's territory; `rmdir` is the tool
+care it demands, is Chapter 7's territory; `rmdir` is the tool
 for the safe, everyday case of tidying up an empty folder.
 
 ## Copying and moving: `cp` and `mv` {.tier-beginner}
@@ -497,14 +497,14 @@ The prompt was answered `n` here (type `n` and press return to
 leave the file alone, `y` to replace it), so `results.csv`
 still reads `keep me`, where the plain `cp` a moment ago
 replaced it without asking. Many people alias `cp` and `mv` to
-their `-i` forms in their shell startup file (Chapter 17) so
+their `-i` forms in their shell startup file (Chapter 18) so
 the prompt is always on.
 
 ::: {.callout-caution .danger title="DANGER"}
 `cp` and `mv` overwrite an existing destination silently and
 irreversibly. There is no trash folder and no undo: the moment
 `cp new.csv results.csv` runs, the old `results.csv` is gone.
-This is the same hazard `>` carries in Chapter 6, which owns
+This is the same hazard `>` carries in Chapter 7, which owns
 the destructive commands in full (`rm -rf`, clobbering with
 `>`); the point here is that a plain copy or move belongs on
 the same watch list. Three habits contain it: `ls` the
@@ -512,7 +512,7 @@ destination before you copy or move onto it, so you know
 whether you are about to replace something; use `cp -i` / `mv
 -i` (or their aliases) when you want the shell to stop and ask;
 and never point a copy or move at a path built from an unset
-variable, the empty-variable trap Chapter 6 guards with
+variable, the empty-variable trap Chapter 7 guards with
 `${VAR:?}`. Appendix A collects the recovery options for when
 one of these gets past you.
 :::
@@ -525,10 +525,10 @@ companion Git book's `git restore` brings it back, which is one
 more reason to commit early and often. If it was a generated
 artifact, regenerate it: on the asset-pricing example a
 clobbered `output/` file rebuilds from the seeded scripts with
-one `make` (Chapter 11), which is the whole point of making
+one `make` (Chapter 12), which is the whole point of making
 outputs reproducible rather than precious. For an untracked,
 unbacked-up raw file, there may be no recovery at all, the same
-hard truth Chapter 6 draws for `rm`, and the reason the
+hard truth Chapter 7 draws for `rm`, and the reason the
 look-before-you-leap habit is cheaper than the alternative.
 :::
 
@@ -657,7 +657,7 @@ Linux but cannot coexist in a working copy checked out on a
 Mac. The defense is a convention, not a command: pick one
 casing for names (lowercase is the common choice) and use it
 consistently, so your code never depends on a case-folding
-your server will not do. Chapter 10 will return to this
+your server will not do. Chapter 11 will return to this
 alongside the locale and line-ending settings that similarly
 shift behavior between machines.
 :::
@@ -680,7 +680,7 @@ cd /tmp/ch04-play
 ```
 
 When you are done you can delete the whole `/tmp/ch04-play`
-copy; removing a directory tree is `rm -r`, which Chapter 6
+copy; removing a directory tree is `rm -r`, which Chapter 7
 covers along with the care it demands, and `/tmp` is cleared
 on reboot in any case.
 

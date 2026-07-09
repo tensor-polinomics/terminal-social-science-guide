@@ -21,26 +21,27 @@ book:
         - chapters/01-why-terminal.qmd
         - chapters/02-mental-model.qmd
         - chapters/03-setup.qmd
-        - chapters/04-navigation.qmd
-        - chapters/05-organizing-project.qmd
+        - chapters/04-shell-literacy.qmd
+        - chapters/05-navigation.qmd
+        - chapters/06-organizing-project.qmd
     - part: "Core Fluency"
       chapters:
-        - chapters/06-pipes-redirection-danger.qmd
-        - chapters/07-text-tabular-data.qmd
-        - chapters/08-finding-things.qmd
-        - chapters/09-processes-permissions-secrets.qmd
+        - chapters/07-pipes-redirection-danger.qmd
+        - chapters/08-text-tabular-data.qmd
+        - chapters/09-finding-things.qmd
+        - chapters/10-processes-permissions-secrets.qmd
     - part: "Workflow Climax"
       chapters:
-        - chapters/10-scripts-fail-loudly.qmd
-        - chapters/11-make-pipeline.qmd
-        - chapters/12-environments.qmd
-        - chapters/13-ssh-remote-compute.qmd
-        - chapters/14-persistent-sessions.qmd
+        - chapters/11-scripts-fail-loudly.qmd
+        - chapters/12-make-pipeline.qmd
+        - chapters/13-environments.qmd
+        - chapters/14-ssh-remote-compute.qmd
+        - chapters/15-persistent-sessions.qmd
     - part: "Modern Tooling and AI"
       chapters:
-        - chapters/15-modern-cli-tuis.qmd
-        - chapters/16-ai-terminal.qmd
-        - chapters/17-startup-files-path.qmd
+        - chapters/16-modern-cli-tuis.qmd
+        - chapters/17-ai-terminal.qmd
+        - chapters/18-startup-files-path.qmd
     - part: "Reference"
       chapters:
         - panic.qmd

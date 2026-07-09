@@ -1,6 +1,6 @@
 # AI in the Terminal
 
-Chapter 15 added a kit of faster, friendlier commands to the
+Chapter 16 added a kit of faster, friendlier commands to the
 shell. This chapter adds something different in kind: a program
 that reads your plain-English request and then runs shell
 commands for you. A terminal AI agent, Claude Code, OpenAI's
@@ -17,7 +17,7 @@ That is the whole reason this chapter exists, and why it comes
 after the danger chapter and not before. An agent runs the same
 shell you do. It can `rm -rf` the wrong directory, clobber a
 file with `>`, or pipe a stranger's script into `sh`, the exact
-mistakes Chapter 6 spent its length teaching you to fear, except
+mistakes Chapter 7 spent its length teaching you to fear, except
 now a confident machine can make them faster than you can read.
 So the durable skill is not which agent to install or which
 buttons its current version shows. It is knowing where the
@@ -31,7 +31,7 @@ A note on where the material comes from, and a warning about its
 shelf life. This is the fastest-aging chapter in the book, so it
 is written principles-first and every tool-specific detail is
 stamped "current as of 2026-07-01" and pinned to the tool's
-official documentation (logged in `verification/chapter-16.md`).
+official documentation (logged in `verification/chapter-17.md`).
 The exact CLI versions behind that stamp are recorded on the
 author's Mac in `transcripts/ch16-versions-mac.txt`: Claude Code
 2.1.197, OpenAI Codex CLI 0.142.5, and Gemini CLI 0.49.0. The
@@ -46,7 +46,7 @@ nothing here is a live capture, by deliberate choice: an agent
 session is non-deterministic and costs a real API call, so every
 agent interaction shown below is labeled illustrative and is
 **not** run, on the Mac or in this book's Linux sandbox, exactly
-as Chapter 6 handled the one `curl | sh` it refused to execute.
+as Chapter 7 handled the one `curl | sh` it refused to execute.
 The one real, executed demonstration is the `diff` in the review
 section, captured AI-free in the sandbox
 (`transcripts/ch16-review-diff.txt`). Treat every product detail
@@ -61,14 +61,14 @@ reads the result and repeats until the task is done. The actions
 it can take are the ones you already know. It edits files. It
 runs shell commands. It may make network requests. There is no
 fourth magic power. Everything an agent does, it does through the
-same file system and the same shell that Chapters 4 through 11
+same file system and the same shell that Chapters 5 through 12
 covered, with your user account's permissions and no others.
 
 Keeping that in view is the whole mental model. The shell runs
 commands (Chapter 2); Git versions files (the companion Git
 book); an agent *decides which commands to run* and then hands
 them to the shell, the same division of labor Make had in
-Chapter 11, except an agent's decisions come from a language
+Chapter 12, except an agent's decisions come from a language
 model reading your prompt rather than from a dependency graph you
 wrote. That difference is the point. A Makefile does exactly what
 its rules say. An agent does what it infers you meant, which is
@@ -76,7 +76,7 @@ powerful when it infers right and dangerous when it infers wrong,
 and either way it reaches the shell through the same door.
 
 Because the door is the shell, the safety questions are not new
-and mysterious; they are the old ones from Chapter 6, asked about
+and mysterious; they are the old ones from Chapter 7, asked about
 a new actor. What can it change without asking me? What can it
 reach? Where does what I type end up? The rest of this chapter is
 those questions, one at a time.
@@ -181,7 +181,7 @@ auto-approves not just file edits but a list of common filesystem
 commands, `mkdir`, `touch`, `mv`, `cp`, and `rm` among them,
 inside the working directory, current as of 2026-07-01. That is a
 reasonable convenience and it is also exactly the command from
-Chapter 6 with no undo. An agent that mis-infers which directory
+Chapter 7 with no undo. An agent that mis-infers which directory
 is stale can remove a real one, and in auto-edit mode it does not
 stop to ask first.
 
@@ -194,14 +194,14 @@ bypass mode it refuses to start as root and still stops to
 confirm a literal `rm -rf /` or `rm -rf ~`, current as of
 2026-07-01. Codex keeps `.git` read-only inside its writable
 workspace. These are helpful, and they are not a safety net you
-can lean on, for the same reason Chapter 6 gave: preserve-root
+can lean on, for the same reason Chapter 7 gave: preserve-root
 guards the literal `/`, but nothing guards the wrong *project*
 directory, the deletion that is syntactically ordinary and
 semantically a disaster.
 
 ::: {.callout-caution .danger title="DANGER"}
 An agent running with approvals turned off can run every
-destructive command in Chapter 6, on its own reading of what you
+destructive command in Chapter 7, on its own reading of what you
 meant. The catalog is unchanged: `rm -rf` on a path built from a
 wrong assumption; `>` clobbering a file it meant to append to; a
 `git reset --hard` or `git checkout .` that discards uncommitted
@@ -250,7 +250,7 @@ itself keep it from reading files elsewhere. The
 reproducible-pipeline discipline still gives you a concrete
 boundary to enforce: keep raw, licensed, or confidential data out
 of the project tree entirely (referenced, not committed, as in
-Chapter 11's synthetic-data argument), so that neither the write
+Chapter 12's synthetic-data argument), so that neither the write
 scope nor the broader read scope can reach it, whether to delete
 it in a cleanup or to pull it into a prompt.
 
@@ -262,7 +262,7 @@ in a writing or auto mode, its working directory is now your
 entire home folder, dotfiles, SSH keys, every project at once.
 The habit that prevents this is dull and reliable: `cd` into the
 specific project first, confirm with `pwd`, and only then start
-the agent, the same look-before-you-act rule Chapter 6 applied to
+the agent, the same look-before-you-act rule Chapter 7 applied to
 `rm`. If a tool offers a way to add directories to its scope
 (Claude Code's `additionalDirectories`, Gemini's
 `--include-directories`), treat each addition as widening the
@@ -273,7 +273,7 @@ blast radius and add the minimum.
 
 The third question is what the agent can reach beyond your disk.
 An agent that can make network requests can download and run
-code, which is the Chapter 6 supply-chain problem wearing a new
+code, which is the Chapter 7 supply-chain problem wearing a new
 coat: the blind `curl | sh` this book refuses to run is a line an
 agent can compose and execute on your behalf, fetching a script
 over a network you do not control and running it with your
@@ -295,14 +295,14 @@ takes silently. Whatever your tool's default, enable network
 access only for a specific task that genuinely needs it, prefer a
 tool's allowlist of trusted destinations over blanket access, and
 remember that an agent fetching a dependency is subject to the
-same verify-the-installer, check-the-checksum discipline Chapter 6
+same verify-the-installer, check-the-checksum discipline Chapter 7
 laid out for you, precisely because it is doing the fetch as you.
 
 ::: {.callout-caution .danger title="DANGER"}
 Giving an agent network access plus a trust-everything approval
 mode is the highest-risk configuration in this chapter, and it is
 one setting away from the pipe-a-stranger-into-your-shell hazard
-of Chapter 6. In that combination an agent can fetch a script and
+of Chapter 7. In that combination an agent can fetch a script and
 run it with no pause, and it can be induced to do so by content it
 reads rather than by anything you asked. If a task needs the
 network, keep approvals on for the commands that use it, so the
@@ -314,7 +314,7 @@ reserve for disposable sandboxes, and so should you.
 
 ## Secrets in prompts {.tier-beginner}
 
-Chapter 9 taught that a secret leaks not only through Git but
+Chapter 10 taught that a secret leaks not only through Git but
 through shell history, logs, and screenshots. An agent adds a new
 and easy-to-forget channel: the prompt itself. Everything you
 type to an agent, and much of what it reads to answer you, may be
@@ -336,13 +336,13 @@ session ends.
 
 ::: {.callout-warning .pitfall title="PITFALL"}
 Treat an agent's prompt as a public channel, the same way
-Chapter 9 treats your shell history. Never paste a credential,
+Chapter 10 treats your shell history. Never paste a credential,
 token, or confidential data value into a chat; instead point the
 agent at the *mechanism*, "read the key from the `API_KEY`
 environment variable," "the data is in `data/raw/`, which is
 git-ignored," so it wires up the reference without ever seeing the
 value. Keep secrets in environment variables or a secrets manager
-(Chapter 9), keep confidential data out of the agent's scope (the
+(Chapter 10), keep confidential data out of the agent's scope (the
 section above), and if a tool offers prompt logging or telemetry,
 know its default and turn off what you do not want retained. A key
 that reaches a transcript should be rotated, not hoped over.
@@ -391,7 +391,7 @@ yours or an agent's, reviewable and reversible. Run an agent in
 auto-edit rather than full-trust mode so its edits accumulate as
 reviewable diffs instead of already-run commands, and commit in
 small steps so the diff you review is small. For an untracked file
-an agent overwrote, the recovery story is the same bleak Chapter 6
+an agent overwrote, the recovery story is the same bleak Chapter 7
 described: there may not be one.
 :::
 
@@ -405,7 +405,7 @@ in your project once the session scrolls away. If it was a step
 that matters, generating a file, transforming data, producing a
 result, then a month later you have an output and no committed
 record of how it was made. That is precisely the "I think the
-paper matches the data" state Chapter 11 built the Makefile to
+paper matches the data" state Chapter 12 built the Makefile to
 escape.
 
 The resolution is to make the agent serve the pipeline rather
@@ -422,7 +422,7 @@ of truth.
 An agent-run command that is not written into your scripts or
 Makefile is a step that vanishes when the session ends, and a
 pipeline with vanished steps is not reproducible, however good the
-agent was. The test is the one from Chapter 11: could someone
+agent was. The test is the one from Chapter 12: could someone
 clone the repository and rebuild your result with `make`, with no
 agent involved? Keep it true by treating an agent as an author of
 automation, not a substitute for it, every command that matters
@@ -446,11 +446,11 @@ trust the agent's track record on ordinary edits:
   on cloud storage.
 - Anything that fetches and runs remote code: `curl | sh`, an
   install script, a `pip`/`npm` install from an unpinned or
-  unfamiliar source (Chapter 6).
+  unfamiliar source (Chapter 7).
 - Anything that touches credentials or access: writing to
   `~/.ssh`, editing shell startup files, changing file
   permissions broadly with `chmod -R`, printing a secret into the
-  terminal or a file (Chapter 9).
+  terminal or a file (Chapter 10).
 - Anything that leaves your machine irreversibly: a `git push
   --force`, a deploy, a database migration, sending data to an
   external endpoint.
@@ -481,8 +481,8 @@ list above.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5 and the
-pipeline from Chapter 11. Do them with an agent set to ask or
+These use the asset-pricing project from Chapter 6 and the
+pipeline from Chapter 12. Do them with an agent set to ask or
 auto-edit mode, never full trust, and on a copy or a committed
 tree so every change is reversible.
 
@@ -514,5 +514,5 @@ tree so every change is reversible.
 5. Practice the refusal. Ask the agent to delete the `data/clean/`
    directory. Watch the approval prompt appear, read it, and
    decline. Articulate, in one sentence, why you would not want
-   this exact prompt auto-approved, and connect it to Chapter 6's
+   this exact prompt auto-approved, and connect it to Chapter 7's
    rule about `rm -rf`.

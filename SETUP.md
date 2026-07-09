@@ -50,12 +50,12 @@ and `uv`, already present on the Mac and the sandbox.
 | Chapter | Tools to add |
 |---|---|
 | Ch 2 | `tldr` (tealdeer) |
-| Ch 7 | `duckdb` |
-| Ch 8 | `fd`, `ripgrep` (often already present) |
-| Ch 10 | `shellcheck`, `shfmt` |
-| Ch 13-14 | `tmux`, `ncdu` on the remote box (`ssh`/`rsync` are usually preinstalled) |
-| Ch 15 | modern kit + TUIs: `eza`, `bat`, `zoxide`, `fzf`, `git-delta`, `btop`, `ncdu`, `lazygit` |
-| Ch 16 | AI CLIs (Claude Code / Codex / Gemini), version-stamped |
+| Ch 8 | `duckdb` |
+| Ch 9 | `fd`, `ripgrep` (often already present) |
+| Ch 11 | `shellcheck`, `shfmt` |
+| Ch 14-15 | `tmux`, `ncdu` on the remote box (`ssh`/`rsync` are usually preinstalled) |
+| Ch 16 | modern kit + TUIs: `eza`, `bat`, `zoxide`, `fzf`, `git-delta`, `btop`, `ncdu`, `lazygit` |
+| Ch 17 | AI CLIs (Claude Code / Codex / Gemini), version-stamped |
 
 These CLI tools are generally cross-platform, so routine output can be captured
 on the Mac; a separate Linux capture is still required where behavior, version,
@@ -85,7 +85,7 @@ missing, install into your home directory without root:
 
 - **Static binaries** to `~/.local/bin` (most modern tools ship one): download
   the Linux build for the box's architecture, `chmod +x`, place it in
-  `~/.local/bin`, and put that on `PATH` (covered in Ch 17).
+  `~/.local/bin`, and put that on `PATH` (covered in Ch 18).
 - **Python-based tools** via `uv tool install <tool>` (no root; uses PyPI).
 - **HPC login nodes:** prefer the `module` system (`module avail`,
   `module load`) over installing anything.

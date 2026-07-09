@@ -1,9 +1,9 @@
 # Persistent Sessions
 
-Chapter 13 left one hazard unsolved. Over `ssh`, the connection
+Chapter 14 left one hazard unsolved. Over `ssh`, the connection
 is a lifeline: close the laptop or lose the network and the
 remote shell receives `SIGHUP`, and by default the job dies with
-it. Chapter 9 named `nohup` as the stopgap, a way to keep a job
+it. Chapter 10 named `nohup` as the stopgap, a way to keep a job
 alive through a disconnect, but a limited one, since you cannot
 reattach to the job and drive it, only follow its log from the
 outside. Both chapters pointed here for the real answer.
@@ -29,8 +29,8 @@ copy-mode, theming, status-line customization, and plugins. When
 in doubt, this chapter cuts. `tmux` builds on Chapter 2's process
 model (a session is a set of processes that keep running whether
 or not a terminal is attached) and does not re-teach it; it also
-does not re-teach `ssh` (Chapter 13), the run log (Chapter 10),
-or `nohup`/`SIGHUP` (Chapter 9), all of which it leans on by
+does not re-teach `ssh` (Chapter 14), the run log (Chapter 11),
+or `nohup`/`SIGHUP` (Chapter 10), all of which it leans on by
 cross-reference.
 
 A note on where the output comes from. The core loop, the
@@ -38,7 +38,7 @@ session structure, `send-keys`/`capture-pane`, and the
 "progressed while detached" demo all run in this book's Linux
 sandbox (tmux 3.2a), captured non-interactively: an interactive
 `tmux attach` takes over the terminal and would hang a scripted
-capture, the Chapter 9 lesson, so the captures drive `tmux`
+capture, the Chapter 10 lesson, so the captures drive `tmux`
 through its command interface (`new-session -d`, `ls`,
 `capture-pane`, `send-keys`) and never attach. The one thing the
 sandbox cannot show, that a session outlives the `ssh`
@@ -207,7 +207,7 @@ observes it.
 Now put that on a server, where it earns its keep. Let
 `ch14-job.sh` stand in for a slow analysis step: a small script
 that counts to thirty, printing `step N/30 done` every couple of
-seconds and teeing a log (Chapter 10). The move is to start it
+seconds and teeing a log (Chapter 11). The move is to start it
 in a detached session over one `ssh` command, then let that
 connection close, and prove the session survived by reconnecting
 with *separate* `ssh` commands, each a fresh connection. Nothing
@@ -237,7 +237,7 @@ The first `ssh` returned as soon as the detached session was
 created; the job kept running on the server with no connection
 open. Connection C, eight steps in, was reading a job that no
 one was attached to. A later, independent `ssh` finds it further
-along still, and its Chapter 10 log has been written the whole
+along still, and its Chapter 11 log has been written the whole
 time:
 
 ```bash
@@ -257,13 +257,13 @@ finish live. The connection was disposable; the session was not.
 Two things persist through the disconnect, and both matter. The
 *job* survives, so a run started before you left is still a run
 you can trust, computed without interruption. And its *log*
-survives, because the job wrote it with `tee` (Chapter 10), so
+survives, because the job wrote it with `tee` (Chapter 11), so
 the evidence of what happened is on disk regardless of whether
 you were watching. Even if the session itself ends (next
 pitfall), the log remains. A result and its record both outlive
 the connection, which is what lets a computation run overnight
 on a server and still be believed in the morning. tmux keeps the
-job alive; Chapter 10's log keeps its provenance; neither is
+job alive; Chapter 11's log keeps its provenance; neither is
 credited for the other's job.
 :::
 
@@ -287,7 +287,7 @@ Come back after the job finished and the session is simply gone,
 along with anything it printed. Two habits avoid the surprise:
 start a session with a *shell* (`tmux new -s job`, then run the
 job inside it) so the shell outlives the job and holds its
-output, or, better, always write a log with `tee` (Chapter 10)
+output, or, better, always write a log with `tee` (Chapter 11)
 so the record survives no matter what the session does. (tmux's
 `remain-on-exit` option can instead hold the finished pane open,
 but the two habits above are simpler and more portable.)
@@ -303,7 +303,7 @@ the machine itself going away. If the server reboots, every tmux
 session on it is gone, job and scrollback with it; a session is
 live processes in memory, not a saved file. This is precisely
 why a long, must-not-die job on a shared cluster belongs to the
-scheduler, not to tmux: you `sbatch` it (Chapter 13) so the
+scheduler, not to tmux: you `sbatch` it (Chapter 14) so the
 scheduler, not your login session, owns its lifecycle and can
 requeue it under the cluster's policy, whereas tmux is for an
 interactive session you personally want to detach from and
@@ -405,12 +405,12 @@ the sandbox and read the remote one.
    entirely. Open a new `ssh` connection, run
    `tmux attach -t build`, and confirm the job is still running.
    State in one sentence why this would have failed without tmux
-   (recall Chapter 13's dropped connection).
+   (recall Chapter 14's dropped connection).
 
 4. Clean up, and reason about limits. End the session with
    `tmux kill-session -t build`. Then answer: if the server had
    rebooted while you were disconnected, would the job have
-   survived? Why is a cluster `sbatch` job (Chapter 13) the
+   survived? Why is a cluster `sbatch` job (Chapter 14) the
    right *class* of tool when the answer must be yes, and what
    does surviving an actual reboot then still depend on (recall
    the section: the cluster's requeue policy and your own

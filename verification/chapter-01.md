@@ -5,7 +5,7 @@ pure framing: it **executes no commands**, so it has no captured
 transcript of its own. The one fenced block is a labeled,
 non-runnable `text` roadmap sketch; each command in it **is**
 taught, with real captured output, in the later chapter named
-beside it (Make = Ch 11, ssh/rsync/GPU = Ch 13, tmux = Ch 14),
+beside it (Make = Ch 12, ssh/rsync/GPU = Ch 14, tmux = Ch 15),
 all now drafted and committed (Part III complete at G5), so the
 roadmap now describes chapters that really do teach and capture
 those commands, not a forward contract. The chapter's
@@ -21,7 +21,7 @@ laptop-payoff section's other claims (a command is a record you
 can rerun and share; batch file operations replace manual
 repetition) are self-evident shell mechanics **demonstrated**
 with real commands in the later chapters they are routed forward
-to (Ch 4, 7, 8, now drafted and committed), not external facts
+to (Ch 5, 8, 9, now drafted and committed), not external facts
 needing a pin.
 
 That leaves a small number of external/volatile platform facts,
@@ -40,10 +40,10 @@ Access date for all web sources below: 2026-07-01.
 - accessed: 2026-07-01
 - verifies: the macOS interactive default is zsh, Linux is
   typically bash; this is the recurring shell split the book's
-  DIVERGENCE callouts rest on. Already transcript-backed in Ch 6.
+  DIVERGENCE callouts rest on. Already transcript-backed in Ch 7.
 - version note: zsh has been the macOS default since Catalina
   (2019); stable
-- confirmable: yes (doc + real Ch 6 transcript)
+- confirmable: yes (doc + real Ch 7 transcript)
 
 ### macOS ships BSD core tools; Linux ships GNU core tools
 - chapter/section: Ch 1, DIVERGENCE callout
@@ -51,14 +51,14 @@ Access date for all web sources below: 2026-07-01.
   sandbox vs BSD tools on the author's Mac
   (`transcripts/ch06-divergence-mac.txt`,
   `transcripts/ch11-*-mac.txt`); this is the same BSD/GNU
-  divergence pinned in `verification/chapter-06.md` and
-  `verification/chapter-11.md`
+  divergence pinned in `verification/chapter-07.md` and
+  `verification/chapter-12.md`
 - accessed: 2026-07-01
 - verifies: the same command can print different output on macOS
   (BSD) and Linux (GNU); Ch 1 only asserts the split exists and
-  points forward, the concrete cases are demonstrated in Ch 6/11
+  points forward, the concrete cases are demonstrated in Ch 7/11
 - version note: n/a (stable, long-standing platform divergence)
-- confirmable: yes (real transcripts in Ch 6/11)
+- confirmable: yes (real transcripts in Ch 7/11)
 
 ### WSL2 is a real Linux (full Linux kernel) running inside Windows
 - chapter/section: Ch 1, "How to read this book" (Windows =
@@ -79,13 +79,13 @@ Access date for all web sources below: 2026-07-01.
 - chapter/section: Ch 1, "Why researchers specifically"
 - source: docs.astral.sh/uv and rstudio.github.io/renv (the
   authoritative homes per PLAN Section 10); operational teaching
-  is deferred to Ch 12
+  is deferred to Ch 13
 - accessed: 2026-07-01
 - verifies: only that uv and renv are named as the Python and R
   environment managers; Ch 1 shows no uv/renv command and makes
   no version-specific claim about either, so the naming is safe.
-  Operational behavior is **deferred to Ch 12 (now drafted and
+  Operational behavior is **deferred to Ch 13 (now drafted and
   committed) and is NOT verified by Ch 1.**
 - version note: named-only in Ch 1; version-stamped operationally
-  in Ch 12 (now drafted)
+  in Ch 13 (now drafted)
 - confirmable: yes (named-only)

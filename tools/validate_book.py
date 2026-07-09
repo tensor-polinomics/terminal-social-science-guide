@@ -23,7 +23,7 @@ fail the gate.
 
 Usage:
   python tools/validate_book.py book
-  python tools/validate_book.py book/chapters/06-pipes-redirection-danger.qmd
+  python tools/validate_book.py book/chapters/07-pipes-redirection-danger.qmd
 """
 
 from __future__ import annotations

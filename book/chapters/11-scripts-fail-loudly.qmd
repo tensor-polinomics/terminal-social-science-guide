@@ -16,16 +16,16 @@ they are close cousins, because both come down to refusing to
 let the shell paper over a problem.
 
 This is where several promises from earlier chapters come due.
-Chapter 6 showed `pipefail` and promised that the book's scripts
+Chapter 7 showed `pipefail` and promised that the book's scripts
 would open with `set -euo pipefail`; here they do. Chapter 2
 introduced the exit code and `$?` and deferred `set -e` to here;
 this chapter makes them operational. Chapter 3 took a firm
 position, write scripts for bash with portable habits, and
 flagged the macOS bash-3.2 floor; here that becomes the rule a
-script is written to. Chapter 7 pinned `LC_ALL` for a
+script is written to. Chapter 8 pinned `LC_ALL` for a
 reproducible `sort` and left the standard script header to this
 chapter. And the loud, reproducible script you build here is the
-thin wrapper the Make graph of Chapter 11 will invoke: Make owns
+thin wrapper the Make graph of Chapter 12 will invoke: Make owns
 the dependency graph, and a script is the small, honest step at
 each node.
 
@@ -38,7 +38,7 @@ Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16, GNU coreutils
 `/tmp` scratch directories. Four things run on the author's Mac
 (`transcripts/capture-ch10-mac.sh`) because the sandbox cannot
 produce them: ShellCheck and shfmt (blocked release binaries,
-like DuckDB in Chapter 7 and `fd` in Chapter 8), the macOS
+like DuckDB in Chapter 8 and `fd` in Chapter 9), the macOS
 bash-3.2 failures, and BSD `/usr/bin/time` and `date`. Those
 Mac blocks are marked where they appear. No real credential or
 account name appears anywhere; scratch paths are relative.
@@ -62,7 +62,7 @@ running under bash 5.1.16(1)-release
 Three things make that work. The `#!/usr/bin/env bash` line
 tells the kernel to find `bash` on your `PATH` and feed it the
 file, so the script runs under bash wherever bash happens to be
-installed. The `chmod +x` (Chapter 9) marks the file executable
+installed. The `chmod +x` (Chapter 10) marks the file executable
 so you can run it as `./pipeline.sh`. And the script reports the
 bash that actually ran it, `5.1.16` in the sandbox. Why
 `/usr/bin/env bash` rather than a hardcoded `#!/bin/bash`? A
@@ -148,7 +148,7 @@ and there: "step 2" never prints, and the script's exit status
 is the failing command's `1`, so anything that runs it, a
 Makefile, a scheduler, another script, sees the failure. That is
 the `-e`: *exit on error*. The `-o pipefail` is the option
-Chapter 6 introduced, which makes a pipeline fail when any stage
+Chapter 7 introduced, which makes a pipeline fail when any stage
 fails, not only its last; you carry it here as part of the
 header rather than re-deriving it. The `-u` is *treat an unset
 variable as an error*, which catches the most common typo in a
@@ -164,7 +164,7 @@ $ ./need.sh
 ```
 
 Without `-u` that line would print `output dir is []` and sail
-on, and a later `rm -rf "$OUTDIR"/*` (Chapter 6) would expand to
+on, and a later `rm -rf "$OUTDIR"/*` (Chapter 7) would expand to
 `rm -rf /*`. With `-u` the script stops at the unset variable
 and names the line. Read `set -euo pipefail` as one habit: stop
 on the first failed command, stop on an unset variable, and stop
@@ -193,12 +193,12 @@ $ cat count.txt
 ```
 
 `sort` failed, but the `>` had already truncated `sorted.csv` to
-an empty file (Chapter 6), `wc` happily counted its zero lines,
+an empty file (Chapter 7), `wc` happily counted its zero lines,
 and the script printed "summary written" and *exited 0*. Nothing
 looks wrong: there is an output file, there is a success status,
 and a downstream step or a collaborator has no reason to
 suspect the count is a lie. This is the scripted sibling of
-Chapter 6's `pipefail` trap and Chapter 5's raw-in/generated-out
+Chapter 7's `pipefail` trap and Chapter 6's raw-in/generated-out
 hygiene: a silent failure is worse than a loud one, because you
 act on it. Adding `set -euo pipefail` to the top of this script
 turns the missing input into an immediate nonzero exit, which is
@@ -231,7 +231,7 @@ $ echo $?
 ```
 
 The guard checks its precondition, writes the complaint to
-stderr with `>&2` (Chapter 6) so it does not pollute the data on
+stderr with `>&2` (Chapter 7) so it does not pollute the data on
 stdout, and `exit 3` ends the script with a status you chose. A
 plain `exit` (or the end of the script) returns the last
 command's status; `exit 0` forces success; `exit N` reports a
@@ -259,7 +259,7 @@ on the way out the `ERR` trap fired and reported the line and
 the status; "done" never ran. A trap on `EXIT` (rather than
 `ERR`) runs on *every* exit and is the place to delete a scratch
 file or a lock whether the script succeeds or fails, the
-scripted form of the cleanup Chapter 9's `SIGTERM` handler did
+scripted form of the cleanup Chapter 10's `SIGTERM` handler did
 for a signal. Keep the handler short; its job is to leave the
 workspace clean and the failure visible, not to soldier on.
 
@@ -351,7 +351,7 @@ A script that fails loudly at runtime is good; a script whose
 bugs are caught *before* it runs is better. **ShellCheck** is a
 static analyzer for shell scripts: it reads the file and flags
 the mistakes that bite, most of all the unquoted expansion
-Chapter 6 warned about. Run it on a script with a bare `$infile`
+Chapter 7 warned about. Run it on a script with a bare `$infile`
 (captured on the author's Mac, `transcripts/ch10-lint-mac.txt`):
 
 ```bash
@@ -422,7 +422,7 @@ A long job that printed its progress and then scrolled away
 leaves you nothing to point to when you ask, later, what it
 actually did. The lightweight fix is to keep a log. `tee` reads
 a stream and writes it to a file *and* to the screen at once,
-delivering the promise Chapter 6 made when it split output with
+delivering the promise Chapter 7 made when it split output with
 `>` alone:
 
 ```bash
@@ -441,7 +441,7 @@ the log a dated name, `... | tee "logs/run-$(date -u
 +%Y%m%dT%H%M%SZ).log"`, so successive runs do not overwrite each
 other and the filename records when the job ran. To capture
 errors as well as output, merge the streams first: `./job.sh
-2>&1 | tee run.log` (Chapter 6). For a heavier record, `script`
+2>&1 | tee run.log` (Chapter 7). For a heavier record, `script`
 captures an entire terminal session, every command and its
 output and the timing, into a `typescript` file: `script
 session.log` starts recording and `exit` stops it. `script` logs
@@ -497,7 +497,7 @@ gives a short real/user/sys line on either.
 A script can be correct and still give two different answers on
 two machines, because some tools read their behavior from the
 environment rather than from your code. Two variables cause most
-of the drift in research work. Chapter 7 showed the first,
+of the drift in research work. Chapter 8 showed the first,
 `LC_ALL`: the locale sets `sort` order and therefore any
 checksum taken over sorted output, so a script whose result must
 be byte-identical everywhere pins it, `export LC_ALL=C`, to force
@@ -540,7 +540,7 @@ environment settings that would otherwise let sort order, date
 strings, and any checksum taken over them depend on the machine.
 Pin them whenever text the locale controls, a sort order, a
 formatted date, a checksum over either, enters your outputs.
-(The running example's own locked hash in Chapter 11 is stable
+(The running example's own locked hash in Chapter 12 is stable
 for a different reason, it digests rounded numeric bytes rather
 than locale-sensitive text; but the instinct is the same, make
 the result independent of where the script ran.) Use this header
@@ -556,7 +556,7 @@ The date example uses a divergence worth naming. Reading a Unix
 timestamp with `date -d @1700000000` is the GNU form; BSD `date`
 on macOS spells it `date -r 1700000000`, and `-d` there means
 something else entirely. It is the same `sed`/`date`/`readlink`
-BSD-versus-GNU split from Chapter 4, and the portable move for a
+BSD-versus-GNU split from Chapter 5, and the portable move for a
 script that must run on both is to pin `TZ` and avoid
 platform-specific `date` parsing, or to compute timestamps in a
 language layer (Python, R) whose date handling you control.
@@ -624,7 +624,7 @@ warning, and returns nonzero; `set -e` stops the script, the
 `ERR` trap reports line 10, and the exit status is `1`, so a
 Makefile or a collaborator running this first would halt before
 analyzing corrupted input. This file-level check is the
-lightweight sibling of Chapter 11's `make check`, which
+lightweight sibling of Chapter 12's `make check`, which
 re-derives the pipeline's *content* hash from the numbers
 themselves; `verify.sh` guards the raw bytes, `make check` guards
 the computed result, and both fail loudly so a reproducibility
@@ -632,7 +632,7 @@ problem stops the build instead of riding through it.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5. Do the
+These use the asset-pricing project from Chapter 6. Do the
 throwaway steps in `/tmp`, and keep a copy of the raw data so you
 can restore it.
 
@@ -662,11 +662,11 @@ can restore it.
 
 5. Pin and checksum, on a scratch copy. Copy the raw data to a
    throwaway dir first (`cp -r data/raw /tmp/verify-demo`) so the
-   real `data/raw/` is never touched (Chapter 5's immutability
+   real `data/raw/` is never touched (Chapter 6's immutability
    rule). In the copy, write a `verify.sh` that pins `LC_ALL`/`TZ`
    and runs `sha256sum -c` against a manifest you build there
    (`cd /tmp/verify-demo && sha256sum *.csv > SHA256SUMS`), and
    `tee`s a log. Append a byte to one *copied* file, rerun, and
    confirm the script fails loudly with a nonzero exit; delete the
    scratch dir when done. Explain how this differs from Chapter
-   11's `make check`.
+   12's `make check`.

@@ -1,220 +1,128 @@
-# Source-verification log: Chapter 15 (Modern CLI Kit and TUIs)
+# Source-verification log: Chapter 15 (Persistent sessions)
 
-Per PLAN.md Section 10. This chapter is a curated survey of a
-separately-installed tool kit, so, like the AI-CLI chapter, it is
-**version-stamped**: every tool carries a "current as of
-2026-07-06" note pinned to its project repository. The version
-anchor is `transcripts/ch15-versions-mac.txt` (from
-`transcripts/capture-ch15-mac.sh`, run on the user's Mac
-2026-07-06), which records `bat` 0.26.1, `delta` 0.19.2,
-`zoxide` 0.9.9, `fzf` 0.70.0, `lazygit` 0.62.2, `btop` 1.4.7,
-`ncdu` 2.9.2, and `fd` 10.4.2. `eza`'s `--version` prints a
-description line first, so the `head -1` probe in the versions
-file captured that line rather than the number; `eza` 0.23.4 is
-stamped instead in the header of `ch15-eza-mac.txt` (from `eza
---version | sed -n 2p`). `ripgrep` 13.0.0 and `fd` 10.4.2 were
-already stamped in Chapter 8.
+Per PLAN.md Section 10. Chapter 15 teaches tmux for surviving
+disconnects on long jobs, with screen as a one-breath aside.
+tmux is preinstalled in the Linux sandbox (tmux 3.2a) and on the
+remote server (Ch 14 probe: `/usr/bin/tmux`), so most of the
+chapter is captured live in the sandbox; only the one claim that
+requires actual remoteness, that a session outlives the `ssh`
+connection that started it, is captured on the author's Mac
+against a real remote Linux server. Behavior that cannot be
+driven non-interactively (the prefix key, `Ctrl-b d`, an
+interactive `attach`) is pinned to the tmux and GNU Screen
+manuals, fetched 2026-07-05, and everything scriptable is
+verified by a real run.
 
-The whole kit is blocked in this book's Linux workspace sandbox
-(GitHub-release / cargo / Homebrew binaries; only `ripgrep` and
-`du` are preinstalled, both already taught), so every shown
-command block is a **real Mac capture**, run with color and icons
-OFF because those are ANSI/Unicode the print PDF drops. The three
-pure TUIs (`lazygit`, `btop`, `ncdu`) are version-stamped but not
-run: a full-screen program owns the terminal and cannot be
-captured in a transcript (the Chapter 9 / 16 lesson). Access date
-for all web sources: 2026-07-06.
+## Provenance classes
 
-### Shown blocks: all real Mac captures, byte-checked
-- chapter/section: Ch 15, all six sections
-- source: real Mac captures, no external claim
-- accessed: 2026-07-06
-- verifies: the five shown fenced `bash` blocks (eza, bat,
-  zoxide, fzf, git diff) map to transcripts and were byte-checked
-  with `cat -A`:
-  - `eza -l --git scripts` -> `ch15-eza-mac.txt` (the `--tree`
-    block in that transcript is Unicode box-glyphs and is
-    deliberately NOT shown, only described; the ASCII-safe
-    `-l --git` block with the real `-M` git-status marker on the
-    edited `02_portfolio.py` is the shown one).
-  - `bat --style=numbers --decorations=always --color=never
-    --paging=never --line-range=1:16 scripts/00_make_data.py`
-    -> `ch15-bat-mac.txt`. `--decorations=always` is forced
-    because bat auto-plains (acts like `cat`) when its stdout is
-    not a terminal, e.g. redirected to the capture file; that
-    fallback is itself a taught point.
-  - `zoxide query` (throwaway `_ZO_DATA_DIR` db) + `fzf --filter`
-    -> `ch15-nav-mac.txt`.
-  - `git diff scripts/02_portfolio.py` -> `ch15-diff-mac.txt`
-    (the portable baseline the `delta` section describes; the
-    same decile->quintile edit as Chapter 16's review demo).
-- note (byte-identity, disclosed): editors strip trailing
-  whitespace, so three whitespace-only lines cannot be reproduced
-  in the `.qmd` and match the transcript only under
-  trailing-whitespace normalization: the bat blank-line gutters
-  (source lines 3, 9, 15 print as `   N ` with a trailing space
-  in the transcript, `   N` in the chapter) and the two blank
-  diff context lines (a single space in the transcript, empty in
-  the chapter). Every non-whitespace character is identical. This
-  is an unavoidable editor artifact, not an invented edit.
-- version note: n/a (real capture)
-- confirmable: yes (transcripts under `transcripts/`)
+- **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5 LTS,
+  GNU bash 5.1.16, tmux 3.2a, GNU Screen 4.09.00. Every tmux
+  demo is captured NON-interactively through tmux's command
+  interface (`new-session -d`, `ls`, `capture-pane -p`,
+  `send-keys`, `new-window`, `split-window`, `list-windows`,
+  `list-panes`, `kill-session`), never by an interactive
+  `attach`, which would take over the terminal and hang a
+  scripted capture (the Ch 10 interactive-shell lesson). All
+  sessions run in the sandbox with book-chosen names (`work`,
+  `job`, `analysis`, `build`); pane size fixed at 80x24 (`-x`,
+  `-y`) so captures are stable. Transcripts: `ch14-coreloop.txt`
+  (new/ls/kill lifecycle), `ch14-progress.txt` (a job
+  progressing while detached, two `capture-pane` dumps),
+  `ch14-structure.txt` (window/pane containment via
+  `list-windows`/`list-panes`), `ch14-sendkeys.txt`
+  (`send-keys` + `capture-pane`), `ch14-selfdestruct.txt` (a
+  session whose only command exits ends by itself),
+  `ch14-screen.txt` (`screen --version` only; `screen -ls` is
+  not shown because its socket path embeds the account name).
+- **Mac + real remote server, captured by
+  `transcripts/capture-ch14-mac.sh`:** `ch14-versions-mac.txt`
+  (the Mac's tmux + screen versions) and `ch14-server-mac.txt`
+  (the survive-a-disconnect demo). The script hardcodes NO
+  personal data; it derives the server hostname, account, and
+  home at runtime and masks them at capture time, emits the
+  server alias as `lab-server`, and uses only the book's session
+  name `job`. All `ssh` calls are non-interactive one-shots
+  (BatchMode); connection A starts the detached session and
+  returns, and connections B, C, D are independent `ssh`
+  invocations that find the session still running and advancing,
+  then read its intact `tee` log, proving nothing depended on
+  the first connection staying open. STATUS: RECONCILED
+  byte-for-byte 2026-07-05 after the user ran
+  `capture-ch14-mac.sh` (Mac tmux 3.7a, screen 4.00.03; server
+  session created 19:57:08, Connection C at step 8, log tail at
+  steps 14-16). The chapter shows Connection A (start), B
+  (`tmux ls`, session present), C (`capture-pane`, step 8), and
+  the log tail; the capture also took a fourth read (a second
+  `capture-pane`, step 15), kept in the transcript but dropped
+  from the chapter as redundant with the local demo. `tmux ls`
+  is filtered at capture time to the demo session, so the
+  author's unrelated pre-existing sessions never enter the repo.
 
-### eza (0.23.4): ls upgrade, git-status column, --tree
-- chapter/section: Ch 15, "eza: `ls` with a git column"
-- source: eza project repo (https://github.com/eza-community/eza)
-- accessed: 2026-07-06
-- verifies: eza is a maintained `ls` replacement; `-l` long
-  listing with human sizes by default; `--git` adds a per-file
-  git-status column (two chars, staged/unstaged); `--tree` draws
-  a directory tree (Unicode branch glyphs); optional Nerd-Font
-  icons. The `--version` banner names the repo.
-- version note: current as of 2026-07-06, eza v0.23.4.
-- confirmable: yes (repo + captured `--version`)
+## Verified live in the sandbox (not assumed)
 
-### bat (0.26.1): cat upgrade, numbers, syntax, tty-awareness
-- chapter/section: Ch 15, "bat: `cat` that shows structure"
-- source: bat project repo (https://github.com/sharkdp/bat)
-- accessed: 2026-07-06
-- verifies: bat is a `cat` clone with a line-number gutter,
-  syntax highlighting, and a git change gutter; it auto-switches
-  to plain `cat`-like output when stdout is not a terminal (so
-  `bat file | cmd` behaves like `cat`), which is why the capture
-  forces `--decorations=always`.
-- version note: current as of 2026-07-06, bat 0.26.1.
-- confirmable: yes (repo + captured demo)
+- A detached session created with `tmux new-session -d` appears
+  in `tmux ls` with no client attached, and `tmux kill-session`
+  removes it; when the last session ends, the tmux server exits
+  (`no server running on ...`). (`ch14-coreloop.txt`.)
+- A job in a detached session keeps running with no terminal
+  attached: two `capture-pane -p` calls a few seconds apart show
+  it advanced from 3 to 7 steps. (`ch14-progress.txt`.) This is
+  the persistence mechanism, captured without ever attaching.
+- The session/window/pane containment is real:
+  `new-window`/`split-window` build a session with two windows,
+  the second holding two panes, confirmed by
+  `list-windows`/`list-panes`. (`ch14-structure.txt`.)
+- `send-keys` types a command into a pane and `capture-pane`
+  reads the result, both without attaching.
+  (`ch14-sendkeys.txt`.)
+- The self-destruct PITFALL is a real run, not a doc claim: a
+  session whose only process is the job ends the moment the job
+  exits, so `tmux ls` a few seconds later reports no server.
+  (`ch14-selfdestruct.txt`.) The documented mechanism is
+  `remain-on-exit` (off by default), so a window closes when its
+  program exits and the last window closing ends the session.
 
-### zoxide (0.9.9) and fzf (0.70.0): cd augment, fuzzy finder
-- chapter/section: Ch 15, "zoxide and fzf: getting there faster"
-- source: zoxide repo (https://github.com/ajeetdsouza/zoxide);
-  fzf repo (https://github.com/junegunn/fzf)
-- accessed: 2026-07-06
-- verifies: zoxide is a "smarter cd" that ranks visited
-  directories; the `z` command is installed by a shell init hook
-  (`eval "$(zoxide init <shell>)"`), while `zoxide query` is the
-  underlying lookup; it only knows directories already visited.
-  fzf is a general fuzzy finder over stdin; its interactive UI is
-  the default, and `--filter <query>` (`-f`) runs it
-  non-interactively; its `Ctrl-R`/`Ctrl-T` key bindings are
-  shell-integration set up in startup files (Chapter 17).
-- version note: current as of 2026-07-06, zoxide 0.9.9, fzf
-  0.70.0.
-- confirmable: yes (repos + captured demos)
+## Source-pinned, external / interactive-only (fetched 2026-07-05)
 
-### delta (0.19.2): a syntax-highlighting pager for git diffs
-- chapter/section: Ch 15, "delta: readable diffs"
-- source: delta project repo (https://github.com/dandavison/delta)
-- accessed: 2026-07-06
-- verifies: delta is a pager for `git diff`/`diff` output (you
-  point git's pager at it via git config); it adds syntax
-  highlighting, line numbers, and optional side-by-side layout.
-  It does not change the diff content, only its rendering, which
-  is why the chapter shows the plain `git diff` it consumes and
-  describes the coloring (inherently ANSI, dropped by print).
-- version note: current as of 2026-07-06, delta 0.19.2.
-- confirmable: yes (repo + captured plain `git diff`)
+- **Default prefix key `C-b`; `C-b d` detaches; `C-b` sent twice
+  passes the prefix through to a nested tmux; `attach-session`
+  (`attach`) with `-d` detaches any other clients attached to
+  the session; `capture-pane` with `-p` prints the pane contents
+  to standard output.** tmux(1) manual.
+  <https://man7.org/linux/man-pages/man1/tmux.1.html> and the
+  tmux "Getting Started" wiki
+  <https://github.com/tmux/tmux/wiki/Getting-Started>. Confirmed
+  2026-07-05. The scriptable half of each (`capture-pane -p`,
+  session lifecycle) is additionally verified by live capture
+  above; the interactive keystrokes cannot be captured
+  non-interactively and rely on the manual.
+- **GNU Screen's default command character is `C-a`** (commands
+  are two keystrokes, `C-a` then one more), so screen's prefix
+  differs from tmux's `C-b`. GNU Screen manual, "Command
+  Character".
+  <https://www.gnu.org/software/screen/manual/html_node/Command-Character.html>
+  The command-line flags used in the chapter's DIVERGENCE
+  (`screen -S` names a session, `screen -ls` lists, `screen -r`
+  reattaches, `screen -dmS` starts one detached) are the screen
+  manual's command-line options, "Invoking Screen".
+  <https://www.gnu.org/software/screen/manual/html_node/Invoking-Screen.html>
+  Both confirmed 2026-07-05. `screen --version` (4.09.00) is a
+  real sandbox capture; the `-dmS`/`-ls`/`-X quit` loop was also
+  run live in the sandbox during the probe.
 
-### TUIs: lazygit (0.62.2), btop (1.4.7), ncdu (2.9.2)
-- chapter/section: Ch 15, "The TUIs: lazygit, btop, and ncdu"
-- source: lazygit repo (https://github.com/jesseduffield/lazygit);
-  btop repo (https://github.com/aristocratos/btop); ncdu homepage
-  (https://dev.yorhel.nl/ncdu)
-- accessed: 2026-07-06
-- verifies: lazygit is a full-screen TUI front end for git; btop
-  is a resource monitor (CPU/memory/network/process), a
-  friendlier `top`; ncdu (NCurses Disk Usage) is the interactive,
-  navigable `du` that Chapter 13 explicitly routed here. All
-  three are full-screen TUIs that own the terminal and cannot be
-  scripted, so only their `--version` is captured
-  (`ch15-versions-mac.txt`); the walkthroughs are prose.
-- version note: current as of 2026-07-06; lazygit 0.62.2, btop
-  1.4.7, ncdu 2.9.2.
-- confirmable: yes (repos/homepage + captured `--version`)
+## Cross-references (asserted, not re-taught; verified in prior chapters)
 
-### DIVERGENCE: install story + the Debian/Ubuntu binary renames
-- chapter/section: Ch 15, "The portability tax"; DIVERGENCE
-- source: fd README (https://github.com/sharkdp/fd) and the
-  Debian `fd-find` file list
-  (https://packages.debian.org/bookworm/amd64/fd-find/filelist);
-  bat README (https://github.com/sharkdp/bat) and the Debian
-  `bat` file lists that ship `/usr/bin/batcat`
-  (https://packages.debian.org/bookworm/amd64/bat/filelist,
-  https://packages.debian.org/trixie/amd64/bat/filelist,
-  https://packages.debian.org/sid/amd64/bat/filelist)
-- accessed: 2026-07-06
-- verifies: on Debian/Ubuntu `apt` renames these binaries to
-  avoid clashes with packages that already own the short name.
-  `fd` installs from package `fd-find` as `fdfind` (the name `fd`
-  belongs to `fdclone`); the fd README recommends symlinking
-  `fdfind` to `~/.local/bin/fd`. `bat` installs as `batcat`: the
-  Debian file lists for bookworm, trixie, and sid all ship
-  `/usr/bin/batcat`, i.e. current Debian still uses `batcat`, it
-  was NOT moved back. The chapter therefore claims NO reversion;
-  it says the exact name depends on the distribution and release
-  and that you confirm it with `command -v`. The mechanism (a
-  name clash, not a broken flag) and the `command -v` check are
-  the durable points.
-- version note: current as of 2026-07-06. CORRECTION (Codex
-  round-1 blocker): an earlier draft claimed Debian 12 / Ubuntu
-  23.04 moved `bat` back to `bat`. That was WRONG, based on a web
-  search summary rather than the package contents; Codex checked
-  the authoritative Debian file lists (`/usr/bin/batcat` in
-  bookworm/trixie/sid), so the reversion claim was removed and
-  the callout reworded to the release-independent, always-true
-  form ("check with `command -v`").
-- confirmable: yes (fd/bat READMEs + Debian package file lists)
-
-### Internal cross-references (not externally pinned)
-- chapter/section: Ch 15 throughout
-- source: this book, Ch 4 (`ls -l`, `cd`), Ch 6 (`cat`), Ch 8
-  (`fd`, `ripgrep`, already met), Ch 10 (fail-loudly scripting),
-  Ch 11 (the Makefile / `make check`), Ch 13 (the bare server,
-  `ncdu`
-  routed here, `du`), Ch 2 (`command -v`); forward to Ch 17
-  (startup files, aliases, the zoxide/fzf shell hooks)
-- accessed: n/a
-- verifies: the chapter frames each tool as an upgrade to a
-  command already taught and does NOT re-teach `ls`/`cd`/`cat`/
-  `fd`/`ripgrep`/`du` or install/PATH; it delivers Ch 13's ncdu
-  routing and Ch 16's opening line ("Chapter 15 added a kit of
-  faster, friendlier commands to the shell"); alias/dotfile
-  persistence is deferred to Ch 17 with forward "will" language.
-- note: the kickoff premise that Chapter 8 forward-promised
-  bat/eza/delta ("viewing, not finding, Chapter 15") is FALSE:
-  a grep of `08-finding-things.qmd` finds no mention of bat, eza,
-  delta, "Chapter 15", or "viewing". Chapter 15 therefore
-  cross-refs Ch 8 only for `fd`/`ripgrep` ("already met"), and
-  makes NO back-reference claiming Ch 8 pointed here.
-- version note: n/a
-- confirmable: yes (internal)
-
-## Gate confirmations
-
-- **Version anchor: DONE (2026-07-06).** `capture-ch15-mac.sh`
-  run on the Mac; all nine tools installed and stamped in
-  `ch15-versions-mac.txt`. The chapter states versions in prose
-  and in the provenance note (Ch 11 / Ch 16 style); no
-  `--version` command block is shown (the `btop --version` line
-  carries raw ANSI, another reason not to show it).
-- **Captures reconciled byte-for-byte (2026-07-06)** over two
-  runs. Run 1 surfaced two issues, both fixed in the capture
-  script and re-run: bat emitted no line numbers when piped
-  (fixed with `--decorations=always`), and the zoxide query
-  resolved to the project's real absolute path, which is deep and
-  specific to the author's checkout, so a capture-time mask
-  collapses it to a clean, representative
-  `/Users/[account]/projects/asset-pricing`, the form a reader's
-  own project would take. This is an editorial choice for a
-  cleaner block, not a mask requirement: the repo-location string
-  itself is not treated as secret and already appears in other
-  committed capture-script headers and transcripts. eza `--tree`
-  confirmed Unicode-glyph (not shown); eza `-l --git` ASCII-safe
-  (shown).
-- **Validator 0/0** in the sandbox (`python3` with PyYAML). The
-  canonical `uv run python tools/validate_book.py book` is a Mac
-  step at the gate.
-- **Render check is a Mac step at the gate.** The ANSI/glyph risk
-  is real here (Ch 5 box-glyph, Ch 7 duckbox lessons): confirm in
-  the Mac HTML+PDF render that the eza `-l --git`, bat numbered,
-  zoxide/fzf, diff, and the markdown comparison table all render
-  without overflow or dropped glyphs, and note the page range.
+- `ssh` and the dropped-connection/`SIGHUP` hazard: Chapter 14
+  (committed `8c2cf09`) and Chapter 10's `nohup` section. Chapter
+  15 delivers the forward promise both made (Ch 10: "the tool
+  built for running long jobs you detach from and later reattach
+  to ... is tmux, which Chapter 15 will cover"; Ch 14's closing
+  line).
+- The `tee` run log: Chapter 11 (committed `f973acb`). The
+  REPRODUCIBILITY callout ties the surviving job to its
+  surviving log without re-crediting Chapter 11's mechanism.
+- The `sbatch` scheduler as the right tool when a job must
+  survive a reboot: Chapter 14's HPC section (recognize-and-
+  route), contrasted with tmux, which does not survive a reboot.
+- The process model (a session is processes that outlive a
+  terminal): Chapter 2, framed on, not re-taught.

@@ -1,272 +1,281 @@
-# Source-verification log: Chapter 5 (Organizing a project from the shell)
+# Source-verification log: Chapter 5 (Navigation & file operations)
 
-Per PLAN.md Section 10. Chapter 5 is executable and almost
-entirely real sandbox output, so this log is light on external
-pins (only the two scaffolding-tool versions) and heavy on
-transcript provenance. One provenance class this chapter, plus a
-single cross-referenced Mac transcript owned by Chapter 4:
+Per PLAN.md Section 10. Chapter 5 is executable: nearly all of
+it is real command output, so this log is lighter on external
+pins than Ch 3 and heavier on transcript provenance. Two
+provenance classes:
 
 - **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5 LTS,
-  GNU bash 5.1.16, GNU coreutils 8.32, aarch64. The scaffold and
-  pitfall demos run in throwaway `/tmp` scratch directories; the
-  tour runs in a clean copy of the asset-pricing project's
-  repo-relevant tree at `/tmp/ap` (scripts + data + output +
-  the root files, with `.venv/`, the `renv/` library, caches,
-  and render products excluded). Transcripts: `ch05-scaffold.txt`,
-  `ch05-place-files.txt`, `ch05-tour.txt`, `ch05-brace-space.txt`,
-  `ch05-scaffold-tools.txt`. Every shown `$` block was diffed
-  byte-for-byte against its transcript.
-- **No new Mac capture this chapter.** The one place the layout
-  meets a platform divergence, case-insensitive filenames, was
-  captured on the author's Mac for Chapter 4
-  (`transcripts/ch04-case-mac.txt`, macOS 26.5.1) and is
-  cross-referenced here, not re-shown. There is therefore no
-  `capture-ch05-mac.sh`: nothing in this chapter behaves
-  differently enough on macOS to earn one.
+  GNU bash 5.1.16, GNU coreutils 8.32, aarch64. Run in a clean
+  copy of the asset-pricing project at `/tmp/asset-pricing`
+  (the sandbox `$HOME` is a `/sessions/...` quirk, so a clean
+  `/tmp` copy gives teachable absolute paths, exactly as Ch 2
+  used `/tmp/ch02-fs/project`) and in throwaway `/tmp` scratch
+  directories for the create/overwrite demos. Transcripts:
+  `ch04-pwd-ls.txt`, `ch04-cd.txt`, `ch04-ls-long.txt`,
+  `ch04-stat.txt`, `ch04-mkdir.txt`, `ch04-cp-mv.txt`,
+  `ch04-symlink.txt`, `ch04-case.txt`. Every sandbox block the
+  chapter shows was diffed byte-for-byte against its transcript
+  (including the literal tabs in `stat` output).
+- **Real, user's Mac (macOS/BSD divergences), read-only,
+  RECONCILED 2026-07-02:** produced by
+  `transcripts/capture-ch04-mac.sh` (makes ONE `mktemp -d`
+  scratch, removes it on exit, installs nothing; masks `$HOME`,
+  the bare account name, and the `$TMPDIR` folder hash).
+  Transcripts: `ch04-home-mac.txt`, `ch04-ls-mac.txt`,
+  `ch04-stat-mac.txt`, `ch04-symlink-mac.txt`,
+  `ch04-case-mac.txt` (macOS 26.5.1, zsh 5.9). The user ran the
+  script; the chapter's Mac blocks are reconciled to it. Two
+  findings landed as edits: (1) on macOS 26.5.1 BOTH
+  `readlink -f` and `realpath` resolve the link (exit 0), so
+  the symlink DIVERGENCE was rewritten from "uneven, settle by
+  capture" to "recent macOS has caught up; both work here, but
+  older macOS/bare BSD may not, so portable scripts still
+  prefer plain `readlink`"; (2) the BSD `stat -f` output line
+  was added to the chapter. All other Mac values matched the
+  draft (`~`/`$HOME` -> `/Users/[account]`; BSD `ls -l`
+  `total 16` in 512-byte blocks + `ls -G` exit 0; APFS
+  case-insensitive: one `Foo.txt`, `cat Foo.txt` -> `lower`).
 
-Masks: none this chapter. The scaffold, tour, and pitfall use
-plain `ls`/`ls -R`/`find` and throwaway `/tmp` paths, so no owner
-columns, homes, or hostnames appear. The tool versions are read
-with `python3 -c "... __version__"` (not `--version`), so they
-print only the bare version string, no install path and no
-account name. There is therefore nothing to mask and no mask is
-claimed (an earlier draft version-checked with `--version`, whose
-`site-packages` path carried the account name; that approach was
-dropped in favor of `__version__`, which sidesteps the path
-entirely). Access date for the two external pins below:
+Masks documented in each transcript `note:` header: home paths
+to `/Users/[account]` / `/home/[account]`; the `ls -l` and
+`stat` owner/group account name to `[account]` (this is the
+first chapter to expose owner columns); and, NEW this chapter,
+the macOS per-account `$TMPDIR` folder hash under
+`/private/var/folders/<hash>/...` (exposed by `readlink -f` /
+`realpath` resolving into the mktemp scratch) masked to
+`/private/var/folders/[tmpdir]`. The capture script's `mask()`
+was patched to scrub that folder hash on any rerun. The macOS
+group `staff`, numeric uids/gids, and the random `ch04mac.XXXXXX`
+mktemp suffix are not user-identifying and are left as
+captured. Access date for the one external pin below:
 2026-07-02.
 
-Forward/'"will" references: Ch 11 is drafted and committed, so
-its cross-references are present tense ("Chapter 11 makes that
-literal", the `make` regeneration). Ch 12 (environments; uv/renv
-locks), Ch 13 (SSH to a server), and the companion Git book's
-layout / never-commit chapters are cited as scope pointers
-("Chapter 12's subject", "after you have SSH'd ... Chapter 13"),
-never as claims that a stub already teaches or verifies anything.
+Forward references: Ch 2, 3, 7, 12 are drafted and cited in
+present tense / scope form; Ch 6, 10, 11, 18 and Appendix A are
+stubs and every reference to them is a scope statement ("the
+subject of Chapter 10", "Appendix A collects...") or
+forward-contract language ("Chapter 6 will lean on it",
+"Chapter 11 will return to this", "Chapter 18"), never a claim
+they already teach or verify anything. (Appendix A is cited in
+the present-tense "collects" form to match the committed Ch 7,
+which established that phrasing.)
 
-### mkdir -p with brace expansion (the one-line scaffold)
-- chapter/section: "Scaffold the whole tree in one move"
-- source: live sandbox capture `ch05-scaffold.txt`: `mkdir
-  asset-pricing`, `cd` in, then `mkdir -p data/{raw,clean}
-  scripts output/{figures,tables}` (`echo $?` -> 0), `ls -R`
-  walking the built tree, and `echo` on the same brace pattern
-  showing the five expanded paths. The one-liner uses three
-  separate brace groups (not one nested path token) so each
-  typed line stays within the ~64-char width rule; the nested
-  form is named in prose as legal but is not the shown command.
-  Operationalizes Ch 4's `mkdir -p` (which flagged this
-  scaffolding use forward) and `ls -R`.
+### pwd / ls / cd navigation (working-directory model made operational)
+- chapter/section: "Where you are and what is here";
+  "Moving through the tree"
+- source: live sandbox captures `ch04-pwd-ls.txt` (`pwd`, `ls`,
+  `ls data/raw`) and `ch04-cd.txt` (`cd` relative, `cd ..`,
+  absolute `cd`, `cd -`, and the PITFALL rerun of `ls data/raw`
+  from `/tmp` failing). Operationalizes Ch 2's absolute-vs-
+  relative and the "silent precondition" behind `ls data/raw`.
 - accessed: 2026-07-02 (capture date)
-- verifies: exactly what is shown; brace expansion happens in
-  the shell before `mkdir` runs (demonstrated by the `echo`)
-- confirmable: yes (transcript; byte-diffed)
+- verifies: exactly what is shown; the `cd` builtin point is a
+  callback to Ch 2 (why `cd` must change the shell's own dir)
+- confirmable: yes (transcripts; byte-diffed)
 
-### touch placeholders + ls -a (front-matter files)
-- chapter/section: "Scaffold the whole tree in one move"
-- source: live sandbox capture `ch05-place-files.txt` (first
-  block): `touch README.md Makefile report.qmd pyproject.toml
-  .gitignore` (wrapped with a real `\` continuation) and `ls -a`
-  showing `.gitignore` visible only because of `-a`.
+### ~ / $HOME shorthand (shown from the Mac)
+- chapter/section: "Moving through the tree"
+- source: RECONCILED `ch04-home-mac.txt`
+  (`echo $HOME`, `echo ~` -> `/Users/[account]`). Shown from
+  the Mac because the sandbox home is a `/sessions` quirk, the
+  same reason Ch 2 showed `$HOME` from the Mac.
+- accessed: 2026-07-02 (Mac reconcile)
+- verifies: the `~`/`$HOME` = home shorthand; Linux `/home`
+  noted in prose
+- confirmable: yes (captured; matched the draft)
+
+### ls -l / -a / -h and stat (GNU long format + metadata)
+- chapter/section: "Looking closely"
+- source: live sandbox captures `ch04-ls-long.txt`
+  (`ls -l`, `ls -a`, `ls -lh`) and `ch04-stat.txt`
+  (`stat`, `stat -c` format). **Human-review addition
+  (2026-07-02):** the permission block is now decoded for
+  READING (type char + owner/group/other rwx triples, using
+  the captured `-rw-r--r--` and `drwxr-xr-x`, incl. execute-on-
+  a-directory = may enter); CHANGING permissions (`chmod`, the
+  octal 644/755, `chown`) stays Ch 10's job (stub, scope form).
+  The decode explains output already captured, so it needs no
+  new capture. The modification-time tie to `make` is routed
+  to Ch 12 (drafted).
 - accessed: 2026-07-02 (capture date)
-- verifies: creating empty top-level files; the dotfile is
-  hidden from plain `ls` (callback to Ch 4's `-a`)
+- verifies: the `-l` field layout, the permission-string decode
+  (reading only), dotfiles + `.`/`..` under `-a`, human sizes
+  under `-h`, and `stat`'s record incl. the three timestamps
+- confirmable: yes (transcripts; `stat` tabs byte-diffed)
+
+### DIVERGENCE: ls -l `total` block units + the -G false friend (BSD vs GNU)
+- chapter/section: "Looking closely"; DIVERGENCE 1
+- source: GNU side live (`ch04-ls-long.txt`: `total` in 1K
+  blocks, and an `ls -l` / `ls -lG` pair showing GNU `-G` =
+  `--no-group` SUPPRESSING the group column); BSD side
+  RECONCILED `ch04-ls-mac.txt` (`total 16` in 512-byte blocks;
+  plain `ls -G` exit 0). The 512-vs-1K block-size default is
+  BSD `ls` vs GNU `ls` documented behavior, confirmed both
+  sides. The `-G` false-friend: GNU `-G` suppresses the group
+  (captured, `ls --help` line `-G, --no-group`); on BSD (macOS)
+  `-G` instead colorizes and keeps the group (BSD `ls`(1)
+  documented behavior). Both platforms accept `--color=when`,
+  so color is NOT the divergence, the short flag `-G` is.
+  **Round-1 fix:** the earlier draft's false "BSD `ls` has no
+  `--color`" claim was removed (Codex P1). **Round-2 fix:** the
+  macOS side is now CAPTURED, not just doc-backed. The user
+  re-ran `capture-ch04-mac.sh` and `ch04-ls-mac.txt` shows
+  `ls -lG proj/data/raw` on macOS 26.5.1 keeping the `staff`
+  group column (identical to `ls -l`), the direct contrast to
+  GNU `-G` dropping it. So both sides of the false friend are
+  now real output.
+- accessed: 2026-07-02 (sandbox + Mac reconcile, two runs)
+- verifies: the block-unit difference and the `-G` false
+  friend, both platforms captured; default long format
+  otherwise near-identical, not over-claimed as a date-format
+  difference
+- confirmable: yes, both sides captured verbatim
+
+### DIVERGENCE: stat -c (GNU) vs stat -f (BSD)
+- chapter/section: "Looking closely"; DIVERGENCE 2
+- source: GNU side live (`ch04-stat.txt`, `stat -c '%n %s %A
+  %y'`); BSD side RECONCILED `ch04-stat-mac.txt`
+  (`stat -f '%N %z %Sp %Sm'` -> a name/size/perms/mtime line;
+  the chapter now shows that real output). Different flag AND
+  different format specifiers. Portable advice: branch on
+  platform or use `wc -c` / `os.stat`.
+- accessed: 2026-07-02 (sandbox + Mac reconcile)
+- verifies: the flag + specifier divergence; that `stat -c`
+  does not run usefully on macOS
+- confirmable: yes (both sides captured)
+
+### mkdir / mkdir -p / rmdir
+- chapter/section: "Making and clearing directories"
+- source: live sandbox capture `ch04-mkdir.txt`: plain `mkdir`
+  failing on a missing parent (`echo $?` -> 1), `mkdir -p`
+  building the chain (`echo $?` -> 0), `ls -R`, and `rmdir`
+  removing an empty dir but refusing a non-empty one. The
+  shown exit codes are the real immediate `$?` of each command
+  (confirmed by an `exit=$?` probe run with no intervening
+  command; the self-documenting capture harness's label-echo
+  was kept out so `$?` is not consumed, the Ch 2 pitfall).
+- accessed: 2026-07-02 (capture date)
+- verifies: exactly what is shown; `mkdir -p` idempotence noted
+  and routed forward to Ch 6 scaffolding (stub, "will"); the
+  contrast with `rm -r` routed to Ch 7 (drafted)
 - confirmable: yes (transcript)
 
-### PITFALL: a space inside the braces
-- chapter/section: "Scaffold the whole tree in one move"; PITFALL
-- source: live sandbox capture `ch05-brace-space.txt`: `echo
-  data/{raw, clean}` printing the pattern verbatim (expansion
-  suppressed by the space), then `mkdir -p data/{raw, clean}`
-  silently creating a `data/{raw,` directory and a top-level
-  `clean}` (word-split into two arguments), confirmed by `ls`
-  and `ls data`. Exit status is zero, so the failure is silent.
+### cp / cp -r / mv, the silent-overwrite DANGER, and cp -i
+- chapter/section: "Copying and moving"; DANGER; RECOVERY
+- source: live sandbox capture `ch04-cp-mv.txt`: `cp`, `cp -r`,
+  `mv` (rename then move), the silent clobber (`cp new.csv
+  results.csv` replacing `keep me` with `different`), and
+  `cp -i` prompting (`n` fed on stdin for capture; disclosed in
+  the transcript note and the chapter). DANGER points to Ch 7
+  (owns `>`/`rm -rf`, the `${VAR:?}` guard) and Appendix A;
+  RECOVERY cross-refs `git restore` (Git book), `make`
+  regeneration (Ch 12), and the no-recovery case.
 - accessed: 2026-07-02 (capture date)
-- verifies: the real, reproducible consequence of a space inside
-  a brace group; ties back to the same word-splitting named in
-  the naming section
-- confirmable: yes (transcript; byte-diffed)
+- verifies: cp/cp -r/mv behavior, the silent overwrite, the
+  `-i` guard; no runnable `rm` demo here (Ch 7 owns the
+  mechanics). `rm -r` is named twice as a forward-reference /
+  warning only (the DANGER callout and the Try-it cleanup
+  note), never shown as an executed command.
+- confirmable: yes (transcript)
 
-### The project tour (a place for everything)
-- chapter/section: "A place for everything: a tour of the project"
-- source: live sandbox capture `ch05-tour.txt` on the clean
-  `/tmp/ap` copy: `ls` (root), `ls -R data` (raw vs clean),
-  `ls scripts` (numbered 00-04 + helpers), `ls -R output`
-  (figures + tables). Names each home the running example uses;
-  the figure `fig-ch05-layout` summarizes the raw -> scripts ->
-  generated flow. **Human-review addition (2026-07-02):** an
-  annotated layout tree opens the section as a labeled,
-  non-runnable `text` map (per-home roles inline, no `$`
-  prompts); the prose notes "walking it with the Chapter 4
-  commands confirms it is really on disk," so the real `ls -R`
-  output is the evidence and the tree is the schematic. The
-  tree's names were checked line-for-line against `ch05-tour.txt`;
-  the following naming paragraph was trimmed to complement the
-  tree (the raw/clean/output split) rather than re-list every
-  home.
-- accessed: 2026-07-02 (capture date)
-- verifies: the actual layout of `sandbox/asset-pricing/`, so
-  the chapter delivers exactly the structure Ch 6 opens by
-  assuming ("raw data here, scripts there, output in its own
-  folder"); the annotated tree matches that real output
-- confirmable: yes (transcript; the tour output and the annotated
-  map match the committed sandbox project minus the
-  git-ignored/cache paths)
+### ln -s / readlink; DIVERGENCE: readlink -f / realpath (BSD support)
+- chapter/section: "Symbolic links"; DIVERGENCE 3
+- source: GNU side live `ch04-symlink.txt` (`ln -s`, `ls -l`
+  arrow line, `readlink`, `readlink -f`, `realpath` all
+  resolving). BSD side RECONCILED `ch04-symlink-mac.txt`
+  (macOS 26.5.1): both `readlink -f` and `realpath` resolve the
+  link to the absolute path, exit 0, matching GNU. This settles
+  the divergence: recent macOS has caught up, but older macOS
+  shipped no `realpath` and a `readlink` without `-f`, so the
+  chapter keeps the portable advice (rely only on plain
+  `readlink` cross-platform; resolve absolute paths another way
+  when the target machine's age is unknown).
+- accessed: 2026-07-02 (sandbox + Mac reconcile)
+- verifies: link creation/inspection (portable); that on macOS
+  26.5.1 both resolvers work (the "uneven history, recent
+  parity" framing); the relative-target caveat
+- confirmable: yes (both sides captured; the historical
+  unevenness on older macOS is stated as the reason for the
+  portable habit, not independently re-pinned)
 
-### Directory hygiene + tracked-vs-regenerated (incl. the .gitkeep caveat)
-- chapter/section: "Raw in, generated out"; "What Git tracks and
-  what `make` rebuilds"; REPRODUCIBILITY; PITFALL
-- source: the raw-vs-generated flow AND the "ignored dirs are
-  recreated by the pipeline" claim are read directly from the
-  committed `sandbox/asset-pricing/`: the scripts each create
-  their own output directory before writing, verified in the code
-  (`00_make_data.py:188` `RAW.mkdir(parents=True, exist_ok=True)`;
-  `01_clean.py:60` `CLEAN.mkdir(...)`; `02_portfolio.py:65`
-  `OUT.parent.mkdir(...)`; `03_figure.py:35` `FIG.mkdir(...)`;
-  `04_regression.R:34` `dir.create("output/tables",
-  recursive=TRUE)`), and the ignore is real (`.gitignore`
-  `/sandbox/**/data/` + `/sandbox/**/output/`, so `data/raw`,
-  `data/clean`, and `output` are fully untracked). **Codex round
-  1 fix (blocker):** the earlier draft taught `.gitkeep` inside
-  `data/raw`/`data/clean`/`output` to make empty dirs survive a
-  commit, which is FALSE, those paths are git-ignored, so a
-  `.gitkeep` under them is ignored too. The `.gitkeep` command
-  block was removed; the section now teaches (a) the ignored dirs
-  are not on a fresh clone and the scripts/`make` recreate them,
-  and (b) `.gitkeep` is the technique for a genuinely
-  *non-ignored* empty dir and explicitly does NOT keep an ignored
-  one. **Codex re-review then caught a surviving instance:** the
-  Try-it exercise 4 still told readers to add `.gitkeep` to the
-  four ignored data/output dirs, re-enacting the corrected
-  pattern; it was rewritten to "test the `.gitkeep` boundary" on
-  a non-ignored `study/logs/` and to explain why `.gitkeep` does
-  NOT go under the `.gitignore`d paths. REPRODUCIBILITY routes
-  the "one command rebuilds
-  everything" claim to Ch 11 (drafted); the never-commit rationale
-  routes to the companion Git book.
-- accessed: 2026-07-02 (source read of the sandbox scripts +
-  `.gitignore`)
-- verifies: the tracked-vs-ignored split, the pipeline's
-  directory self-creation (code-verified), and the corrected
-  `.gitkeep` caveat; no `.gitkeep` command block is shown
-- confirmable: yes (the scripts' `mkdir`/`dir.create` calls and
-  the `.gitignore` patterns are in the committed sandbox project)
-
-### DIVERGENCE: case-insensitive names biting the layout (cross-ref Ch 4)
-- chapter/section: "Names that survive the trip to the server";
-  DIVERGENCE
-- source: NOT re-captured. This is Chapter 4's case-sensitivity
-  divergence (`ch04-case.txt` Linux side; `ch04-case-mac.txt`
-  macOS APFS side) applied to directory names in a project that
-  moves from a case-insensitive Mac to a case-sensitive Linux
-  server. The chapter points at `transcripts/ch04-case-mac.txt`
-  for the captured macOS behavior rather than duplicating it.
-- accessed: 2026-07-02 (Ch 4 capture reused)
-- verifies: the layout-level consequence (a wrong-case path that
-  works on the Mac fails on the server); no new claim beyond
-  what Ch 4 already captured on both platforms
-- confirmable: yes (via the Ch 4 transcripts)
-
-### copier / cookiecutter (version pins; not run)
-- chapter/section: "Templating a stable layout"
-- source: real install evidence in `ch05-scaffold-tools.txt`
-  (`python3 -c` reading each package's `__version__`):
-  cookiecutter 2.7.1, copier 9.16.0, both from PyPI in the
-  sandbox. The chapter version-stamps them "as of 2026-07-02"
-  and does NOT run a scaffold: a template is its own project
-  (placeholder syntax, a config file, a token-named directory),
-  and teaching that syntax is out of scope (the Ch 16
-  version-stamp + document pattern). The one template-invocation
-  block is a labeled `text` fence, "illustrative; not executed."
-- external pins (access-dated 2026-07-02): cookiecutter and
-  copier are pinned to their captured installed versions
-  (transcript) and to their PyPI/project pages
-  (cookiecutter.readthedocs.io; copier.readthedocs.io) for the
-  "current release" claim; both are volatile and stamped.
-- verifies: the tools exist, install from PyPI, and are at the
-  stated versions; the illustrative invocation is marked
-  non-runnable
-- confirmable: yes for versions (captured); the invocation is
-  deliberately not run and is labeled as such
+### DIVERGENCE: case sensitivity (Linux ext4 vs macOS APFS default)
+- chapter/section: "When names collide"; DIVERGENCE 4
+- source: Linux side live `ch04-case.txt` (`Foo.txt` and
+  `foo.txt` are two distinct files with distinct contents). Mac
+  side RECONCILED `ch04-case-mac.txt` (default APFS is
+  case-insensitive + case-preserving: `ls` shows one `Foo.txt`
+  and `cat Foo.txt` -> `lower`, i.e. `foo.txt` overwrote it, so
+  the same names are ONE file). Consequence framed in the bite
+  direction: Mac-authored wrong-case paths fail on a
+  case-sensitive Linux server; Git two-files-differ-only-by-
+  case cannot coexist in a Mac working copy. Routed forward to
+  Ch 11 (locale/line-endings, stub, "will").
+- accessed: 2026-07-02 (sandbox + Mac reconcile)
+- verifies: the case-sensitivity divergence and its
+  research/reproducibility consequence
+- confirmable: yes (both sides captured)
 
 ### Internal cross-references (not externally pinned)
 - chapter/section: Ch 5 throughout
-- source: this book, Ch 4 (`mkdir -p`, `ls -R`, `ls -a`, `\`
-  line continuation, case sensitivity), Ch 6 (opens on this
-  chapter's layout), Ch 11 (one `make` regenerates
-  `data/clean` + `output`), Ch 12 (uv/renv locks; environments),
-  Ch 13 (SSH to a server). The companion Git book is
-  cross-referenced for the canonical-layout rationale (its
-  replication-package chapter) and for what must never be
-  committed, not re-taught (PLAN Section 6).
+- source: this book, Ch 2 (working directory, absolute-vs-
+  relative, `cd` is a builtin, the BSD/GNU split, `$HOME` shown
+  from the Mac), Ch 3 (a working shell on your platform), Ch 7
+  (owns `rm -rf` / `>` clobber / `${VAR:?}`; Appendix A), Ch 12
+  (`make` mtime comparison; regeneration); forward to Ch 6
+  (scaffolding), Ch 10 (permissions), Ch 11 (locale/case/line
+  endings), Ch 18 (aliases in startup files); Appendix A (panic
+  reference). The Git book is cross-referenced for `git restore`
+  and `.gitignore`, not re-taught.
 - accessed: n/a
-- verifies: the chapter delivers the layout Ch 1/2/4 promised
-  and Ch 6 assumes, and sets up rather than steals Ch 6's
-  danger, Ch 11's Make, and Ch 12's environment jobs
+- verifies: the chapter delivers Ch 1/2's stated Ch-4
+  commitments (navigate and move files; the operational layer
+  on Ch 2's model) and sets up rather than steals Ch 6/6's jobs
 - confirmable: yes (internal)
 
 ## Gate confirmations
 
 - **Validator: 0 errors / 0 warnings** in the sandbox (whole
-  book, via a PyYAML-equipped `python3 tools/validate_book.py
-  book`) AND under the canonical `uv run` on the Mac (confirmed
-  2026-07-02). The two brace one-liners were rewritten from a
-  single nested path token (which was intrinsically > 64 chars)
-  into separate brace groups so every typed line satisfies the
-  width rule with real, re-captured output.
-- **Render: two issues found and fixed, then re-render PASSED.**
-  (a) The §5.2 annotated tree used Unicode box glyphs that dropped
-  out of the PDF (Codex, Ch 2 p.19); switched to ASCII connectors
-  (`|--`/`` `-- ``/`|`). (b) The figure's HTML SVG was BROKEN:
-  `dvisvgm --pdf` (the skill's `render.sh` path) emitted a 1-node
-  SVG (only the first card, no text), so the HTML figure was
-  near-empty (the PDF figure was fine, which is why the first
-  117-page PDF render looked OK). The SVG is rebuilt
-  font-independently (`gs -dNoOutputFonts` traces all text to
-  paths, then `pdftocairo -svg`) and the figure now uses
-  `\usepackage{lmodern}` so the `\ttfamily` labels outline
-  cleanly; the rebuilt SVG (290 KB) was rasterized and eyeballed
-  complete. **Codex re-rendered on the Mac (2026-07-02, Darwin,
-  quarto 1.9.36): `quarto render book` passed, 118-page PDF; the
-  ASCII trees render correctly (Ch 2 p.19, Ch 5 p.56) and Figure
-  5.1 is clean (p.58).**
-- **Figure:** one authored TikZ exhibit `fig-ch05-layout`
-  (textbook-diagrams design system; raw -> scripts -> generated
-  flow, tracked-root band). Built with `pdflatex`; PDF is the
-  `lmodern` build (135 KB) and the web SVG is the
-  `gs -dNoOutputFonts` + `pdftocairo -svg` outline (290 KB, text
-  as paths, no font dependency), NOT the broken `dvisvgm --pdf`
-  output. Source + PDF + SVG committed under
-  `book/assets/figures/ch05/`; the `.tex` header records the
-  build recipe. Rasterized and inspected complete before install,
-  then confirmed in Codex's 118-page Mac render (Figure 5.1 clean
-  on p.58). Per the durable figure rule now in `CLAUDE.md`, the
-  SVG is eyeballed separately from the PDF.
-- **Counts:** 6 numbered content sections (4 beginner, 2
-  advanced) + unnumbered Try-it; callouts 1 REPRODUCIBILITY,
-  2 PITFALL (space-in-braces; editing-raw-in-place / mixing
-  generated into source), 1 DIVERGENCE (case-insensitive names,
-  cross-ref Ch 4). No DANGER (nothing here destroys; not forced).
-  0 em-dashes; all shown `$` blocks byte-diffed to a `ch05-*`
-  transcript.
-- **External pins:** only the two scaffolding-tool versions
-  (cookiecutter 2.7.1, copier 9.16.0), captured from a real
-  install and stamped 2026-07-02 (Codex confirmed both are the
-  current PyPI releases). No dead-host/Internet-Archive fallback
-  needed. Everything else is real sandbox output or an internal /
-  Git-book cross-reference.
-- **Codex blind audit round 1 (2026-07-02): 3 blockers + 1
-  tighten, ALL FIXED (the `.gitkeep` fix took two passes: the
-  section prose first, then the Try-it exercise on Codex
-  re-review).** (1) the `.gitkeep`-in-ignored-dirs workflow was
-  false in BOTH the section and Try-it exercise 4, both rewritten
-  (see the hygiene entry above); (2) a stale mask claim (the
-  chapter/verification said
-  `ch05-scaffold-tools.txt` held a masked `/home/[account]` but
-  the `__version__` capture shows no path), removed; (3) stale
-  gate docs (render/validator) reconciled here and across
-  CHANGELOG / RESUME / handover; (4, tighten) added the
-  synthetic-data exception sentence in "Raw in, generated out"
-  (`00_make_data.py` generates the synthetic raw stand-in; treat
-  it as immutable from that seam on). What Codex passed:
-  validator 0/0, render + figure, counts, block/transcript
-  matches, the case-sensitivity reuse, and the version claims.
+  book and on `book/chapters/05-navigation.qmd` alone, via a
+  PyYAML-equipped `python3 tools/validate_book.py book`).
+  Canonical `uv run` on the Mac and a `quarto render` PDF
+  overflow check are PENDING (Codex/Mac step), as in prior
+  chapters.
+- **Mac captures: RECONCILED 2026-07-02.** The user ran
+  `capture-ch04-mac.sh` (read-only, `mktemp -d` scratch removed
+  on exit, installs nothing); the five `ch04-*-mac.txt` files
+  back the Mac blocks (macOS 26.5.1, zsh 5.9). Results:
+  `~`/`$HOME` -> `/Users/[account]`; BSD `ls -l` `total 16`
+  (512-byte blocks) + `ls -G` exit 0; BSD `stat -f` prints the
+  name/size/perms/mtime line (added to the chapter); BOTH
+  `readlink -f` and `realpath` resolve (exit 0) on this macOS,
+  so the symlink DIVERGENCE was rewritten to "recent parity,
+  older macOS may lack them"; APFS case-insensitive (one
+  `Foo.txt`; `cat Foo.txt` -> `lower`). One extra mask landed
+  on ingestion: the `$TMPDIR` folder hash exposed by the
+  resolvers, scrubbed to `/private/var/folders/[tmpdir]` and
+  the capture script's `mask()` patched to match. A SECOND Mac
+  run (2026-07-02, after Codex round 2) captured `ls -lG`
+  keeping the group column and refreshed all five transcripts;
+  the `$TMPDIR` mask fired at capture time this run (folder
+  hash already `[tmpdir]` in the raw file), and the chapter's
+  BSD `stat -f` output line was updated to the new run's
+  timestamp (13:45:42) to stay byte-identical. Repo
+  re-grepped for the account name and the `$TMPDIR` hash:
+  clean.
+- **Counts:** 7 numbered content sections (5 beginner, 2
+  advanced) + unnumbered Try-it; callouts 4 DIVERGENCE, 1
+  DANGER (short, points to Ch 7 + App A), 1 PITFALL
+  (relative-path-from-wrong-dir), 1 RECOVERY (after a cp/mv
+  clobber). No figure (none earned). 0 em-dashes; all shown
+  sandbox `$` blocks byte-diffed to a `ch04-*` transcript, and
+  the Mac blocks reconciled to the `ch04-*-mac.txt` captures.
+- **External pins:** the BSD-vs-GNU divergences (ls block-size,
+  the `-G` false friend, stat flag, readlink/realpath, case
+  sensitivity) are ALL settled by real capture on both
+  platforms (sandbox GNU side, Mac BSD side, reconciled over
+  two Mac runs on 2026-07-02), per PLAN Section 10's "run the
+  command, use the real output." The round-2 re-run closed the
+  last doc-only sub-claim: macOS `ls -lG` keeping the group
+  column is now captured in `ch04-ls-mac.txt`. No web-source
+  pin and no dead-host/Internet-Archive fallback needed.

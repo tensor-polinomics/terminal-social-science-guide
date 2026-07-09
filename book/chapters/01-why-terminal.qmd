@@ -103,7 +103,7 @@ a single short command or a short loop, and each is a tedious,
 error-prone afternoon by hand. On the asset-pricing example,
 tidying the generated files under `output/` or checking every
 script for a stale path is a one-liner you will meet in Chapters
-4, 7, and 8. Do a task like that twice and the terminal has
+5, 8, and 9. Do a task like that twice and the terminal has
 already repaid the time you spent learning it.
 
 None of this needs a server, a cluster, or a GPU. It is the
@@ -151,10 +151,10 @@ workflow: it is the single place from which you drive all the
 other pieces. It runs the version control the companion Git book
 teaches. It renders the Quarto documents that turn your analysis
 into a paper. It builds the reproducible environments, uv for
-Python and renv for R, that pin your dependencies (Chapter 12).
+Python and renv for R, that pin your dependencies (Chapter 13).
 It reaches the remote machines where the heavy work happens
-(Chapter 13). And it is where the new generation of AI coding
-agents does its work (Chapter 16). None of these talk to each
+(Chapter 14). And it is where the new generation of AI coding
+agents does its work (Chapter 17). None of these talk to each
 other through a menu. They meet at the shell.
 
 That framing also sets the book's scope. A command or tool earns
@@ -189,15 +189,15 @@ reach to re-explain reproducibility, cross-reference it instead.
 The book is organized as one continuous motion, the path your
 own project takes as it grows up. You start on the laptop and
 learn to navigate and edit from the shell. You organize the
-project into a sane structure (Chapter 5) so that everything has
+project into a sane structure (Chapter 6) so that everything has
 a place. You turn a fragile sequence of steps into a script that
-fails loudly when something is wrong (Chapter 10), and then wire
+fails loudly when something is wrong (Chapter 11), and then wire
 the whole study into a single build with `make`, so one command
-rebuilds the paper from the raw inputs (Chapter 11). Then the
+rebuilds the paper from the raw inputs (Chapter 12). Then the
 work leaves the laptop: you connect to a remote Linux box over
-SSH (Chapter 13), keep a long job alive after you disconnect
-with tmux (Chapter 14), push one heavy step out to a GPU pod
-(Chapter 13 again), pull the results back, and confirm the whole
+SSH (Chapter 14), keep a long job alive after you disconnect
+with tmux (Chapter 15), push one heavy step out to a GPU pod
+(Chapter 14 again), pull the results back, and confirm the whole
 thing still reproduces byte for byte wherever it ran.
 
 Sketched as the commands you will meet, that arc looks like the
@@ -210,12 +210,12 @@ line names the chapter that teaches it.
 # is taught, with real captured output, in the
 # chapter named beside it; this intro only shows the shape.
 
-make             # rebuild the whole study     (Ch 11)
-ssh lab-server   # hop to a remote Linux box    (Ch 13)
-tmux new -s job  # keep a long job alive        (Ch 14)
-# ... run one heavy step on a GPU pod ...       (Ch 13)
-rsync -a host:out/ out/   # bring results back  (Ch 13)
-make check       # prove it still reproduces    (Ch 11)
+make             # rebuild the whole study     (Ch 12)
+ssh lab-server   # hop to a remote Linux box    (Ch 14)
+tmux new -s job  # keep a long job alive        (Ch 15)
+# ... run one heavy step on a GPU pod ...       (Ch 14)
+rsync -a host:out/ out/   # bring results back  (Ch 14)
+make check       # prove it still reproduces    (Ch 12)
 ```
 
 Six short lines carry the entire promise of the book: a study
@@ -235,10 +235,10 @@ shell to do things it does not do.
 The shell does not version your files; that is Git, and it is
 the companion book's entire subject. The shell does not
 reproduce your environment; that is uv and renv, and pinning
-them is Chapter 12. The shell does not, by itself, move your
+them is Chapter 13. The shell does not, by itself, move your
 data between machines; that is what tools like `rsync` and `scp`
 are for, run *from* the shell but not the same as it (Chapter
-13). Blurring these together is how people end up trusting the
+14). Blurring these together is how people end up trusting the
 terminal to do a job it never promised. The shell is the
 operator that invokes each of these tools; it is not any of
 them.
@@ -249,7 +249,7 @@ this book rather than an afterthought. The shell will destroy
 data, instantly and without confirmation, if you tell it to,
 including data that Git never saw and cannot recover. There is
 no undo for a mistaken deletion and no trash folder waiting to
-catch it. Chapter 6 is built around that danger and teaches the
+catch it. Chapter 7 is built around that danger and teaches the
 habits that contain it. For now it is enough to carry one
 sentence: the same power that lets the terminal drive your whole
 pipeline lets it erase your whole pipeline, so the caution comes
@@ -340,7 +340,7 @@ follow land better.
 3. Read the roadmap sketch again and name the machines. For each
    of the six lines, say out loud whether it runs on your laptop
    or on a remote box. If you are not sure, that is the honest
-   starting point, and by Chapter 14 the answer will be obvious.
+   starting point, and by Chapter 15 the answer will be obvious.
 
 4. Skim the companion Git book's first chapter if you have it.
    This book leans on that argument for reproducibility instead

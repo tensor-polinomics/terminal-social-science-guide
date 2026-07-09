@@ -1,6 +1,6 @@
 # Finding Things
 
-Chapter 7 searched *inside* a file: `grep` scanned the lines of
+Chapter 8 searched *inside* a file: `grep` scanned the lines of
 one factor file, `awk` summed one column, DuckDB queried one
 CSV by name. Every one of those commands already knew which
 file to open. This chapter answers the question that comes
@@ -15,7 +15,7 @@ fast modern pair that does the same jobs with better defaults.
 
 The plan is three tools and one trap. `find` walks a directory
 tree and selects files by name, type, age, or size, and can
-act on what it selects. `ripgrep` (`rg`) is Chapter 7's `grep`
+act on what it selects. `ripgrep` (`rg`) is Chapter 8's `grep`
 turned loose on a tree: it searches file *contents*
 recursively, and it is the tool you reach for to answer "where
 in my code is this variable used." `fd` is a friendlier `find`
@@ -23,7 +23,7 @@ with defaults tuned for exactly this kind of project work. The
 trap, saved for last, is that the two fast tools quietly skip
 the files your `.gitignore` lists, which for a researcher is
 often the data, so a search can come back clean and wrong.
-Chapter 7 drew the line between shell globs and regular
+Chapter 8 drew the line between shell globs and regular
 expressions from the text-matching side; this chapter draws
 the same line from the file-finding side, where `find -name`
 takes a glob and `find -regex` and `rg` take a regex.
@@ -61,7 +61,7 @@ scripts/check.py
 
 The first argument, `scripts`, is where to look; `-name
 '*.py'` is what to match. The `'*.py'` is quoted for a reason
-Chapter 6 made central: unquoted, the shell would try to
+Chapter 7 made central: unquoted, the shell would try to
 expand `*.py` itself, in the current directory, before `find`
 ever ran. Quoting hands the pattern to `find` intact, so
 `find` applies it at every level of the tree. The `| sort` is
@@ -92,7 +92,7 @@ and `-type l` for symbolic links.
 ## Finding by type, time, and size {.tier-beginner}
 
 Name is only the most obvious property. `find` can select on
-the same file metadata Chapter 4 read with `ls -l` and `stat`:
+the same file metadata Chapter 5 read with `ls -l` and `stat`:
 how big a file is, and when it last changed. Size first,
 because it needs no setup. Which raw file is large enough to
 be worth worrying about on a slow disk or a metered transfer?
@@ -106,7 +106,7 @@ data/raw/firm_panel.csv
 "greater than," and `M` is megabytes (`k` and `G` also work).
 The firm panel is the only file over that line, which is the
 kind of thing worth knowing before you `rsync` a project to a
-server (Chapter 13). Time works the same way, with `-mtime`
+server (Chapter 14). Time works the same way, with `-mtime`
 counting the days since a file was last modified. Because
 "days ago" is measured from the moment the command runs, the
 cleanest way to show it is on files with deliberately set
@@ -161,7 +161,7 @@ thing pipes the file list into `xargs`, which builds a command
 from its input. But a plain pipe splits that list on
 whitespace, and a filename with a space in it (a `Final
 Draft.csv` a collaborator sent) would arrive as two broken
-names. Chapter 6 taught the fix, and it is mandatory here too:
+names. Chapter 7 taught the fix, and it is mandatory here too:
 `find -print0` separates names with a null byte, the one
 character a filename can never contain, and `xargs -0` reads
 them the same way.
@@ -178,7 +178,7 @@ $ find scripts -name '*.py' -print0 | xargs -0 wc -l
 
 Same answer, and safe against spaces, newlines, and every
 other awkward character a filename can legally hold. The rule
-from Chapter 6 stands: any time `find` output flows into
+from Chapter 7 stands: any time `find` output flows into
 another command through a pipe, it is `-print0` into `xargs
 -0`, never a bare pipe. When the action is built into `find`
 as `-exec`, the quoting is handled for you and the null-byte
@@ -194,7 +194,7 @@ becomes dangerous.
 the whole tree, in one command. A pattern that is a little too
 broad, or the right pattern started in the wrong directory,
 deletes files you meant to keep, and there is no undo, the same
-irreversible edge as Chapter 6's `rm -rf` and Chapter 5's rule
+irreversible edge as Chapter 7's `rm -rf` and Chapter 6's rule
 that raw data is immutable. The habit that defuses it is to
 look before you leap: run the search with `-print` first, read
 the list, and only then swap in the destructive action.
@@ -222,7 +222,7 @@ the first time you see a match list be *after* you deleted it.
 
 ## Glob or regex, from the finding side {.tier-beginner}
 
-Chapter 7 promised this line would be drawn again from the
+Chapter 8 promised this line would be drawn again from the
 other direction, and here it is. When `find` matches a name,
 `-name` speaks the shell's **glob** language: `*` is any run of
 characters, `?` is exactly one, and the dot is a literal dot.
@@ -260,7 +260,7 @@ written `[.]` (or `\.`), the reverse of the glob, where the
 dot was already literal. And the regex `.*` ("any character,
 any number of times") is two characters doing the job the
 glob's lone `*` did, because in a regex `*` means "repeat the
-thing before me." The durable split is the one Chapter 7
+thing before me." The durable split is the one Chapter 8
 named: a glob is a compact language for filenames, a regex is
 a general language for text, and `find` lets you choose which
 one to match a path against. Reach for `-name` and its globs
@@ -320,7 +320,7 @@ platform of. The appendix divergence table collects these.
 ## Searching contents across a tree: `ripgrep` {.tier-beginner}
 
 `find` matches on a file's name and metadata; it never looks
-inside. Chapter 7's `grep` looked inside, but at one file you
+inside. Chapter 8's `grep` looked inside, but at one file you
 named. The tool that looks inside *every* file in a tree is
 `ripgrep`, run as `rg`. Point it at a directory and a pattern,
 and it searches the contents of every file underneath,
@@ -372,7 +372,7 @@ scripts/04_regression.R:30:  ls_ret ~ mkt_rf + smb + hml + rmw + cma,
 ```
 
 And because the pattern is a regex, character classes work
-inside it exactly as they did for `grep` in Chapter 7. The
+inside it exactly as they did for `grep` in Chapter 8. The
 regression's five factor coefficients, named `b1` through `b5`:
 
 ```bash
@@ -385,7 +385,7 @@ b5
 ```
 
 `-o` prints only the matched text rather than the whole line.
-The division of labor is the same one Chapter 7 drew, now with
+The division of labor is the same one Chapter 8 drew, now with
 a tool that applies both halves at once: a glob (`-g`) chooses
 the files, a regex (the pattern) chooses the lines.
 
@@ -397,7 +397,7 @@ order that trips everyone at first. `fd` is a modern
 rewrite that keeps the job and changes the defaults to match
 what project work usually wants. It is a separate install
 (`brew install fd`, Chapter 3's package manager; current as of
-2026-07-03) and, like DuckDB in Chapter 7, it is not
+2026-07-03) and, like DuckDB in Chapter 8, it is not
 installable in this book's sandbox, so these blocks are
 captured on the author's Mac (`transcripts/ch08-fd-mac.txt`).
 
@@ -454,7 +454,7 @@ the raw panel `data/raw/firm_panel.csv` with its 54,000 firm
 rows, is not on the list. `rg` skipped it on purpose. Inside a
 git repository, `rg` (and `fd`) read the project's `.gitignore`
 and silently omit every path it lists, and this project's
-`.gitignore`, following the rule Chapter 5 set, ignores the
+`.gitignore`, following the rule Chapter 6 set, ignores the
 `data/` and `output/` directories because they are rebuilt
 from code, not stored in Git. The same default that keeps a
 search from drowning in `node_modules` or a `.venv` also hides
@@ -512,7 +512,7 @@ place.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5, inside its
+These use the asset-pricing project from Chapter 6, inside its
 git repository. Everything here is read-only except item 3,
 which deletes files; do that one in `/tmp`, never in your real
 project. Items 5 and 6 need `fd` installed (`brew install fd`).

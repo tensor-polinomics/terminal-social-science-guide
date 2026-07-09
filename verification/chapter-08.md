@@ -1,172 +1,170 @@
-# Source-verification log: Chapter 8 (Finding things)
+# Source-verification log: Chapter 8 (Text and tabular data as data)
 
 Per PLAN.md Section 10. Chapter 8 is executable: nearly all of
 it is real command output, so this log is heavier on transcript
 provenance than on external pins. Provenance classes:
 
 - **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5 LTS,
-  GNU bash 5.1.16, GNU findutils 4.8.0 (`find`, `xargs`),
-  ripgrep 13.0.0, aarch64. Run in a clean copy of the
-  asset-pricing project placed at `/tmp/ap` and turned into a
-  git repository (`git init`, no commit needed) so the
-  ignore-aware behavior is real; every file-deleting demo is
-  confined to throwaway `/tmp` scratch, never the project's own
-  files. Transcripts: `ch08-find.txt`, `ch08-find-time.txt`,
-  `ch08-exec-xargs.txt`, `ch08-glob-regex.txt`, `ch08-printf.txt`,
-  `ch08-rg.txt`, `ch08-ignore.txt`, `ch08-find-delete.txt`.
-  Every sandbox block the chapter shows was diffed line-for-line
-  against its transcript (see the counts section).
-- **Real, user's Mac (macOS/BSD `find` divergences + `fd`),
+  GNU bash 5.1.16, GNU coreutils 8.32, GNU grep 3.7, GNU sed
+  4.8, GNU Awk 5.1.0, jq 1.6, aarch64. Run in a clean copy of
+  the asset-pricing project at `/tmp/ap` (the repo-relevant
+  tree, as Ch 6's tour used), with every file-creating or
+  in-place demo confined to throwaway `/tmp` scratch
+  (`/tmp/ch07`, a separate scratch for the `sed -i` demo),
+  never the project's own data. Transcripts: `ch07-grep.txt`,
+  `ch07-regex-glob.txt`, `ch07-sed.txt`,
+  `ch07-sed-inplace.txt`, `ch07-tabular.txt`, `ch07-tr.txt`,
+  `ch07-locale.txt`, `ch07-awk.txt`, `ch07-jq.txt`. Every
+  sandbox block the chapter shows was diffed byte-for-byte
+  against its transcript (31 of the chapter's 39 shown blocks;
+  the other 8 are the Mac captures below).
+- **Real, user's Mac (macOS/BSD divergences + DuckDB),
   read-only: INGESTED and RECONCILED 2026-07-03** (macOS
   26.5.1, zsh 5.9, Apple Silicon). The user ran
-  `transcripts/capture-ch08-mac.sh` (makes ONE `mktemp -d`
-  scratch holding a git-repo copy of the project's `scripts/`
-  + `data/` + `.gitignore`, removes it on exit, installs
-  nothing; applies the standard capture-time masks incl. the
-  `$TMPDIR` folder-hash scrub; preflight checks for `fd` and
-  the data files). It wrote `ch08-find-mac.txt` and
-  `ch08-fd-mac.txt`; masks verified (no home path, account
-  name, or `$TMPDIR` hash in either). Of the six Mac-backed
-  blocks, FIVE matched the draft byte-for-byte and ONE changed:
-  `fd --version` is `fd 10.4.2`, not the drafted `fd 10.2.0`
-  (the Ch 7 DuckDB version lesson; fixed in the chapter). The
-  no-path check confirmed the prose: BSD `find -name '*.py'`
-  fails (`find: illegal option -- n` + usage), so a starting
-  path is required. The six blocks:
-  1. BSD `find -E scripts -regex '.*/0[0-9]_.*[.]py'` (the four
-     numbered scripts) - MATCHED the draft (same four scripts).
-  2. BSD `find scripts -name '*.py' -printf '%f\n'` FAILURE -
-     MATCHED: `find: -printf: unknown primary or operator`,
-     byte-for-byte.
-  3. `fd --version` - CHANGED on reconcile to `fd 10.4.2`
-     (drafted `fd 10.2.0` was wrong; version-stamped from the
-     real capture, the Ch 7 DuckDB v1.4.1 -> v1.5.4 lesson).
-  4. `fd -e py | sort` - MATCHED (the five `scripts/*.py` paths).
-  5. `fd firm_panel` - MATCHED (empty; the file is ignored).
-  6. `fd -I firm_panel` - MATCHED (`data/raw/firm_panel.csv`).
-  The Mac script also records a `find -name '*.py'` (no path)
-  run to check the prose claim that BSD `find` requires a
-  starting path; that block is not shown in the chapter, only
-  used to confirm/refute the sentence.
+  `transcripts/capture-ch07-mac.sh` (makes ONE `mktemp -d`
+  scratch, removes it on exit, installs nothing; applies the
+  standard capture-time masks incl. the `$TMPDIR` folder-hash
+  scrub; preflight checks for `duckdb` and the data files).
+  Transcripts in: `ch07-sed-mac.txt`, `ch07-awk-mac.txt`,
+  `ch07-sort-locale-mac.txt`, `ch07-duckdb-mac.txt`; masks
+  verified (repo greps clean of home paths, account name, and
+  the `$TMPDIR` hash). The chapter's 8 Mac-backed blocks (the
+  BSD `sed -i` failure, the `systime()` failure, and the six
+  DuckDB blocks) were reconciled byte-for-byte. Three drafted
+  guesses changed to match the capture: (a) the BSD `sed`
+  error text spans a newline (`sed: 1: "factors.csv` then
+  `": invalid command code f`), not one line; (b) the DuckDB
+  CLI is v1.5.4 "Variegata" (`08e34c447b`), not the placeholder
+  v1.4.1; (c) `DESCRIBE` prints `NULL` in the
+  null/key/default/extra columns, not empty fields. The
+  `systime()` failure text and exit 2, the awk filter count
+  (33) and mean (0.00718315), the join means, and the Parquet
+  count (179) all matched as drafted. DuckDB is a REAL Mac
+  capture, not quarantine (user decision 2026-07-02: DuckDB is
+  installed on the Mac; the CLI binary is a blocked
+  GitHub-release download in the sandbox, so it cannot run
+  there).
 
 No masks appear in the shown blocks (no user-specific data in
-any of them: relative paths, project filenames, identifiers,
-and line counts only). The capture script still masks at
-capture time as a guard, per `transcripts/README.md`.
+any of them: relative paths, project filenames, and data values
+only). The capture script still masks at capture time as a
+guard, per `transcripts/README.md`. Upstream third-party
+metadata inside `renv.lock` (package authors' emails) is not
+user data and is untouched; the chapter's jq queries print only
+package names and versions.
 
 ## Pinned external claims
 
-1. **ripgrep skips `.gitignore`d paths by default, but only
-   inside a git repository; `--no-ignore` (and `-u`) turn it
-   off.** Pinned: ripgrep GUIDE.md, "Automatic filtering"
-   (https://github.com/BurntSushi/ripgrep/blob/master/GUIDE.md,
-   fetched 2026-07-03): by default rg ignores files matching
-   "`.gitignore` globs (including global and repo-specific
-   globs). This includes `.gitignore` files in parent
-   directories that are part of the same `git` repository.
-   (Unless the `--no-require-git` flag is given.)" and "You can
-   disable all ignore-related filtering with the `--no-ignore`
-   flag." The `-u`/`-uu`/`-uuu` escalation ("`-u` will disable
-   `.gitignore` handling, `-uu` will search hidden files ...")
-   is from the same section. The chapter's PITFALL claim, and
-   the "inside a git repository" wording, rest on this plus the
-   sandbox capture (`ch08-ignore.txt`): with `.git` present rg
-   omits `data/`, and `--no-ignore` restores it. The
-   git-repo-scoping was verified live (a copy WITHOUT `.git`
-   did not skip `data/`; adding `.git` made it skip).
-2. **rg applies ignore rules to files found by traversal, not
-   to paths named explicitly.** Verified live in the sandbox
-   (`rg -l 'firm' data` reads the ignored `data/` dir when it is
-   named directly, while `rg -l 'firm' .` omits it); consistent
-   with the GUIDE's model that automatic filtering happens
-   during recursive directory traversal. Backs the chapter
-   sentence "pointing it straight at an ignored path searches
-   that path anyway."
-3. **`find` never consults `.gitignore`.** Shown by contrast in
-   `ch08-ignore.txt` (`find . -name 'firm_panel.csv'` finds the
-   ignored file). `find` (POSIX/GNU findutils) has no notion of
-   git; no separate pin needed.
-4. **fd ignores `.gitignore` by default; `-I`/`--no-ignore`
-   disables it; the search pattern is a regex by default;
-   `-e`/`--extension` filters by extension.** Pinned: fd
-   README (https://github.com/sharkdp/fd/blob/master/README.md,
-   fetched 2026-07-03): Features list "Regular expression
-   (default) and glob-based patterns", "Ignores patterns from
-   your `.gitignore`, by default", and "If we work in a
-   directory that is a Git repository ... *fd* does not search
-   folders ... that match one of the `.gitignore` patterns. To
-   disable this behavior, we can use the `-I` (or `--no-ignore`)
-   option"; the `-h` option table lists `-I, --no-ignore`,
-   `-e, --extension`, `-g, --glob`, and smart-case defaults.
-   The chapter's fd blocks are ALSO real Mac captures
-   (`ch08-fd-mac.txt`, reconciled 2026-07-03), which are the
-   primary evidence; the doc is the secondary pin, and the
-   version stamp (`fd 10.4.2`) comes from the captured
-   `fd --version`.
-   fd install is `brew install fd` on macOS (README, macOS
-   section). Note the Debian/Ubuntu binary is `fdfind`, not
-   relevant to the Mac capture but worth knowing for a server.
-5. **BSD `find` uses `-E` for extended regex and lacks
-   `-printf`; GNU `find` uses `-regextype` and has `-printf`.**
-   GNU side captured in the sandbox (`ch08-glob-regex.txt` for
-   `-regextype posix-extended`, `ch08-printf.txt` for
-   `-printf '%f\n'`). BSD side captured on the Mac
-   (`ch08-find-mac.txt`, reconciled 2026-07-03): the
-   `-E`-before-path spelling matched, the `-printf` failure
-   text matched byte-for-byte (`find: -printf: unknown primary
-   or operator`), and `find -name` with no path fails with
-   `find: illegal option -- n`. No web pin needed: both sides
-   are
-   real output on the two platforms the book targets (the
-   appendix divergence table collects them).
+1. **DuckDB CLI `-c` and `-csv` arguments** (run a command and
+   exit; CSV output mode). Pinned:
+   https://duckdb.org/docs/current/clients/cli/arguments.html
+   (fetched 2026-07-02; table lists `-c COMMAND` "Run COMMAND
+   and exit" and `-csv` "Set output mode to csv"; the default
+   interactive mode is the box-drawing `duckbox`, which is why
+   the chapter's blocks use `-csv`: the box glyphs are the same
+   class the book's LaTeX PDF drops, the Ch 6 render lesson,
+   and CSV output composes with the chapter's other tools).
+2. **DuckDB CLI is a single, dependency-free executable, based
+   on the SQLite shell.** Pinned:
+   https://duckdb.org/docs/current/clients/cli/overview.html
+   (fetched 2026-07-02). The chapter's "single-binary, no
+   server, no import step" sentence rests on this plus the
+   capture.
+3. **DuckDB queries CSV and Parquet files directly by path.**
+   Verified by the Mac capture (`ch07-duckdb-mac.txt`,
+   reconciled 2026-07-03) and by the docs, fetched 2026-07-03:
+   the CSV overview shows `SELECT * FROM 'flights.csv'` and the
+   Parquet overview shows `SELECT * FROM 'test.parquet'` and
+   `DESCRIBE SELECT * FROM 'test.parquet'`, exactly the
+   path-as-table form the chapter uses:
+   https://duckdb.org/docs/current/data/csv/overview and
+   https://duckdb.org/docs/current/data/parquet/overview. The
+   chapter's closing sentence points readers at duckdb.org.
+   Version stamp: the chapter says "current as of 2026-07-03"
+   for the DuckDB material; the captured `duckdb --version`
+   line (`v1.5.4 (Variegata) 08e34c447b`, Mac, 2026-07-03) is
+   the authoritative version evidence.
+4. **`systime()` is a gawk extension, not POSIX awk.** Pinned:
+   https://www.gnu.org/software/gawk/manual/html_node/Time-Functions.html
+   (fetched 2026-07-02: "They are gawk extensions; they are not
+   specified in the POSIX standard."). The macOS failure is
+   captured (`ch07-awk-mac.txt`, 2026-07-03: BWK awk prints
+   `awk: calling undefined function systime` / ` source line
+   number 1` and exits 2); the DIVERGENCE callout claims only
+   what the capture shows and the manual states.
+5. **GNU `sort -n` does not parse scientific notation; `-g`
+   does.** Checked live in the sandbox (2026-07-02):
+   `printf 'a,-4.2e-05\nb,-0.5\nc,2\n' | sort -t, -k2,2n`
+   orders `-4.2e-05` before `-0.5` (numeric prefix read as
+   -4.2), while `-k2,2g` orders correctly. Not a shown block;
+   backs the prose sentence in the tabular section. The
+   chapter's example values (`-4.2e-05` in the hml column) are
+   from the real `factors.csv` (grep-verified 2026-07-02).
+6. **BSD `sed -i` requires a suffix argument; GNU makes it
+   optional.** GNU side captured in the sandbox
+   (`ch07-sed-inplace.txt`, GNU sed 4.8 accepts bare `-i`);
+   BSD side captured (`ch07-sed-mac.txt`, 2026-07-03: bare
+   `-i` fails with `sed: 1: "factors.csv` + newline +
+   `": invalid command code f`, exit 1). No web pin needed:
+   both sides are real captures on the two platforms the book
+   targets.
+7. **Locale changes `sort` order and stream checksums.**
+   Demonstrated live in the sandbox (`ch07-locale.txt`,
+   LC_ALL=C vs en_US.UTF-8, different order and different
+   sha256). Cross-platform reconcile (`ch07-sort-locale-mac.txt`,
+   2026-07-03): the Mac's BSD `sort` under BOTH `C` and
+   `en_US.UTF-8` produced order byte-identical to the sandbox
+   and the SAME two `shasum -a 256` values the chapter shows
+   under `sha256sum` (`2335b02a...` for `C`, `544c6e64...` for
+   UTF-8). So the drafted "same locale name can order
+   differently across platforms" was NOT observed here; the
+   REPRODUCIBILITY callout was rewritten to report the observed
+   agreement and to keep the durable point (a locale name
+   promises a language, not a byte order; pin `LC_ALL=C`). The
+   note headers in `ch07-sort-locale-mac.txt` and
+   `capture-ch07-mac.sh`, which had speculated that macOS UTF-8
+   locales collate in byte order unlike glibc, were neutralized
+   (per the Codex audit) to describe only what is tested;
+   collation is platform-defined, and whichever order appears
+   is recorded and compared with the sandbox. The captured
+   output lines are untouched. Locale pinning itself is
+   deferred to Chapter 11 (forward language).
+8. **jq syntax** (`keys`, key paths, `length`, `.[]` iteration,
+   `-r`). All capture-backed (`ch07-jq.txt`, jq 1.6 on the
+   project's real `renv.lock`). Manual fetched 2026-07-03:
+   https://jqlang.org/manual/ documents `-r`/`--raw-output`
+   and the builtins used.
 
 ## Cross-chapter promises touched
 
-- **Ch 7's forward promise is delivered.** Ch 7 said "Chapter 8
-  will draw the same [glob-vs-regex] line from the other side,
-  when it searches file trees and their contents." The
-  "Glob or regex, from the finding side" section does exactly
-  that: `find -name` takes a glob, `find -regex` and `rg -g`
-  vs the `rg` pattern separate glob (files) from regex (text).
-  Present tense (Ch 7 is committed, `10cc8b0`).
-- **Ch 6 null-safety is REINFORCED, not re-taught.** The
-  `find -print0 | xargs -0` block points back to Ch 6's rule
-  (present tense; Ch 6 committed `22eec6c`); pipes/quoting
-  themselves are not re-explained.
-- **Ch 5 raw-data immutability** is cross-referenced in the
-  DANGER callout (present tense; Ch 5 committed `6d46e79`): the
-  `.gitignore` that hides `data/` is the one Ch 5 set, and the
-  look-before-you-leap habit ties to Ch 5's immutability rule
-  and Ch 6's clobber hazard.
-- **Ch 4** `ls -l`/`stat` metadata is referenced (present
-  tense; committed `3d5a62b`) as the properties `find -size`
-  and `-mtime` select on.
-- **Ch 13 (rsync, servers)** referenced with forward "will"
-  language (stub): the `-size` demo motivates knowing a file's
-  size before an rsync.
-- **Ch 3** `brew install` is present tense (Ch 3 committed
-  `d2b173b`) for the `fd` install line, version-stamped
-  "current as of 2026-07-03".
+- Ch 7's deferral "grep and sed use [regex] (Chapter 8 and
+  Chapter 9 draw that line carefully)" is delivered by the
+  globs-vs-regex section; Ch 9 references use forward "will"
+  language (Ch 9 is a stub).
+- Pipes, redirection, heredoc kinship, quoting, and the `>`
+  clobber are cross-referenced to Ch 7 (present tense), not
+  re-taught.
+- Raw-in/generated-out hygiene cross-referenced to Ch 6
+  (present tense); every edited file lands in `/tmp` scratch.
+- Locale pinning deferred to Ch 11, environments/lockfiles to
+  Ch 13 (both "will," stubs).
+- The Ch 12 references (Makefile, `make check` hash lock,
+  locked alpha 0.0034) are present tense (Ch 12 committed);
+  the Try-it item 6 number 0.0034 matches the locked invariant
+  (CLAUDE.md).
 
-## Counts (self-check, 2026-07-03)
+## Counts (self-check, 2026-07-02; reconcile 2026-07-03)
 
 7 content sections + unnumbered Try-it; 5 beginner, 2 advanced.
-Sections: (1) Finding files by name, (2) Finding by type,
-time, and size, (3) Acting on what you find: -exec and
-null-safe xargs, (4) Glob or regex from the finding side,
-(5) Searching contents across a tree: ripgrep [all beginner],
-(6) fd: the ergonomic find, (7) When search skips your data
-[both advanced]. Callouts: 1 DIVERGENCE (BSD vs GNU find),
-1 DANGER (find -delete / -exec rm), 1 PITFALL (ignore-aware
-default hides data/). No RECOVERY (the DANGER's whole lesson is
-prevention: -print before -delete). No REPRODUCIBILITY (not
-earned; nothing here is a determinism/replication step). No
-figure (none earned; the chapter is command/output driven).
-Shown `$` blocks: all sandbox blocks byte-diffed to a
-transcript; the six Mac-backed blocks reconciled byte-for-byte
-2026-07-03 (five matched as drafted, `fd --version` corrected
-to `fd 10.4.2`). Validator: canonical command is
-`uv run python tools/validate_book.py book`, 0/0 (in the
-sandbox; confirm on the Mac at the gate). Bare `python3
-tools/validate_book.py book` requires PyYAML, which a stock Mac
-`python3` lacks, so always use the `uv run` form.
+Callouts: 2 PITFALL, 1 DANGER, 2 DIVERGENCE, 1 REPRODUCIBILITY
+(no RECOVERY: nothing here destroys without warning once the
+DANGER is heeded; recovery routes are Ch 7's and Appendix A's).
+No figure (none earned). All 39 shown `$`/`>` blocks
+byte-diffed to a transcript (31 sandbox + 8 Mac). Validator:
+the canonical command is `uv run python tools/validate_book.py
+book`, 0/0 (in the sandbox, and on the Mac confirmed by Codex
+2026-07-03 alongside a clean 132-page `quarto render`, Ch 8 on
+pp. 79-93). Bare `python3 tools/validate_book.py book` requires
+PyYAML, which a stock Mac `python3` lacks
+(`ModuleNotFoundError: No module named 'yaml'`), so always use
+the `uv run` form.

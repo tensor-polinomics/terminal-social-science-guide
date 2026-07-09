@@ -14,10 +14,10 @@ fix is almost never a new setting; it is putting the setting
 where the situation that needs it will actually read it.
 
 This chapter cashes the promissory notes the earlier chapters
-left here: the `cp -i`/`mv -i` aliases of Chapter 4, the
-`set -o noclobber` of Chapter 6, the history hygiene of
-Chapter 9, and the `zoxide`/`fzf` hooks and guarded aliases of
-Chapter 15 all live in a startup file, and this is where they go.
+left here: the `cp -i`/`mv -i` aliases of Chapter 5, the
+`set -o noclobber` of Chapter 7, the history hygiene of
+Chapter 10, and the `zoxide`/`fzf` hooks and guarded aliases of
+Chapter 16 all live in a startup file, and this is where they go.
 But the deliverable is not the list of lines. It is the
 placement rule, because the same line helps or does nothing
 depending only on which file you put it in.
@@ -28,11 +28,11 @@ sandbox (GNU bash 5.1.16); the zsh order, the macOS bash 3.2
 floor, `launchd`, and a terminal's login state are captured on
 the author's Mac (macOS 26.5.1, zsh 5.9, bash 3.2.57); and the
 "fails over SSH" seam is captured from the Mac against a real
-Linux server, the machine of Chapter 13. Startup-file behavior is
+Linux server, the machine of Chapter 14. Startup-file behavior is
 the most folklore-ridden topic in this book, so every ordering
 claim here is confirmed by a real invocation and only pinned to
 the bash and zsh manuals for the reasons behind it
-(`verification/chapter-17.md`, all accessed 2026-07-07). The
+(`verification/chapter-18.md`, all accessed 2026-07-07). The
 local order demos were run against a throwaway `HOME` seeded with
 demo rc files, so no real local dotfile was read; the one
 exception is the remote SSH capture, which forces a login shell
@@ -174,7 +174,7 @@ and runs the first match, so a directory placed at the front
 shadows the same-named program further back. Prepending
 `~/.local/bin` is usually what you want: your `uv`-installed tool
 wins over an older system copy. But front-of-PATH is also the
-hijack risk Chapters 3 and 6 raised: a writable directory early
+hijack risk Chapters 3 and 7 raised: a writable directory early
 on PATH lets anything dropped into it, a fake `ls` or `git`,
 shadow the real command. So prepend only directories you trust
 and control, and if you ever add a project-local `bin`, append it
@@ -204,32 +204,32 @@ version that delivers each promise in one line:
 ```bash
 # ~/.zshrc  (interactive niceties, read by interactive shells)
 
-# safety at the prompt (Chapters 4 and 6)
+# safety at the prompt (Chapters 5 and 7)
 alias cp='cp -i'
 alias mv='mv -i'
 set -o noclobber
 
-# history hygiene (Chapter 9)
+# history hygiene (Chapter 10)
 setopt HIST_IGNORE_SPACE   # bash: HISTCONTROL=ignorespace
 
-# modern kit, only if it is installed (Chapter 15)
+# modern kit, only if it is installed (Chapter 16)
 command -v eza    >/dev/null && alias ls='eza'
 command -v bat    >/dev/null && alias cat='bat'
 command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
 command -v fzf    >/dev/null && source <(fzf --zsh)
 ```
 
-That last line is the `fzf` shell integration Chapter 15
+That last line is the `fzf` shell integration Chapter 16
 deferred: it installs the `Ctrl-R` history search and `Ctrl-T`
 file picker key bindings, and, being guarded, it is skipped on a
 box without `fzf`.
 
 Two features of that file matter more than the individual lines.
 First, the `command -v <tool> >/dev/null &&` guard in front of
-each kit line is the graceful degradation Chapter 15 promised:
+each kit line is the graceful degradation Chapter 16 promised:
 the alias or hook is installed only if the tool is actually
 present, so the very same `~/.zshrc`, copied to a bare server
-from Chapter 13 where `eza` and `zoxide` do not exist, simply
+from Chapter 14 where `eza` and `zoxide` do not exist, simply
 skips those lines. `ls` stays the real `ls`, nothing errors, and
 your dotfile is portable instead of a pile of "command not found"
 on every login. Second, the placement itself: putting these in an
@@ -240,8 +240,8 @@ never reads `~/.zshrc`, and does not expand your aliases anyway;
 so `set -o noclobber` in your rc will not stop a script's `>`
 from clobbering a file, and `alias rm='rm -i'` will not make a
 script's `rm` ask. That is the same interactive-only caveat
-Chapters 4 and 6 attached to these settings, and it is why a
-script that must be safe sets its own options (Chapter 10) rather
+Chapters 5 and 7 attached to these settings, and it is why a
+script that must be safe sets its own options (Chapter 11) rather
 than trusting your prompt's.
 
 It helps to see the files as a set and remember which loads when.
@@ -274,7 +274,7 @@ your dotfiles small, plain, and guarded, and they travel.
 
 ## Works in terminal, fails over SSH {.tier-advanced}
 
-The sharpest version of the whole problem is the seam Chapter 13
+The sharpest version of the whole problem is the seam Chapter 14
 flagged: a non-interactive `ssh host 'cmd'` runs a shell that
 reads none of your interactive startup files, so it starts from
 the server's bare `PATH`, and a tool you installed in
@@ -333,7 +333,7 @@ interactive run to `bash -c '...'` locally reproduces the gap
 without a server. Then fix it at the source: move the setting to
 the file the failing context reads (`~/.zshenv` for env every
 shell needs), or, better for anything a pipeline depends on, have
-the script or Makefile set its own environment the Chapter 10
+the script or Makefile set its own environment the Chapter 11
 way rather than trusting a dotfile ran.
 :::
 
@@ -392,7 +392,7 @@ A reproducible pipeline must not depend on interactive shell
 config, because the machine that reruns it, a cron job, a CI
 runner, a colleague's `ssh host 'make'`, is precisely the
 non-interactive shell that never reads your rc. This is the
-reason Chapter 10's scripts pin their own `LC_ALL` and `TZ` and
+reason Chapter 11's scripts pin their own `LC_ALL` and `TZ` and
 do not assume a PATH: the script carries the environment it needs
 so it behaves the same whether you launch it or a scheduler does.
 Config that survives is config the job sets for itself, not
@@ -423,16 +423,16 @@ Read the chapter's own captures back through that rule and they
 line up: PATH edits reached the interactive shell but not
 `bash -c` or `ssh host 'cmd'`; `.zshenv` reached even the script;
 `cron` and `launchd` reached none of it. The dotfile is a
-convenience for you at the prompt, the same posture Chapter 15
+convenience for you at the prompt, the same posture Chapter 16
 urged for the modern kit; the pipeline carries its own
-environment, the posture Chapter 10 built in. Keep those two
+environment, the posture Chapter 11 built in. Keep those two
 straight and your config works the same whether you type the
 command or a machine does.
 
 ## Try it yourself {.unnumbered}
 
-These use the asset-pricing project from Chapter 5 and the remote
-server from Chapter 13.
+These use the asset-pricing project from Chapter 6 and the remote
+server from Chapter 14.
 
 1. Map your own shell. In a scratch directory, put a distinct
    `echo` marker in a demo `.bash_profile`, `.bashrc`, and
@@ -450,14 +450,14 @@ server from Chapter 13.
 
 3. Fix the placement. Move that `PATH` line to the file the
    non-interactive shell reads (`~/.zshenv` for zsh), or set
-   `PATH` inside the script itself the Chapter 10 way, and rerun
+   `PATH` inside the script itself the Chapter 11 way, and rerun
    the non-interactive command. Confirm it now works, and say in
    one sentence why.
 
 4. Guard an alias. Add
    `command -v eza >/dev/null && alias ls='eza'` to your rc and
    confirm `ls` is `eza` where `eza` exists. Then open a shell on
-   the bare server from Chapter 13 with the same line and confirm
+   the bare server from Chapter 14 with the same line and confirm
    `ls` is the real `ls` with no error, the graceful degradation
    that keeps a dotfile portable.
 

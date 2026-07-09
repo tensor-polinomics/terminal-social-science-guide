@@ -1,263 +1,240 @@
-# Source-verification log: Chapter 17 (Startup Files, PATH & Portable Dotfiles)
+# Source-verification log: Chapter 17 (AI in the Terminal)
 
-Per PLAN.md Section 10. Startup-file ordering is the most
-folklore-ridden topic in the book ("macOS Terminal runs a login
-shell", "SSH reads `.bashrc`", "cron reads `.profile`" are each
-partly true and version/OS/config dependent), so the governing
-rule here is **run it**: every ordering claim is confirmed by a
-real invocation that echoes a marker from each startup file, and
-the manuals are pinned only for the *why*. Access date for all
-web sources: 2026-07-07.
+Per PLAN.md Section 10. This chapter is principles-first and
+**version-stamped**: every tool-specific claim carries a "current
+as of 2026-07-01" note and is pinned to the tool's official docs,
+because AI-CLI behavior is volatile. All three CLIs are installed
+on the user's Mac and captured there; two of them (OpenAI Codex
+CLI, Gemini CLI) are not present in this book's *Linux workspace
+sandbox*, which is why the real capture is a Mac step, not a
+sandbox one. The version anchor is
+(`transcripts/ch16-versions-mac.txt`, from
+`transcripts/capture-ch16-mac.sh`, run on the user's Mac); the
+permission/sandbox flag names are additionally evidenced by
+`transcripts/ch16-help-mac.txt`. The "review the diff" demo is a
+real, AI-free sandbox capture (`transcripts/ch16-review-diff.txt`,
+GNU diffutils 3.8). Access date for all web sources: 2026-07-01.
 
-The bash startup order and the non-interactive environment seam
-are captured in the Linux sandbox (real GNU bash 5.1.16); the zsh
-order, the macOS bash-3.2 floor, and launchd are Mac captures; the
-remote "fails over SSH" seam is captured from the Mac against the
-user's real Linux server (the Chapter 13 box). Every shell runs
-against a THROWAWAY `HOME` seeded with demo rc files, so the
-user's real dotfiles are never read (the Ch 15 throwaway-db mask,
-applied to whole dotfiles).
+All three CLIs are treated as **document + quarantine**
+(principles only, nothing run) by deliberate choice, because a
+live agent session is non-deterministic and API-costing, not
+because any tool is missing. Correction (2026-07-01): the kickoff
+premise that Gemini CLI was not installed proved wrong; the Mac
+capture found it at `/opt/homebrew/bin/gemini`
+(`ch16-versions-mac.txt`). After the user logged Gemini in, the
+capture was re-run for all three: Claude Code 2.1.197, OpenAI
+Codex CLI 0.142.5, Gemini CLI 0.49.0, with permission flags
+confirmed in `ch16-help-mac.txt`. None is run live in this
+chapter.
 
-### Bash startup-file ORDER (run live, sandbox)
-- chapter/section: Ch 17, "Which file loads when"
-- source: real sandbox capture `transcripts/ch17-bash-order.txt`
-  (throwaway HOME, demo `.bash_profile`/`.bashrc`/`.profile`),
-  backed for the *why* by the bash(1) manual, INVOCATION section
-  (Ubuntu jammy manpage,
-  https://manpages.ubuntu.com/manpages/jammy/en/man1/bash.1.html)
-- accessed: 2026-07-07
-- verifies, confirmed by the capture and the manual:
-  - a **login** shell reads `/etc/profile`, then the FIRST of
-    `~/.bash_profile`, `~/.bash_login`, `~/.profile` that exists
-    (capture: `bash -lc` fired `.bash_profile`; with only
-    `.profile` present it fired `.profile`).
-  - an **interactive non-login** shell reads `/etc/bash.bashrc`
-    and `~/.bashrc` (capture: `bash -i` fired `.bashrc`).
-  - a **non-interactive** shell (a script, `bash -c`) reads
-    NEITHER; it reads `$BASH_ENV` if that names a file (capture:
-    `bash -c` fired nothing; `BASH_ENV=~/.bashrc bash -c` fired
-    `.bashrc`). The manual notes PATH is not used to find
-    `$BASH_ENV`.
-- version note: GNU bash 5.1.16 (sandbox); the ORDER is stable
-  across bash 3.2-5.x, so it also describes the Mac's bash 3.2.
-- confirmable: yes (transcript + manual)
+### Claude Code permission modes: default / acceptEdits / plan / auto / dontAsk / bypassPermissions
+- chapter/section: Ch 17, "Permission models"; DANGER
+- source: "Choose a permission mode" - Claude Code Docs
+  (https://code.claude.com/docs/en/permission-modes)
+- accessed: 2026-07-01
+- verifies: the six modes and what each runs without asking:
+  `default` = reads only; `acceptEdits` = reads + file edits +
+  common filesystem Bash commands (`mkdir`, `touch`, `rm`,
+  `rmdir`, `mv`, `cp`, `sed`) but only inside the working
+  directory / `additionalDirectories`; `plan` = reads only, no
+  edits; `auto` = everything with a background classifier that
+  blocks escalations (research preview, v2.1.83+); `dontAsk` =
+  only pre-approved tools; `bypassPermissions`
+  (`--dangerously-skip-permissions`) = everything. The mode is
+  set by flag (`--permission-mode`), `Shift+Tab` cycle, or
+  `settings.json` `defaultMode`, NOT by asking Claude in chat.
+- version note: current as of 2026-07-01; mode set is
+  version-volatile (`auto`/`dontAsk` are recent; doc cites
+  v2.1.x). Stamp required.
+- confirmable: yes (doc fetched clean 2026-07-01)
 
-### The sshd/.bashrc special case (folklore, pinned precisely)
-- chapter/section: Ch 17, "Works in terminal, fails over SSH";
-  PITFALL / RECOVERY
-- source: bash(1) manual, INVOCATION (Ubuntu jammy manpage, as
-  above); real server capture `transcripts/ch17-ssh-seam-mac.txt`
-- accessed: 2026-07-07
-- verifies: bash "attempts to determine when it is being run with
-  its standard input connected to a network connection, as when
-  executed by ... the secure shell daemon sshd. If bash determines
-  it is being run in this fashion, it reads ... `~/.bashrc`". This
-  is why "SSH reads `.bashrc`" is only PARTLY true and not to be
-  relied on: (a) the behavior is a BUILD-TIME option, not
-  guaranteed on (the chapter no longer asserts a specific "Debian/
-  Ubuntu disable it" claim, which is not pinnable to a build
-  source; it says do not rely on it); (b) it never applies when
-  bash is invoked as `sh`; and (c) DECISIVE here, the stock
-  `~/.bashrc` on Debian/Ubuntu self-guards with
-  `case $- in *i*) ;; *) return;; esac`, returning immediately
-  when non-interactive, so even where bash sources it the file
-  does nothing. Net effect on a typical Ubuntu server: a
-  non-interactive `ssh host 'cmd'` does NOT pick up your `~/.bashrc`
-  PATH edits, so `~/.local/bin` tools are not found unless named
-  in full or a login shell is forced (`ssh host 'bash -lc "..."'`).
-  The server capture is the ground truth; the manual explains why.
-  CONFIRMED 2026-07-07 (`ch17-ssh-seam-mac.txt`): non-interactive
-  `ssh host 'echo $PATH'` had no `~/.local/bin` and `command -v
-  uv` reported not found; forcing `bash -lc` restored
-  `~/.local/bin` and found `uv` at `/home/[account]/.local/bin/uv`.
-- version note: n/a (behavior is config/distro dependent, stated
-  as such, not as universal law). MASK NOTE: the first server
-  capture leaked the real account and home path because BSD `sed`
-  on the Mac has no `\b` word boundary and the server home is not
-  under `/home`; the transcript was scrubbed on ingestion and
-  `capture-ch17-ssh-mac.sh` fixed to mask the real `$HOME` path
-  with plain (BSD-safe) substitutions. A SECOND pass (Codex
-  blocker) masked the machine-specific data-mount path in the
-  server's `PATH`: `capture-ch17-ssh-mac.sh` now collapses any
-  `/mnt/<...>` mount to `/mnt/[mount]` (a general BSD-safe rule
-  that carries no server path in the tracked script), and the
-  transcript was re-scrubbed to match. Repo re-grepped clean for
-  the account name and the mount name in tracked files (only
-  gitignored `.venv/` and `private/` retain the account). The
-  chapter shows only the PATH front and elides the tail with
-  `[...]`.
-- confirmable: yes (manual + real server capture)
+### Claude Code: protected paths, root refusal, and the rm -rf circuit breaker
+- chapter/section: Ch 17, "The destructive-command boundary";
+  "Review discipline"; DANGER
+- source: "Choose a permission mode" - Claude Code Docs, sections
+  "Protected paths" and "Skip all checks with bypassPermissions
+  mode"
+  (https://code.claude.com/docs/en/permission-modes)
+- accessed: 2026-07-01
+- verifies: writes to protected paths (`.git`, `.claude`, shell
+  startup files such as `.zshrc`/`.bashrc`, `.gitconfig`, etc.)
+  are never auto-approved in any mode except `bypassPermissions`;
+  `bypassPermissions` refuses to start as root/`sudo` and still
+  prompts on `rm -rf /` and `rm -rf ~` as a circuit breaker; the
+  `auto`-mode classifier blocks `curl | bash`, mass cloud
+  deletion, force-push to `main`, and similar by default. Backs
+  the claim that an agent is bounded by the SAME shell dangers as
+  Ch 7, plus tool guardrails that are real but not a substitute
+  for review.
+- version note: current as of 2026-07-01; guardrail lists are
+  version-volatile.
+- confirmable: yes
 
-### The non-interactive environment (run live, sandbox)
-- chapter/section: Ch 17, "The portable dotfile" (interactive-only
-  caveat); "Scheduled / non-interactive contexts"
-- source: real sandbox capture
-  `transcripts/ch17-noninteractive.txt`
-- accessed: 2026-07-07
-- verifies: a PATH edit placed in an interactive rc is visible to
-  an interactive shell (`bash -i` shows `~/.local/bin` on PATH)
-  but invisible to a non-interactive one (`bash -c` does not);
-  `env -i bash -c` shows the stripped environment a scheduled job
-  starts from. This is the mechanism behind the "works in my
-  terminal" PITFALL and the Ch 10 REPRODUCIBILITY cross-ref.
-- version note: n/a (real capture)
-- confirmable: yes (transcript)
+### OpenAI Codex CLI: sandbox modes (read-only / workspace-write / danger-full-access) and approval policy
+- chapter/section: Ch 17, "Permission models"; "File and scope
+  boundaries"; "Network access"
+- source: "Agent approvals & security" - Codex, OpenAI Developers
+  (https://developers.openai.com/codex/agent-approvals-security);
+  "Command line options" and "Configuration Reference"
+  (https://developers.openai.com/codex/cli/reference,
+  https://developers.openai.com/codex/config-reference) for the
+  approval_policy values, the `on-failure` deprecation, and the
+  `--yolo` alias (re-verified 2026-07-01)
+- accessed: 2026-07-01
+- verifies: Codex separates a **sandbox mode** (what it can touch)
+  from an **approval policy** (when it must ask). Sandbox modes:
+  `read-only`, `workspace-write` (default; writes limited to the
+  active workspace, network OFF unless
+  `sandbox_workspace_write.network_access=true`), and
+  `danger-full-access` (no filesystem/network boundary). Approval
+  policy values are `untrusted`, `on-request`, and `never`, plus a
+  `granular` policy; `on-failure` is DEPRECATED (prefer on-request
+  interactive / never non-interactive). Auto preset =
+  `--sandbox workspace-write --ask-for-approval on-request`. On
+  launch Codex recommends Auto for version-controlled folders and
+  `read-only` for non-version-controlled folders.
+  `<writable_root>/.git`, `.agents`, and `.codex` stay read-only.
+  Full bypass (no sandbox, no approvals) is the single flag
+  `--dangerously-bypass-approvals-and-sandbox`, alias `--yolo`;
+  turning off just one axis (`danger-full-access` OR `-a never`) is
+  NOT full bypass.
+- version note: current as of 2026-07-01; mode/flag names are
+  version-volatile.
+- confirmable: yes (doc fetched clean 2026-07-01)
 
-### Zsh startup-file order
-- chapter/section: Ch 17, "Which file loads when"; DIVERGENCE
-- source: zsh manual, "5.1 Startup/Shutdown Files"
-  (https://zsh.sourceforge.io/Doc/Release/Files.html); real Mac
-  capture `transcripts/ch17-zsh-order-mac.txt`
-- accessed: 2026-07-07
-- verifies: zsh reads `/etc/zshenv` then `$ZDOTDIR/.zshenv`
-  (`HOME` if `ZDOTDIR` unset) on EVERY invocation, including
-  non-interactive scripts; then, if login, `zprofile`; if
-  interactive, `zshrc`; if login, `zlogin`. The headline
-  divergence from bash: `.zshenv` runs even for a `zsh -c` script,
-  so PATH that must exist everywhere goes in `.zshenv` (the manual
-  warns to keep it small, guarded by `[[ -o rcs ]]`). The Mac
-  capture confirms which markers fire for `zsh -l -i`, `zsh -i`,
-  and `zsh -c`.
-- version note: zsh manual 5.9.1 (2026-05-31); user Mac zsh
-  version stamped in `ch17-versions-mac.txt`.
-- confirmable: yes (manual + Mac capture)
+### OpenAI Codex CLI: network off by default; prompt injection caution
+- chapter/section: Ch 17, "Network access and the supply chain";
+  DANGER
+- source: "Agent approvals & security" - Codex, OpenAI Developers
+  (https://developers.openai.com/codex/agent-approvals-security)
+- accessed: 2026-07-01
+- verifies: "By default, the agent runs with network access turned
+  off"; enabling network access or web search exposes the agent to
+  prompt injection ("Prompt injection can cause the agent to fetch
+  and follow untrusted instructions"). Backs the cross-ref that an
+  agent with network access can run exactly the Ch 7 `curl | sh`.
+- version note: current as of 2026-07-01
+- confirmable: yes
 
-### macOS Terminal opens a login shell (DIVERGENCE)
-- chapter/section: Ch 17, "Which file loads when"; DIVERGENCE
-- source: real Mac capture `transcripts/ch17-login-shell-mac.txt`
-  (`[[ -o login ]]` and `[[ -o interactive ]]` run in a real
-  Terminal.app tab, the canonical zsh tests); the login-shell
-  default is confirmed by that capture, not asserted from docs
-- accessed: 2026-07-07
-- verifies: macOS Terminal.app starts each tab as a LOGIN +
-  interactive shell by default (CONFIRMED 2026-07-07:
-  `[[ -o login ]]` in a real Terminal.app tab prints
-  `login shell`, `[[ -o interactive ]]` prints `interactive`,
-  captured in `ch17-login-shell-mac.txt`; a WezTerm tab returned
-  the same). So a Mac tab reads `.zprofile` AND `.zshrc`. Many
-  Linux terminal emulators instead start a NON-login interactive
-  shell, reading only `.bashrc`/`.zshrc`, which is why the
-  `.bash_profile`-vs-`.bashrc` split bites differently across the
-  two platforms. The chapter frames login-ness as EMULATOR-decided
-  (not OS-decided) to stay honest about the "macOS = login" half-
-  truth.
-- version note: CONFIRMED 2026-07-07. IMPORTANT correction: an
-  early plan used `echo $0` (a leading `-`) as the login test.
-  That is a BASH-only heuristic; in zsh `echo $0` prints
-  `/bin/zsh` regardless of login state (verified), so it does NOT
-  report login. The chapter uses the canonical `[[ -o login ]]`
-  (zsh) / `shopt -q login_shell` (bash) and says so. This is the
-  chapter's own run-it-not-the-folklore lesson, caught live.
-- confirmable: yes (captured `[[ -o login ]]` + documented
-  emulator behavior)
+### Gemini CLI: approval modes (default / auto_edit / yolo / plan) and sandbox
+- chapter/section: Ch 17, "Permission models"; "What an agent
+  must never run unsupervised"; DIVERGENCE
+- source: "Gemini CLI Configuration" - gemini-cli docs
+  (https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html);
+  and real `gemini --help` output, Gemini CLI 0.49.0, in
+  `transcripts/ch16-help-mac.txt` (captured 2026-07-01)
+- accessed: 2026-07-01
+- verifies: `--approval-mode` takes `default` (prompt each tool
+  call), `auto_edit` (auto-approve edit tools, prompt others),
+  `yolo` (auto-approve ALL; `--yolo` / `-y`), and `plan`
+  (read-only); sandboxing is DISABLED by default and enabled via
+  `--sandbox`/`-s`, `GEMINI_SANDBOX`, or automatically under
+  `--yolo` (Docker/podman, or macOS Seatbelt `sandbox-exec`);
+  `tools.allowed` and `mcpServers.<name>.trust` bypass the
+  confirmation dialog. This is the DIVERGENCE anchor: each tool has
+  a one-flag "approve everything" switch, `bypassPermissions` in
+  Claude Code, `--yolo` (alias for
+  `--dangerously-bypass-approvals-and-sandbox`) in Codex, and
+  `--yolo` / `yolo` in Gemini. Codex additionally exposes the two
+  underlying axes (sandbox mode vs approval policy) separately, so
+  there `-a never` alone still leaves the workspace sandbox in
+  place (see the Codex sandbox/approval pin above). Documented, NOT
+  run (quarantine by choice; API-costing live sessions).
+- version note: current as of 2026-07-01, Gemini CLI 0.49.0. The
+  real `--help` ADDS a `plan` approval mode not in the pinned doc
+  (help is ground truth here), and marks the `--allowed-tools`
+  FLAG deprecated in favor of a "Policy Engine", a live example of
+  how fast this surface moves. Names are version-volatile.
+- confirmable: yes (doc fetched clean 2026-07-01; the
+  `--approval-mode` choices `default`/`auto_edit`/`yolo`/`plan`,
+  `-y/--yolo`, and `-s/--sandbox` are confirmed in the captured
+  `transcripts/ch16-help-mac.txt`)
 
-### launchd's environment (Mac)
-- chapter/section: Ch 17, "Scheduled / non-interactive contexts"
-- source: real Mac capture `transcripts/ch17-launchd-mac.txt`
-  (`launchctl getenv PATH`); the `launchd.plist(5)` and
-  `launchctl(1)` man pages (the `EnvironmentVariables` key)
-- accessed: 2026-07-07
-- verifies: a process started by launchd (a GUI app, a
-  LaunchAgent) inherits launchd's environment, not your shell's,
-  so its PATH is a bare default (often unset) and your dotfile
-  edits are absent; a scheduled Mac job sets PATH explicitly (a
-  plist `EnvironmentVariables` key) rather than relying on the
-  shell config. The plist is documented and quarantined, not run.
-- version note: CONFIRMED 2026-07-07: `launchctl getenv PATH`
-  printed nothing on the user's Mac (`ch17-launchd-mac.txt`),
-  i.e. launchd carries no PATH from the shell config. The chapter
-  states this in prose (an empty result is not shown as a fenced
-  output block).
-- confirmable: yes (capture + docs)
+### Gemini CLI: prompt logging and telemetry
+- chapter/section: Ch 17, "Secrets in prompts"; PITFALL
+- source: "Gemini CLI Configuration" - gemini-cli docs, sections
+  "telemetry" and "Usage Statistics"
+  (https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html)
+- accessed: 2026-07-01
+- verifies: `telemetry.logPrompts` (and `--telemetry-log-prompts`)
+  controls whether the CONTENT of user prompts is written to logs;
+  a per-project shell-command history is kept at
+  `~/.gemini/tmp/<hash>/shell_history`. Backs the concrete claim
+  that a prompt is not ephemeral: it can land in a local log or
+  transcript. (Gemini's anonymized usage stats are documented as
+  excluding prompt/response/file content and PII; the leak vector
+  is `logPrompts`-style local logging and the shell history, plus
+  whatever a provider retains.)
+- version note: current as of 2026-07-01
+- confirmable: yes
 
-### cron's environment
-- chapter/section: Ch 17, "Scheduled / non-interactive contexts";
-  REPRODUCIBILITY
-- source: crontab(5) manual (cronie, Paul Vixie;
-  https://man7.org/linux/man-pages/man5/crontab.5.html)
-- accessed: 2026-07-07
-- verifies: cron sets a MINIMAL environment automatically:
-  `SHELL=/bin/sh`, and `LOGNAME`/`HOME` from the crontab owner's
-  `/etc/passwd` line; it reads NONE of your shell startup files.
-  Environment for a job is set with `name = value` lines in the
-  crontab itself, so a cron job that needs a specific PATH sets
-  `PATH=...` there. The chapter shows a real cron LINE as a
-  labeled, illustrative (not run) block and demonstrates the
-  stripped-environment mechanism with `env -i` in the sandbox.
-  The cron spool is not writable in the sandbox, so no live cron
-  job is installed; the claim rests on crontab(5) plus the
-  `env -i` mechanism demo.
-- version note: crontab(5) from cronie (page dated 2026-05-24).
-- confirmable: yes (manual + `env -i` demo)
-
-### CI (conceptual / quarantined)
-- chapter/section: Ch 17, "Scheduled / non-interactive contexts"
-- source: general CI behavior; no capture
+### Review-the-diff demo (AI-free) and the reproducibility tie
+- chapter/section: Ch 17, "Review discipline"; "Reproducibility
+  of agent-run commands"; REPRODUCIBILITY, RECOVERY
+- source: real sandbox capture, no external claim
 - accessed: n/a
-- verifies: a CI runner executes steps in a non-interactive,
-  non-login shell whose environment is set by the CI config, not
-  your dotfiles; the same "put PATH where the non-interactive
-  shell reads it" rule applies. Named in one line, not run.
-- version note: n/a
-- confirmable: n/a (conceptual, clearly labeled)
+- verifies: `diff -U 0` on a copy of the real pipeline script
+  `scripts/02_portfolio.py` shows a one-line agent-style edit
+  (`N_PORT = 10  # deciles` -> `N_PORT = 5  # quintiles`) that
+  would silently change the locked long-short alpha. Demonstrates
+  "review the diff before you accept" and ties agent edits to the
+  G1 reproducibility invariant (a changed `N_PORT` would fail
+  `make check`). Captured in `transcripts/ch16-review-diff.txt`
+  (GNU diffutils 3.8, sandbox, /tmp).
+- version note: n/a (stable tool behavior)
+- confirmable: yes
 
-### Internal cross-references (delivering forward promises)
+### Internal cross-references (not externally pinned)
 - chapter/section: Ch 17 throughout
-- source: this book: Ch 2 (env/`export`, the process view,
-  `2:343`), Ch 3 (`brew shellenv` line + `~/.local/bin`,
-  `3:260`/`3:273`), Ch 4 (`cp -i`/`mv -i` alias, `4:500`), Ch 6
-  (`set -o noclobber`, `6:149`/`6:690`; PATH-hijack risk), Ch 9
-  (history hygiene `HISTCONTROL`, `9:522`), Ch 10 (scripts pin
-  `LC_ALL`/`TZ`/PATH), Ch 13 (the `ssh host 'cmd'` seam,
-  `13:489`), Ch 15 (zoxide/fzf hooks + graceful-degradation
-  aliases, `15:148`/`15:184`/`15:198`)
+- source: this book, Ch 7 (`curl | sh`, `rm -rf`, PATH-hijack)
+  and Ch 10 (secrets, shell history, `HISTFILE`); companion Git
+  book (review discipline, diffs, replication package)
 - accessed: n/a
-- verifies: Ch 17 DELIVERS each forward promise as one line of
-  config plus the placement rule, and does NOT re-teach the
-  mechanism that a prior chapter owns (the env model, install,
-  `cp -i`/`mv -i`, `noclobber`, history hygiene, `ssh` itself, or
-  the modern kit). Graceful degradation is delivered as
-  `command -v <tool> >/dev/null && alias ...` guards so a dotfile
-  copied to a bare server still works.
+- verifies: the chapter cross-references, and does not re-teach,
+  the Ch 7 danger material and the Ch 10 secrets material; an agent
+  can run exactly the lines those chapters warn about.
 - version note: n/a
-- confirmable: yes (internal; forward-promise lines grep-verified
-  at 2:343, 3:260/273, 4:500, 6:149/690, 9:522, 13:489,
-  15:148/184/198)
+- confirmable: yes (internal)
 
 ## Gate confirmations
 
-- **Bash order + non-interactive seam: captured live in the
-  sandbox** (`ch17-bash-order.txt`, `ch17-noninteractive.txt`),
-  masked to `/home/[account]`.
-- **Mac + server captures DONE 2026-07-07.** The user ran
-  `capture-ch17-mac.sh` (versions: macOS 26.5.1, zsh 5.9, bash
-  3.2.57; `ch17-zsh-order-mac.txt` markers fire per the manual
-  after a ZDOTDIR fix; `ch17-launchd-mac.txt` PATH empty) and
-  `capture-ch17-ssh-mac.sh` (`ch17-ssh-seam-mac.txt`), plus the
-  `[[ -o login ]]` check in a real Terminal tab
-  (`ch17-login-shell-mac.txt`). All shown `$`-blocks are
-  transcript-backed (a scripted contiguous-substring check passed:
-  38/38 lines exact or `[...]`-elided-prefix). Repo re-grepped
-  clean for the account name in tracked files.
-- **Validator** 0/0 in the sandbox (`python3` + PyYAML). Counts
-  confirmed: 6 content sections + unnumbered Try-it; 4 beginner /
-  2 advanced; callouts 1 PITFALL / 1 RECOVERY / 1 DIVERGENCE /
-  1 REPRODUCIBILITY, no DANGER; 0 em-dashes; no typed command
-  line >64. Canonical `uv run python tools/validate_book.py book`
-  is the Mac gate step.
-- **Render check is a Mac gate step.** Confirm the invocation
-  matrix table and the ASCII dotfile tree render without overflow
-  or dropped glyphs (the Ch 5 box-glyph lesson: ASCII connectors
-  only), and note the page range (Ch 17 currently a stub after
-  Ch 16; the book was 203pp through Ch 16).
-- **Closeout done in-draft:** TWO forward-`will` references to
-  Ch 17 flipped to present tense: `03-setup.qmd:273`, and
-  `02-mental-model.qmd:399` ("Chapter 3 sets you up and Chapter
-  17 makes it stick", which also retired a stale forward-`will`
-  for the now-committed Ch 3). A same-line grep missed the second
-  one because "Chapter" and "17" span two source lines; a
-  multi-line grep (`grep -A2 'chapter 17' | grep '\bwill\b'`)
-  catches it and now returns clean. The other Ch 17 pointers
-  (2:343, 4:500, 6:149/690, 9:522, 13:489, 15:148/184/198) are
-  already present-tense parentheticals; the Ch 1 roadmap does not
-  reference Ch 17.
+- **Version anchor: DONE (2026-07-01).** `capture-ch16-mac.sh`
+  was run on the Mac; `ch16-versions-mac.txt` records Claude Code
+  2.1.197, OpenAI Codex CLI 0.142.5, and Gemini CLI 0.49.0, and
+  `ch16-help-mac.txt` confirms MOST of the flag names the chapter
+  uses: `--permission-mode <mode>` / `--dangerously-skip-permissions`
+  (Claude Code); `-s, --sandbox <SANDBOX_MODE>`, `-a,
+  --ask-for-approval <APPROVAL_POLICY>` with `on-request` / `never`,
+  and `--dangerously-bypass-approvals-and-sandbox` ("EXTREMELY
+  DANGEROUS. Intended solely for running in environments that are
+  externally sandboxed") (Codex); and `-y, --yolo`, `-s,
+  --sandbox`, and `--approval-mode` with choices
+  `default`/`auto_edit`/`yolo`/`plan` (Gemini). **Codex `--yolo`
+  provenance (round-5 audit, resolved):** `codex --help` prints
+  only the long `--dangerously-bypass-approvals-and-sandbox` form
+  (the widened `...|yolo` grep surfaced no `--yolo` help line), but
+  the alias is real on two independent grounds, both captured in
+  `ch16-help-mac.txt`: the official Codex CLI reference documents
+  it, and a functional check `codex --yolo --version` returns
+  `codex-cli 0.142.5` (the binary accepts the alias). So `--yolo`
+  is docs-backed AND functionally capture-backed, just not printed
+  in `--help`. The chapter states versions in prose (Ch 12 style);
+  no `--version` command block is
+  shown. The chapter's four-row axis is a deliberate simplification
+  of finer-grained real values (e.g. Codex's `granular` approval
+  policy and its deprecated `on-failure`); Gemini's `plan` mode,
+  also from the real help, IS surfaced (the Gemini Read/plan cell).
+- **Doc fetches: DONE (2026-07-01).** All three official docs
+  (Claude Code permission-modes, Codex agent-approvals-security,
+  Gemini CLI configuration) fetched clean and pinned above. No
+  dead-host / Internet-Archive fallback was needed for Ch 17.
+- **Gemini quarantine basis: CORRECTED and now fully captured
+  (2026-07-01).** The kickoff premise that Gemini CLI was not
+  installed was WRONG: the Mac capture found it at
+  `/opt/homebrew/bin/gemini`. After the user logged Gemini in, the
+  script was updated to capture `gemini --version` + `--help`
+  identically to the other two and re-run, so `ch16-versions-mac.txt`
+  (Gemini CLI 0.49.0) and `ch16-help-mac.txt` no longer contain any
+  "expected absent" wording. Gemini is quarantined by the same
+  deliberate choice as the other two (volatile, non-deterministic,
+  API-costing live sessions), not because it is missing.

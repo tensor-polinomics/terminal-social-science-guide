@@ -20,7 +20,7 @@ classes:
   -> `/opt/homebrew`; `printf 'hello\n' | shasum -a 256` ->
   the fixed SHA-256 of "hello\n"). Mac versions, now confirmed
   from the transcripts and stated in prose (not shown as
-  `--version` blocks, Ch 16 precedent): macOS 26.5.1, zsh 5.9,
+  `--version` blocks, Ch 17 precedent): macOS 26.5.1, zsh 5.9,
   `/bin/bash` 3.2.57(1)-release (arm64-apple-darwin25), Homebrew
   6.0.6, Apple git 2.53.0, Command Line Tools at
   `/Library/Developer/CommandLineTools`, tealdeer 1.8.1. Repo
@@ -32,14 +32,14 @@ classes:
   (`wsl --install`, `/mnt/c`), the `apt` install commands
   (sandbox has no root), the Homebrew install one-liner, and the
   PowerShell sidebar. Nothing here is executed; the chapter never
-  runs an installer, on any machine, for the same reason Ch 6
+  runs an installer, on any machine, for the same reason Ch 7
   will not run `curl | sh`.
 
 Access date for all web sources below: 2026-07-01.
 
-Forward references: Ch 6, 11, 16 are drafted and cited in present
-tense; Ch 4, 5, 10, 12, 13, 17 are stubs and every reference to
-them is a scope statement ("Chapter 12's subject") or
+Forward references: Ch 7, 12, 17 are drafted and cited in present
+tense; Ch 5, 6, 11, 13, 14, 18 are stubs and every reference to
+them is a scope statement ("Chapter 13's subject") or
 forward-contract language ("will cover / will act on / will pin /
 will make stick"), never a claim they already teach or verify
 anything.
@@ -70,7 +70,7 @@ anything.
 - verifies: the shown/cited version 3.2.57 on macOS vs bash 5.x on
   Linux (5.1.16 sandbox), and the practical consequence (bash-4+
   features fail on the Mac system bash). Chapter routes the
-  scripting-target fix to Ch 10 (stub, "will").
+  scripting-target fix to Ch 11 (stub, "will").
 - version note: current as of 2026-07-01; the licensing reason is
   the commonly-cited explanation, flagged as such, not a fresh pin
 - confirmable: version yes (capture reconciled: 3.2.57 on macOS
@@ -91,7 +91,7 @@ anything.
 - accessed: 2026-07-01 (page fetched and read; captures same day)
 - verifies: APT/dpkg presence and versions (shown), the
   `sudo apt update && sudo apt install` recipe (quarantined,
-  pinned), the apt-vs-apt-get scripting note routed to Ch 10, and
+  pinned), the apt-vs-apt-get scripting note routed to Ch 11, and
   `dnf`/`pacman` named (not taught) for other families
 - version note: current as of 2026-07-01; apt 2.4.14 / dpkg
   1.21.1 captured
@@ -111,7 +111,7 @@ anything.
 - accessed: 2026-07-01 (page fetched and read; capture same day)
 - verifies: the prefix (shown + doc), the Homebrew-on-Linux prefix
   the DIVERGENCE mentions, and the `brew shellenv` PATH-fronting
-  line; persistence routed to Ch 17 (stub, "will")
+  line; persistence routed to Ch 18 (stub, "will")
 - version note: current as of 2026-07-01; the `eval "$(brew
   shellenv)"` line is presented as Homebrew's documented
   post-install step, not as captured output. **Accuracy fix on
@@ -127,7 +127,7 @@ anything.
   to the observed result, citing Ch 2's real capture, to avoid
   over-specifying a version-specific mechanism. The shellenv
   output is NOT shown in the chapter (the path_helper line is a
-  Ch 17 rabbit hole).
+  Ch 18 rabbit hole).
 - confirmable: yes (doc + capture reconciled 2026-07-01)
 
 ### tealdeer/tldr install recipe (delivers Ch 2's deferred install)
@@ -155,8 +155,8 @@ anything.
   default
 - accessed: 2026-07-01 (capture date)
 - verifies: the same-content-same-digest claim (both digests shown
-  identical) and the tool-name divergence; the tie to Ch 11's
-  `make check` hashing (Ch 11 drafted)
+  identical) and the tool-name divergence; the tie to Ch 12's
+  `make check` hashing (Ch 12 drafted)
 - version note: GNU coreutils 8.32 captured; shasum is macOS base
 - confirmable: yes (both captures; Mac reconciled)
 
@@ -172,11 +172,11 @@ anything.
   NOT run
 - accessed: 2026-07-01 (page fetched and read)
 - verifies: the exact one-liner, that it pipes a fetched script
-  into bash (the Ch 6 pattern), and the mitigations that make it a
+  into bash (the Ch 7 pattern), and the mitigations that make it a
   defensible exception (official HTTPS source; a careful,
-  pausing, confirmation-first script). Does NOT contradict Ch 6:
+  pausing, confirmation-first script). Does NOT contradict Ch 7:
   the verify-first workflow (fetch, read, checksum, run) is taught
-  as the safe general habit; Ch 6 owns the mechanics, Ch 16 the
+  as the safe general habit; Ch 7 owns the mechanics, Ch 17 the
   agent angle
 - version note: current as of 2026-07-01 (the install URL and
   installer behavior are version-volatile)
@@ -210,7 +210,7 @@ anything.
 - accessed: 2026-07-01
 - verifies: the /mnt/c mount, the keep-your-project-in-`~`
   guidance, and the performance rationale; the CRLF line-ending
-  hazard is routed to Ch 10 (stub, "will")
+  hazard is routed to Ch 11 (stub, "will")
 - version note: current as of 2026-07-01
 - confirmable: yes (doc)
 
@@ -252,10 +252,10 @@ anything.
 - chapter/section: Ch 3 throughout
 - source: this book, Ch 1 ($/% prompt, quarantine promise),
   Ch 2 (terminal vs shell, PATH first-match-wins, /mnt/c, tldr
-  deferral), Ch 6 (curl|sh, checksums, PATH-hijack), Ch 11
-  (`make check` hashing), Ch 16 (an agent can run the installer
-  line); forward to Ch 10 (scripting target, locale/CRLF), Ch 12
-  (uv/renv operational), Ch 13 (SSH), Ch 17 (PATH persistence)
+  deferral), Ch 7 (curl|sh, checksums, PATH-hijack), Ch 12
+  (`make check` hashing), Ch 17 (an agent can run the installer
+  line); forward to Ch 11 (scripting target, locale/CRLF), Ch 13
+  (uv/renv operational), Ch 14 (SSH), Ch 18 (PATH persistence)
 - accessed: n/a
 - verifies: the chapter delivers Ch 1/2/6's stated Ch-3
   commitments and does not re-teach the cross-referenced material

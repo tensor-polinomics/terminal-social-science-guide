@@ -1,6 +1,6 @@
 # Organizing a Project from the Shell
 
-Chapter 4 taught you to move through the tree and to make and
+Chapter 5 taught you to move through the tree and to make and
 copy files. This chapter is about deciding *where* they should
 go. A research project is not a heap of files in one folder; it
 is a small structure with a place for each kind of thing, so
@@ -21,7 +21,7 @@ from the terminal: scaffolding the whole tree in one command,
 walking it so every file has an obvious home, keeping immutable
 raw data apart from regenerated output, and naming things so the
 project survives the trip from your Mac to a Linux server. The
-tools are the ones Chapter 4 already gave you, `mkdir` and
+tools are the ones Chapter 5 already gave you, `mkdir` and
 `ls`, plus one habit: decide the structure once, up front, so
 you are never again guessing where a file belongs.
 
@@ -32,12 +32,12 @@ GNU coreutils 8.32; the `ch05-*.txt` transcript files): a fresh
 a clean copy of the asset-pricing project for the tour. This
 chapter needs no separate macOS capture, because the one place
 the platforms diverge, case-insensitive filenames, was captured
-on the author's Mac for Chapter 4 and is cross-referenced here
+on the author's Mac for Chapter 5 and is cross-referenced here
 rather than shown twice. The scaffolding tools `copier` and
 `cookiecutter` are version-stamped from a real install
 (`ch05-scaffold-tools.txt`) but not run, for a reason the last
 section explains. Nothing in this chapter's output carries
-user-specific data, so unlike Chapter 4 there is nothing to
+user-specific data, so unlike Chapter 5 there is nothing to
 mask: the demos use throwaway `/tmp` paths and plain `ls`, which
 prints no account names or home directories.
 
@@ -49,7 +49,7 @@ scripts, a place for figures, a place for tables. You could
 make them one `mkdir` at a time, but the shell can build the
 whole tree in a single command, and doing it in one line is
 both faster and self-documenting: the command *is* the layout.
-Two features from Chapter 4 combine to do it. `mkdir -p`, which
+Two features from Chapter 5 combine to do it. `mkdir -p`, which
 creates every missing parent in a path without complaint, and
 **brace expansion**, a shell feature that stamps out a list of
 paths from a compact pattern. Making the project root and then
@@ -87,7 +87,7 @@ tables
 ```
 
 One `mkdir` built five directories at two levels, and `ls -R`
-(recursive, from Chapter 4) walks the result: `data` splits
+(recursive, from Chapter 5) walks the result: `data` splits
 into `raw` and `clean`, `output` splits into `figures` and
 `tables`, and `scripts` stands on its own. The work is entirely
 in the braces, and it happens *before* `mkdir` ever runs. The
@@ -115,7 +115,7 @@ dropping in files.
 
 With the directories in place, the top-level files that live at
 the project root can be created as empty placeholders with
-`touch` (Chapter 4), to be filled in later:
+`touch` (Chapter 5), to be filled in later:
 
 ```bash
 $ touch README.md Makefile report.qmd pyproject.toml \
@@ -133,13 +133,13 @@ report.qmd
 scripts
 ```
 
-`ls -a` (all, from Chapter 4) is used deliberately here, because
+`ls -a` (all, from Chapter 5) is used deliberately here, because
 one of the files just created, `.gitignore`, begins with a dot
 and is invisible to plain `ls`. These five are the project's
 front matter: a `README.md` that says what the project is and
-how to run it, a `Makefile` that builds it (Chapter 11), a
+how to run it, a `Makefile` that builds it (Chapter 12), a
 `report.qmd` that renders the paper, a `pyproject.toml` that
-pins the Python environment (Chapter 12), and the `.gitignore`
+pins the Python environment (Chapter 13), and the `.gitignore`
 that tells Git what to leave alone. Naming them now, even empty,
 stakes out where each concern lives.
 
@@ -189,17 +189,17 @@ asset-pricing/          the project root
 |-- output/
 |   |-- figures/        generated figures
 |   `-- tables/         generated tables
-|-- Makefile            builds the whole graph (Ch 11)
+|-- Makefile            builds the whole graph (Ch 12)
 |-- report.qmd          the Quarto/LaTeX report
 |-- README.md           what this is and how to run it
-|-- pyproject.toml      Python deps, with uv.lock (Ch 12)
+|-- pyproject.toml      Python deps, with uv.lock (Ch 13)
 |-- uv.lock             pinned Python versions
-|-- renv.lock           R deps, pinned (Ch 12)
+|-- renv.lock           R deps, pinned (Ch 13)
 `-- .gitignore          what Git leaves untracked
 ```
 
 That map is the layout, not an aspiration: walking it with the
-Chapter 4 commands confirms it is really on disk. Standing at the
+Chapter 5 commands confirms it is really on disk. Standing at the
 project top, plain `ls` gives the shape, and `ls -R` on each
 working directory shows the contents:
 
@@ -262,7 +262,7 @@ run order, so the sequence reads off the filenames (`00` through
 describe and drive the whole thing, the `Makefile` and
 `report.qmd` that build and render it, the `README.md` that
 explains it, and the environment locks that pin the Python and R
-versions (Chapter 12).
+versions (Chapter 13).
 
 ![A research project has one home for each kind of file: fixed raw inputs, the code that reads them, and the results the code regenerates. Raw data flows in, scripts transform it, and every output can be rebuilt, so only the inputs and the code are precious.](../assets/figures/ch05/fig-ch05-layout){#fig-ch05-layout fig-alt="A left-to-right diagram. On the left, a neutral card 'data/raw' labeled immutable inputs. An arrow labeled read leads to a blue card 'scripts' in the center, the numbered code. An arrow labeled write leads to two green cards on the right, 'data/clean' and 'output/ (figures, tables)', labeled regenerated. Below, a neutral band lists the tracked root files: Makefile, report.qmd, README.md, pyproject.toml plus uv.lock, renv.lock, and .gitignore." width="5.6in" fig-pos="H"}
 
@@ -307,7 +307,7 @@ number came from.
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 The layout encodes a promise: given the contents of `data/raw`
-and `scripts`, everything else can be rebuilt. Chapter 11 makes
+and `scripts`, everything else can be rebuilt. Chapter 12 makes
 that literal, one `make` command regenerates `data/clean` and
 all of `output` from the raw inputs and the code, so the results
 in the paper are never hand-assembled. Organizing the project
@@ -362,7 +362,7 @@ each directory the moment it needs to write into it.
 `00_make_data.py` creates `data/raw` before writing the raw
 panel, `01_clean.py` creates `data/clean`, and the figure and
 table steps create `output/figures` and `output/tables`. So a
-fresh clone plus one `make` (Chapter 11) rebuilds the whole tree
+fresh clone plus one `make` (Chapter 12) rebuilds the whole tree
 from nothing, directories included. There is no empty folder to
 preserve, because the code lays down its own.
 
@@ -386,7 +386,7 @@ into, and never expect it to resurrect an ignored one.
 
 A layout is only as portable as the names in it, and names are
 where a project built on a Mac quietly breaks on a Linux server.
-Chapter 4 showed the mechanism: the default macOS filesystem
+Chapter 5 showed the mechanism: the default macOS filesystem
 treats `Data.csv` and `data.csv` as the same file, while a Linux
 server treats them as two. The layout consequence is concrete. A
 script that reads `data/Raw/panel.csv` while the folder on disk
@@ -396,7 +396,7 @@ the project is copied to the case-sensitive server it was always
 meant to run on.
 
 ::: {.callout-note .divergence title="DIVERGENCE"}
-This is Chapter 4's case-sensitivity divergence seen from the
+This is Chapter 5's case-sensitivity divergence seen from the
 project's point of view, and the defense is a naming convention
 rather than a command. Pick one case for every directory and
 file in the layout and never deviate, and let lowercase be that
@@ -407,7 +407,7 @@ it into two arguments, the same word-splitting that broke the
 brace scaffold earlier; use an underscore or a hyphen instead.
 The rule is small and pays off exactly when it is most expensive
 to debug, after you have SSH'd the project to a server (Chapter
-13) and the pipeline that ran all week on your laptop cannot find
+14) and the pipeline that ran all week on your laptop cannot find
 its own folders. The captured macOS side of this collision is in
 `transcripts/ch04-case-mac.txt`, from the previous chapter.
 :::

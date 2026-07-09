@@ -1,272 +1,285 @@
-# Source-verification log: Chapter 13 (SSH and remote compute)
+# Source-verification log: Chapter 13 (Environments from the shell)
 
-Per PLAN.md Section 10. Chapter 13 is unusual for this book:
-its subject is the network between two machines, so it splits
-cleanly into material that is fully demonstrable offline and
-material that only a real laptop-to-server round-trip can show.
-The offline half (rsync's trailing-slash and `--delete`
-semantics, `ssh-keygen`, `ssh-agent`, `tar`, `du`) runs in the
-Linux sandbox, where it is network-free and byte-identical to
-the remote form; outbound `ssh` from the sandbox is blocked, so
-every genuinely remote block is captured on the author's Mac
-against a real AWS EC2 Ubuntu server by
-`transcripts/capture-ch13-mac.sh`. External behavior is pinned
-to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
+Per PLAN.md Section 10. Chapter 13 is largely executable on the
+Python side: every uv block (`uv sync`, `uv run`, `uv add`,
+`uv pip list`, the `.venv` reads) and every lockfile read
+(`pyproject.toml`, `uv.lock`, `renv.lock`, `.Rprofile`,
+`.gitignore`, the `renv/` listings) is a real sandbox capture.
+Two blocks run on the user's Mac (renv::status/restore; the
+R.version.string/packageVersion receipts) because the sandbox
+has no R and cannot reach CRAN (confirmed at G0); those were
+drafted from best-known values and RECONCILED byte-for-byte
+2026-07-04 against the user's `capture-ch12-mac.sh` run (the
+Ch 8 DuckDB / Ch 9 `fd` / Ch 11 ShellCheck pattern; two
+drafted guesses corrected). External behavior is pinned to
+official docs, fetched 2026-07-04.
 
 ## Provenance classes
 
-- **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5,
-  GNU bash 5.1.16, OpenSSH_8.9p1, GNU rsync 3.2.7, GNU
-  coreutils 8.32, GNU tar 1.34. The rsync-semantics demos
-  (trailing slash, `--delete` with a `-n` dry run,
-  `--itemize-changes`), the `ssh-keygen`/`ssh-agent` demo, the
-  `tar`/`du` blocks all run in throwaway `/tmp` scratch
-  directories. The `ssh-keygen` demo generates a THROWAWAY
-  ed25519 keypair with a fixed `-C book-demo-key` comment,
-  inside a scratch `~/.ssh`, run with relative paths so the
-  commands stay within the 64-column limit; the private key
-  body is never shown, only the public half and the
-  fingerprint. Transcripts: `ch13-versions.txt`,
-  `ch13-keygen.txt`, `ch13-rsync-move.txt`, `ch13-bundle.txt`,
-  `ch13-space.txt`. Verified: outbound `ssh` from the sandbox
-  fails at DNS resolution (allowlisted network), so the remote
-  captures below could not be faked from here even in
-  principle.
-- **Mac + real remote server, captured by
-  `transcripts/capture-ch13-mac.sh` (macOS 26.5.1, zsh 5.9;
-  server: Ubuntu on AWS EC2, kernel 6.8.0-1039-aws, x86_64,
-  with R and uv (userspace) present):** the seven `ch13-*-mac.txt`
-  transcripts. The script hardcodes NO personal data; it
-  derives the server hostname, account, home, mount, device,
-  and any literal IP at runtime and masks them at capture time,
-  and the server alias is emitted as `lab-server`. All `ssh`
-  calls are non-interactive one-shots (BatchMode; the Ch 9 hang
-  lesson applied over the network). The transfer, checksum,
-  environment-rebuild, and tunnel demos run in a throwaway
-  `~/ch13-demo` (and `~/ch13-tunnel-demo`) on the server, which
-  the scripts delete afterward; nothing else of the user's is
-  touched. Two identifiers the capture-time mask could not
-  anticipate were masked ON INGESTION and noted in the
-  transcript headers: the Mac's own LocalHostName inside a
-  `~/.ssh` filename (`environment-<host>` ->
-  `environment-[hostname]`, `ch13-config-mac.txt`) and a
-  host-named private key (`id_rsa_<host>` -> `id_rsa_[hostname]`,
-  `ch13-server-mac.txt`); the capture script's `mask()` was
-  then hardened to scrub the Mac hostname on future runs.
-- **Authored, non-capture (labeled listings):** the annotated
-  `~/.ssh/` tree (Section 2, the Ch 5 house device, ASCII
-  connectors), the `~/.ssh/config` template (Section 3), and
-  the Slurm job script (Section 7) are labeled non-runnable
-  blocks, not captures; every line is <= 64 columns and each
-  is introduced in prose as illustrative. The `~/.ssh` tree's
-  names are cross-checked against the real masked `ls -l`
-  listings in `ch13-config-mac.txt` and `ch13-server-mac.txt`.
+- **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5 LTS,
+  GNU bash 5.1.16, uv 0.11.19 (aarch64-unknown-linux-gnu, the
+  sandbox-preinstalled binary), CPython 3.10.12 (`/usr/bin/
+  python3`, the interpreter `uv sync` selected), GNU coreutils
+  8.32, jq 1.6. The restore-and-run demos run in a clean `/tmp`
+  copy of the asset-pricing project (`pyproject.toml` +
+  `uv.lock` + `scripts/` only, so `uv sync` demonstrably
+  rebuilds the rest); the `uv add` demo runs in a SEPARATE
+  throwaway `/tmp` copy, synced first as setup so the add shows
+  only the new package, and the real project lock is never
+  touched. The lockfile and `renv/` reads run read-only in the
+  real project directory with relative paths. Transcripts:
+  `ch12-uv-version.txt`, `ch12-uv-sync.txt`, `ch12-uv-run.txt`,
+  `ch12-venv-tree.txt`, `ch12-uv-list.txt`, `ch12-uv-add.txt`,
+  `ch12-lockread.txt`, `ch12-renv-tree.txt`. Every sandbox block
+  the chapter shows was diffed against its transcript as a
+  contiguous substring (14 blocks, all byte-identical; see
+  counts). Capture-noise disclosure: `UV_LINK_MODE=copy` is
+  exported in the capture environment to silence a
+  sandbox-specific uv advisory about hardlinking across
+  filesystems (`/tmp` vs the uv cache); it does not change what
+  is installed, and it is disclosed in the transcript notes and
+  the chapter's provenance note.
+- **Mac-backed, RECONCILED byte-for-byte 2026-07-04 (2 blocks,
+  4 commands):** `renv::status()` + the no-op `renv::restore()`
+  (section 4) and `R.version.string` +
+  `packageVersion("fixest")` (section 5), all via
+  non-interactive `Rscript` in the real project on the user's
+  Mac (macOS 26.5.1, zsh 5.9; R 4.5.3, renv 1.2.3), captured by
+  `transcripts/capture-ch12-mac.sh` into `ch12-renv-mac.txt`
+  (plus the Mac `uv --version` stamp in `ch12-uv-mac.txt` and
+  one full `sessionInfo()` after `library(fixest)` recorded for
+  the log and described in prose, not shown as a block). Both
+  chapter blocks were re-diffed and are byte-identical. Two
+  drafted guesses were corrected against the real capture (the
+  Ch 8/8/10 lesson): the R 4.5.3 release date is **2026-03-11**
+  (drafted "2026-02-28"), and `packageVersion` prints Unicode
+  curly quotes, `[1] ‘0.14.2’`, not ASCII `'0.14.2'` (kept
+  byte-faithful in the chapter; FLAGGED for the PDF render
+  check, the class of the Ch 6 box-glyph lesson, since the
+  curly quotes sit inside a verbatim block). Two drafted calls
+  were confirmed as drafted: the status/restore wording matched
+  exactly, and renv's loader prints NO banner line under
+  `Rscript` (so the auto-activation evidence remains the
+  `.Rprofile` read, as drafted). The full `sessionInfo()`
+  capture confirms the section-5 prose claims: it reports the R
+  version and platform (aarch64-apple-darwin25.3.0), the BLAS
+  in use (Homebrew openblas 0.3.32), the locale
+  (`C.UTF-8`), the time zone, and `fixest_0.14.2` under "other
+  attached packages", with `renv_1.2.3` visible in the loaded
+  namespaces. The Mac uv stamp is **uv 0.11.2 (Homebrew
+  2026-03-26 aarch64-apple-darwin)**, older than the sandbox's
+  0.11.19; the chapter stamps only the sandbox uv and claims
+  nothing version-specific about the Mac install, so no chapter
+  text changed. The `renv.lock`-side values the receipts agree
+  with are sandbox-verified by `jq` (R 4.5.3, fixest 0.14.2,
+  `ch12-lockread.txt`), consistent with Chapter 8's committed
+  jq reads of the same file.
+- **Authored, non-capture:** the `.venv/` annotated layout tree
+  (section 2) is a labeled non-runnable `text` schematic (the
+  Ch 6 house device, ASCII connectors), paired with the real
+  `ls .venv` + `site-packages` listing beside it as evidence;
+  its entry names were checked against that listing.
 
-## Behavior verified live (not assumed)
+## Behavior verified live in the sandbox (not assumed)
 
-- **rsync trailing-slash semantics** (`ch13-rsync-move.txt`):
-  `rsync -a proj/ backup` copies the CONTENTS of `proj` into
-  `backup`; `rsync -a proj nested` nests a `proj/` inside
-  `nested`. Shown side by side with `find`.
-- **`rsync --delete` deletes on the destination**
-  (`ch13-rsync-move.txt`): a stale `OLD_RESULT.csv` on the
-  target is reported `deleting OLD_RESULT.csv` under
-  `-n --delete` and left in place (the `(DRY RUN)` marker and
-  the intact `ls` confirm it), then actually removed when `-n`
-  is dropped. This is the chapter's headline DANGER, captured
-  with real output rather than asserted.
-- **Cross-machine checksum agreement** (`ch13-transfer-mac.txt`):
-  the three transferred CSVs produce identical SHA-256 hashes
-  from GNU `sha256sum` on the server and BSD `shasum -a 256` on
-  the Mac (`54989b46...`, `8648c3be...`, `5056f919...`). This
-  is Chapter 3's `sha256sum`-vs-`shasum` divergence delivering
-  its remote payoff, and Chapter 10's manifest idea applied
-  across two machines.
-- **`uv sync` rebuilds the Python env on the server**
-  (`ch13-restore-mac.txt`): from the same universal `uv.lock`,
-  the server's CPython 3.12 resolves to 18 installed packages
-  where the sandbox's 3.10 gave 20 (Chapter 12's
-  universal-lock divergence, now demonstrated on a third
-  platform); `statsmodels` lands at the locked `0.14.6`.
-- **`renv::restore()` rebuilds the R library on the server**
-  (`ch13-restore-mac.txt`): the server had no renv, so restore
-  first bootstraps renv 1.2.3, then compiles all 35 packages
-  from source ("Successfully installed 35 packages in 420
-  seconds"); `fixest` builds to `0.14.2`, matching the lock and
-  Chapter 7's committed value. `lattice`/`nlme` show
-  `[old -> new]` because the server had system copies renv
-  overrides; the rest show `[* -> version]`. renv restores the
-  locked package versions regardless of the server's R patch
-  release (the chapter does not assert a specific server R
-  version), the live illustration of Chapter 12's honest edge
-  that a lockfile pins packages, not the R interpreter.
-- **`ssh -L` port forwarding** (`ch13-tunnel-mac.txt`): a
-  background tunnel (`ssh -fN -L 8899:localhost:<port>`) reaches
-  a short-lived server-side `python3 -m http.server` via `curl`
-  on the laptop; the returned directory listing (`HELLO.txt`,
-  `step.py`) proves the forward. A free ephemeral remote port
-  is chosen at capture time so the demo cannot collide with an
-  existing service.
-- **The openrsync divergence, CORRECTED by capture**
-  (`ch13-versions-mac.txt`, `ch13-divergence-mac.txt`,
-  `ch13-versions.txt`): macOS ships `openrsync` (protocol 29,
-  "rsync 2.6.9 compatible"), the Linux sandbox GNU rsync 3.2.7
-  (protocol 31). The draft assumed, from the OpenBSD manual,
-  that GNU-only flags `--itemize-changes` and `-z` would fail
-  on macOS; the live capture shows both ACCEPTED on macOS
-  26.5.1 (`--itemize-changes` prints `cd+++++++`/`>f+++++++`).
-  So the chapter frames the divergence as
-  implementation/protocol, not flag failure, and advises
-  checking `rsync --version` on any new machine, the honest,
-  capture-backed claim.
+- **`uv sync` restores the locked environment from a bare copy**
+  (`ch12-uv-sync.txt`): with only `pyproject.toml` + `uv.lock` +
+  `scripts/` present, `uv sync` selects CPython 3.10.12, creates
+  `.venv/`, and installs all 20 packages at exactly the locked
+  versions (`statsmodels==0.14.6` etc.); a second `uv sync`
+  verifies instead of reinstalling ("Checked 20 packages").
+- **`uv run` executes inside the project environment without
+  activation** (`ch12-uv-run.txt`): step 0 of the pipeline runs
+  in the restored copy and reprints the locked content hash
+  `49b3a173...`. The chapter is precise that the numbers
+  reproduce because the generator is deterministic by design
+  (seed 20260629, the G1 invariant `make check` re-derives, not
+  re-derived here); the lockfile's contribution is that the
+  code computing them is version-identical everywhere.
+- **`uv add` updates environment, manifest, and lock together**
+  (`ch12-uv-add.txt`): `uv add tabulate` installs
+  tabulate==0.10.0, appends `"tabulate>=0.10.0"` to the
+  `pyproject.toml` dependencies stanza, and writes the pinned
+  `0.10.0` entry into `uv.lock` (shown by before/after reads).
+  The resolved version 0.10.0 is itself a
+  drafted-guess-would-have-been-wrong case: tabulate's
+  well-known version is 0.9.0.
+- **The manifest declares ranges, the lock records exact
+  versions** (`ch12-lockread.txt`): the real project's
+  dependencies stanza is five `>=` floors; `uv.lock` pins
+  `statsmodels 0.14.6` and every other package the project
+  pulls in (28 `[[package]]` entries; the count includes the
+  project itself and per-Python-range duplicates such as three
+  `numpy` pins, because the lock is universal, so the chapter
+  deliberately does not state a single package count for it),
+  and `jq` reads R 4.5.3 / fixest 0.14.2 out of `renv.lock`
+  (36 packages, agreeing with Chapter 8's committed jq reads).
+- **The environment is a machine-wired artifact**
+  (`ch12-venv-tree.txt`): `.venv/pyvenv.cfg` records
+  `home = /usr/bin` and `readlink .venv/bin/python` resolves to
+  `/usr/bin/python3`, the sandbox machine's interpreter (shown
+  with `readlink`, not `ls -l`, so no owner column appears).
+- **The project ignores the environments and tracks the locks**
+  (`ch12-lockread.txt`): the real `.gitignore` lists `.venv/`
+  and `renv/library/` (+ renv/local, cellar, lock, python,
+  staging), while `uv.lock` and `renv.lock` are tracked.
+- **renv's on-disk layout is platform-named**
+  (`ch12-renv-tree.txt`): the real project's `.Rprofile` is the
+  one-line `source("renv/activate.R")`, `renv/` holds
+  activate.R / library / settings.json / staging, and the
+  library sits under `renv/library/macos/R-4.5` (built on the
+  author's Mac; listed read-only from the sandbox, which is
+  possible precisely because a file listing is not a running
+  environment).
 
 ## Cross-references honored (no re-teaching)
 
-- **Ch 1** promised the laptop-to-server-to-GPU motion; this
-  chapter delivers it (the opening figure states the same
-  motion) without re-arguing Ch 1's case.
-- **Ch 9** taught `chmod` and `nohup`; Section 2 APPLIES `600`/
-  `700` to key files (not re-teaching bit-reading), and Section
-  6 cross-refs `nohup` as the disconnect stopgap. The env-var
-  secrets and `ps`/history leak vectors stay Ch 9's; SSH-agent
-  handling is this chapter's own.
-- **Ch 10** built a `sha256sum` manifest; Section 5 applies the
-  same check across two machines and is explicit that rsync's
-  own after-transfer whole-file checksum is a wire-integrity
-  check, "nothing to do with" an end-to-end manifest checksum
-  (rsync manual, verbatim).
-- **Ch 12** ended on the promise that `uv sync`/`renv::restore()`
-  would rebuild the environment on a server; Section 6 is that
-  payoff, cross-referenced, with no uv/renv mechanics
-  re-taught. The exclude-the-environments line
-  (`.venv/`/`renv/library/`) is Ch 12's commit-the-lock rule
-  applied to a transfer.
-- **Ch 3** owns the `sha256sum`-vs-`shasum -a 256` divergence,
-  reused at the remote-verify moment.
-- **Ch 14 (tmux)** is forward "will": the dropped-connection
-  fact is stated, `nohup` is named as the stopgap, and
-  persistent reattachable sessions are named as the next
-  chapter's subject. No tmux is taught here.
-- **Ch 15** owns the modern TUI kit; `ncdu` is named and routed
-  there rather than shown (it is an interactive TUI, not a
-  one-shot command).
-- **Ch 17** is forward: the non-interactive-`ssh` `PATH` note
-  (`~/.local/bin/uv` named in full) points at Ch 17's
-  startup-file material.
-- **The Git book** owns reproducibility and replication-package
-  layout; not re-argued.
+- **Ch 2 / Ch 10 shell environment vs language environment:**
+  section 1 explicitly disambiguates the two meanings of
+  "environment"; `PATH`/`export` (Ch 2) and env-var secrets
+  (Ch 10) are referenced, not re-taught.
+- **Ch 6** named `pyproject.toml`/`uv.lock`/`renv.lock` in the
+  layout and deferred operational use to Ch 13; delivered here.
+  The commit-the-lock rule applies Ch 6's tracked-vs-regenerated
+  line, not a new rule.
+- **Ch 8** used `renv.lock` as `jq` material and deferred its
+  meaning to Ch 13; delivered (same file, same tool, new
+  question). The jq reads here (R 4.5.3, 36 packages' stack,
+  fixest 0.14.2) are consistent with Ch 8's committed values.
+- **Ch 11**: the run-log habit (`tee`, dated filenames) is
+  extended to environment receipts; the REPRODUCIBILITY callout
+  assigns each Part-III layer its own pin (Ch 11 shell env,
+  Ch 13 language env, Ch 12 orchestration + `make check`)
+  without crediting any layer for another's work.
+- **Ch 12**: `PY := uv run python` and the `Rscript` node are
+  quoted as the seam where Make invokes this chapter's
+  environments; no Make mechanics are taught. The seed/content
+  hash is referenced as the G1 locked invariant, not re-derived;
+  the alpha-locked-at-4dp caveat is attributed to Ch 12's
+  record.
+- **Ch 5** `readlink` is applied (the `.venv/bin/python`
+  symlink), not re-taught.
+- **Ch 14 (stub)** stays forward: "which Chapter 14 will lean
+  on when this project moves to a remote server."
+- **The Git book** owns the why-pin-environments argument
+  (PLAN Section 6); cross-referenced in the opening, not
+  re-argued.
 
-## Pinned external sources (fetched 2026-07-05)
+## Pinned external sources (fetched 2026-07-04)
 
-- **OpenSSH `ssh(1)`** (man.openbsd.org/ssh.1). Pins: `ssh` is
-  "for logging into a remote machine and for executing commands
-  on a remote machine"; "If a command is specified, it will be
-  executed on the remote host instead of a login shell";
-  `-L [bind_address:]port:host:hostport` forwards a local port
-  to a host/port reachable from the remote side; `-N` = "Do not
-  execute a remote command... useful for just forwarding
-  ports"; `-f` backgrounds ssh; `-J` is shorthand for a
-  `ProxyJump`. Host keys "are stored in ~/.ssh/known_hosts...
-  Any new hosts are automatically added"; "If a host's
-  identification ever changes, ssh warns about this and
-  disables password authentication to prevent server spoofing
-  or man-in-the-middle attacks" (the RECOVERY callout's
-  wording).
-- **OpenSSH `ssh_config(5)`** (man.openbsd.org/ssh_config.5).
-  Pins: the per-user file is `~/.ssh/config`; "the first
-  obtained value for each parameter is used" (Section 3's
-  ordering note); the meanings of `Host`, `HostName`, `User`,
-  `Port`, `IdentityFile`. The `ForwardAgent` SECURITY WARNING,
-  quoted in the agent-forwarding PITFALL: users "with the
-  ability to bypass file permissions on the remote host" can
-  access the forwarded agent; "An attacker cannot obtain key
-  material from the agent, however they can perform operations
-  on the keys that enable them to authenticate using the
-  identities loaded into the agent."
-- **OpenSSH `ssh-keygen(1)`** (man.openbsd.org/ssh-keygen.1).
-  Pins: it "generates, manages and converts authentication
-  keys"; ed25519 is the default type; `-C` sets a comment,
-  `-f` the filename, `-l` shows a fingerprint, `-p` changes a
-  passphrase.
-- **rsync(1)** (download.samba.org/pub/rsync/rsync.1). Pins:
-  `-a` = `-rlptgoD`; `--delete` "delete extraneous files from
-  dest dirs"; `-n`/`--dry-run`; `-i`/`--itemize-changes`. The
-  trailing slash, verbatim: a trailing `/` on the source means
-  "copy the contents of this directory" as opposed to "copy the
-  directory by name." The integrity distinction, verbatim:
-  "rsync always verifies that each transferred file was
-  correctly reconstructed on the receiving side by checking a
-  whole-file checksum that is generated as the file is
-  transferred, but that automatic after-the-transfer
-  verification has nothing to do with this option's
-  before-the-transfer 'Does this file need to be updated?'
-  check" (Section 5's precise credit).
-- **openrsync(1)** (man.openbsd.org/openrsync.1, OpenBSD-current
-  dated 2025-12-29). Pins the option list (no `--itemize-changes`
-  or `-z` in the OpenBSD build) and "compatible with rsync
-  protocol version 27." NOTE: the CHAPTER does not repeat the
-  no-`-i`/`-z` claim, because the live macOS capture
-  (`ch13-divergence-mac.txt`) shows Apple's openrsync accepting
-  both; the divergence is framed as implementation/protocol and
-  the reader is told to check `rsync --version`.
-- **Slurm** (slurm.schedmd.com/{sbatch,squeue,scancel}.html,
-  Version 26.05 docs, accessed 2026-07-05). Pins: "sbatch
-  submits a batch script to Slurm"; a script "may contain one
-  or more lines beginning with '#SBATCH'"; "squeue - view
-  information about jobs located in the Slurm scheduling
-  queue"; "scancel - Used to signal jobs or job steps." Used
-  only for the one recognize-and-route page; the job script is
-  a labeled non-runnable listing.
-- **Runpod docs** (docs.runpod.io/pods/pricing and
-  docs.runpod.io/pods/maintenance-and-outages, accessed
-  2026-07-05). Pins the two Section-7 GPU-pod claims: Pods are
-  billed PER SECOND (the chapter says "metered, on Runpod by the
-  second", correcting a drafted "by the hour"), and a Pod's
-  container disk / volume is ephemeral and can be lost when the
-  Pod stops or is reset, so results must be moved off (rsync) or
-  written to persistent storage. Nothing is run on a paid pod;
-  the section is recognize-and-route, quarantined.
-- **renv R-version behavior** (per the renv docs pinned in
-  Chapter 12's verification log: renv TRACKS but does not MANAGE
-  the R version). This backs the Section-6 wording that a server
-  on a different R patch release restores the same package
-  versions, not the same R. The chapter does NOT assert the
-  server's specific R version, since the `R --version` probe was
-  a chat-time check, not a committed capture; the shown restore
-  output backs only the package-version overrides
-  (`lattice`/`nlme` `[old -> new]`).
+- **uv, Project structure and files**
+  (docs.astral.sh/uv/concepts/projects/layout/) - fetched clean
+  2026-07-04 (page dated 2025-10-07). Pins: `pyproject.toml` =
+  broad requirements vs `uv.lock` = exact resolved versions;
+  the lockfile "should be checked into version control"; the
+  `.venv` project environment is NOT recommended for version
+  control (uv auto-excludes it via an internal `.gitignore`);
+  `uv.lock` is a human-readable TOML file "managed by uv and
+  should not be edited manually"; `uv.lock` is a *universal /
+  cross-platform* lockfile resolving across operating systems,
+  architectures, and Python versions (the DIVERGENCE callout's
+  doc anchor); do not modify the environment manually with
+  `uv pip install`, use `uv add`.
+- **uv, Locking and syncing**
+  (docs.astral.sh/uv/concepts/projects/sync/) - fetched clean
+  2026-07-04 (page dated 2026-06-05). Pins: locking and syncing
+  are AUTOMATIC on `uv run`/`uv sync` (the basis for the
+  PITFALL's "uv hides the failure mode locally; the commit
+  boundary is where the pair separates"); `uv run --locked`
+  errors instead of re-locking when the lockfile is outdated
+  (the strict collaborator-side form the PITFALL names);
+  `--frozen` skips the check; uv does NOT consider new upstream
+  releases a reason to update the lock, upgrades happen only
+  via `uv lock --upgrade` / `--upgrade-package` (the basis for
+  "a lockfile never goes stale on its own"); `uv sync` performs
+  exact syncing by default.
+- **renv, Introduction to renv**
+  (rstudio.github.io/renv/articles/renv.html, renv 1.2.3) -
+  fetched clean 2026-07-04. Pins: `renv::init()` creates the
+  project library, `renv.lock`, and a project `.Rprofile` that
+  R runs automatically at startup so the project library is
+  used ("once you turn on renv for a project, it stays on");
+  `snapshot()` records current versions into the lockfile and
+  `restore()` installs "exactly the same version of every
+  package"; the files to commit are `renv.lock`, `.Rprofile`,
+  `renv/settings.json`, `renv/activate.R` (renv writes its own
+  `.gitignore` for the rest, which the chapter's `.gitignore`
+  read shows on the project side); the lockfile is JSON with
+  `R` and `Packages` components. The vignette's Caveats section
+  anchors the REPRODUCIBILITY callout's honesty scope: renv
+  tracks but does not manage the R version, and does not pin
+  the OS / system libraries / compilers, for which it points to
+  Docker (also the section-7 Docker paragraph's anchor). The
+  packrat-is-superseded point matches the vignette family's
+  "packrat vs. renv" article.
+- **renv, status() reference**
+  (rstudio.github.io/renv/reference/status.html, renv 1.2.3) -
+  fetched clean 2026-07-04. Pins: `status()` "reports issues
+  caused by inconsistencies across the project lockfile,
+  library, and dependencies()" - which anchors the chapter's
+  no-manifest-file point (Codex round-1 blocker fix):
+  `renv.lock` is compared against the project dependencies; it
+  is the lockfile that records versions, not a manifest the
+  user edits, and "you should strive to
+  ensure that status() reports no issues, as this maximizes
+  your chances of successfully restore()ing the project in the
+  future or on another machine" (the chapter's "renv's
+  documentation is blunt" sentence). The exact clean-state
+  output line is NOT quoted in the reference page; it is
+  transcript-backed by the Mac capture (`ch12-renv-mac.txt`,
+  reconciled byte-for-byte 2026-07-04; see provenance
+  classes).
+- **renv, dependencies() reference**
+  (rstudio.github.io/renv/reference/dependencies.html, renv
+  1.2.3) - fetched clean 2026-07-04. Pins the exact
+  dependency-discovery language used in the blocker fix:
+  `dependencies()` scans project files for R files and package
+  uses, primarily by parsing code for `library()`, `require()`,
+  `requireNamespace()`, and `package::method()` calls; by
+  default it searches the current working directory and its
+  children. This is the source for "project code plays the
+  manifest-like role; `renv.lock` records the resolved
+  versions," with the usual static-analysis caveat.
+- **Alternatives named in section 7** (conda/mamba, Poetry,
+  pipenv, venv+pip; packrat): named in one breath as
+  orientation, no behavior asserted beyond lock-first vs not,
+  so no per-tool pin is owed; packrat's supersession is pinned
+  to the renv article family above. Docker is NAMED only (PLAN
+  Section 3 cut: own book); nothing is run, no Dockerfile is
+  shown as runnable.
 
 ## Counts (self-check)
 
 - **7 numbered content sections** (5 beginner, 2 advanced) +
   unnumbered `## Try it yourself`:
-  1. Reaching a shell on a machine you cannot see (beginner)
-  2. Keys, and the permissions that make them work (beginner)
-  3. A config file, and forwarding a port (beginner)
-  4. Moving the project with `rsync` (beginner)
-  5. Did the bytes survive the trip? (beginner)
-  6. Rebuilding the environment, and surviving a disconnect
-     (advanced)
-  7. The bigger remote worlds: GPU pods and HPC (advanced)
-- **Callouts (6): 1 RECOVERY, 2 PITFALL, 1 DANGER, 1
-  DIVERGENCE, 1 REPRODUCIBILITY.** RECOVERY: host-key-changed
-  triage. PITFALL: wrong `~/.ssh` permissions make OpenSSH
-  ignore a key; agent-forwarding exposure. DANGER:
-  `rsync --delete` with the trailing-slash trap. DIVERGENCE:
-  macOS openrsync vs Linux GNU rsync. REPRODUCIBILITY:
-  checksum-verified transfer plus lockfile rebuild = same
-  bytes and same versions on both machines.
-- **1 figure:** `fig-ch13-motion` (the laptop-to-server-to-GPU
-  arrow diagram at the chapter open; textbook-diagrams TikZ,
-  built font-independently per the CLAUDE.md recipe).
-- Mechanical: content sections = 7; `{.tier-beginner}` = 5;
-  `{.tier-advanced}` = 2; em-dashes = 0; validator 0 errors /
-  0 warnings (sandbox `python3`; canonical Mac `uv run` at the
-  gate). Of the 21 fenced code blocks, 18 are transcript-backed
-  (17 with `$`/`>` prompts plus the renv output block shown
-  without a prompt) and were each verified as contiguous
-  substrings of the `ch13-*` transcripts (with marked `[...]`
-  elisions for the rsync file list and the uv/renv install
-  logs); the other 3 are authored non-capture listings (the
-  annotated `~/.ssh` tree, the `~/.ssh/config` template, and the
-  Slurm job script), each <= 64 columns.
+  1. A language environment is not a shell variable (beginner)
+  2. Restore and run: `uv sync` and `uv run` (beginner)
+  3. Change it on purpose: `uv add` (beginner)
+  4. The same job for R: renv (beginner)
+  5. Provenance: what did this run against? (beginner)
+  6. Commit the lock, not the environment (advanced)
+  7. Beyond uv and renv (advanced)
+- **Callouts: 1 PITFALL, 1 REPRODUCIBILITY, 1 DIVERGENCE.**
+  PITFALL: manifest and lock separating at the commit boundary.
+  REPRODUCIBILITY: the three-layer Part-III stack, with honest
+  edges (lockfiles pin packages, not R itself, not the OS, not
+  the data). DIVERGENCE: the lockfile is cross-platform by
+  design, the built environments are platform-wired
+  (`pyvenv.cfg`/symlink on Linux, `renv/library/macos/R-4.5` on
+  the Mac). No DANGER (nothing here destroys; deliberate, as in
+  Ch 6), no RECOVERY (the recovery IS the restore verbs, taught
+  in the body), no figure (the annotated tree carries the
+  layout).
+- Mechanical: `grep -E '^## ' | grep -v 'Try it yourself' | wc
+  -l` = 7; `grep -c '{.tier-beginner}'` = 5; `grep -c
+  '{.tier-advanced}'` = 2; em-dashes = 0; validator 0/0 in the
+  sandbox AND under the canonical `uv run` on the Mac (Codex,
+  2026-07-04); `quarto render book` passed in the final
+  re-review (Codex, 2026-07-04: 177-page PDF, Ch 13
+  pp. 145-156, Ch 14 starts p. 157, no clipping, the §5 curly
+  quotes `[1] ‘0.14.2’`, the long content-sha256 line, and the
+  uv sync install list all render clean, so the curly-quote
+  render flag is RESOLVED); 16 shown bash blocks = 14 sandbox
+  + 2 Mac, ALL byte-identical (contiguous-substring diff
+  re-run 2026-07-04 after the reconcile and again after the
+  Codex round-1 fixes).

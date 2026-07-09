@@ -2,7 +2,7 @@
 # dependency graph: a single `make` regenerates the data,
 # forms the portfolio, draws the figure, runs the
 # regression, and renders the report. This is the
-# reproducibility showcase (PLAN.md Section 7, Chapter 11).
+# reproducibility showcase (PLAN.md Section 7, Chapter 12).
 #
 # Toolchain split: the Python steps (00-03) run anywhere,
 # including the locked-down sandbox. The R step (04) and the

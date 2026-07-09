@@ -22,7 +22,7 @@ now pairs the real `ls /` capture with an annotated `/` tree (a
 labeled, non-runnable `text` block giving the role of the common
 system directories home/usr/etc/var/tmp/opt, no `$` prompts).
 This is the annotated-structure-tree house device codified in
-`CLAUDE.md` (introduced in Ch 5). The tree is a schematic, not
+`CLAUDE.md` (introduced in Ch 6). The tree is a schematic, not
 output; the real `ls /` block is unchanged and still matches
 `ch02-filesystem-mac.txt`. Validator 0/0. **The first version
 used Unicode box-drawing glyphs, which Codex's PDF render showed
@@ -33,17 +33,17 @@ post-gate edit to a committed chapter. Codex's Mac re-render
 tree renders correctly on Ch 2 PDF p.19; a commit is the only
 step left.
 
-Forward references: Ch 6, 11, 16 are drafted. Since Ch 2 was
-committed, Ch 3 and Ch 4 have also been drafted and committed
-and Ch 5 is drafted (in the G3 gate); Ch 9, 10, 12, 13, 14, 17
+Forward references: Ch 7, 12, 17 are drafted. Since Ch 2 was
+committed, Ch 3 and Ch 5 have also been drafted and committed
+and Ch 6 is drafted (in the G3 gate); Ch 10, 11, 13, 14, 15, 18
 remain stubs. Ch 2's PROSE still uses forward-contract wording
 for the chapters that were stubs when it was written ("will be
 taught / will pin / will handle / will return"); the notes below
 now flag which of those targets have since been drafted. All of
-Ch 2's forward targets (Ch 3-13) are now committed and Ch 14 is
+Ch 2's forward targets (Ch 3-13) are now committed and Ch 15 is
 drafted, so its "will" pointers are reading-order narrative for a
 reader at Ch 2, not claims the targets are unwritten; the Ch 1
-present-tense re-finalize was completed with the Ch 14 closeout
+present-tense re-finalize was completed with the Ch 15 closeout
 (Part III complete at G5).
 Either way, no Ch 2 reference claims a later chapter already
 teaches, runs, or verifies anything.
@@ -145,7 +145,7 @@ Access date for all web sources below: 2026-07-01.
 - accessed: 2026-07-01
 - verifies: the three channels exist per process, results and
   diagnostics are separate streams; mechanics of redirection
-  deferred to Ch 6 (drafted)
+  deferred to Ch 7 (drafted)
 - version note: stable (POSIX)
 - confirmable: yes (doc + transcript)
 

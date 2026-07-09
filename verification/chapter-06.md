@@ -1,244 +1,272 @@
-# Source-verification log: Chapter 6 (Pipes, Redirection, Danger)
+# Source-verification log: Chapter 6 (Organizing a project from the shell)
 
-Per PLAN.md Section 10. Command behavior is verified by running
-it and capturing real output (see the `ch06-*` transcripts);
-this log pins the external/version-volatile claims to
-authoritative sources. Access date for all web sources below:
-2026-06-30. The macOS/BSD divergence claims are confirmed
-empirically by `transcripts/ch06-divergence-mac.txt` (captured
-2026-06-30 on macOS 26.5.1, Apple Silicon, zsh 5.9 + system
-bash 3.2.57, via `transcripts/capture-ch06-mac.sh`). Captured
-results: zsh unmatched glob = `zsh: no matches found` (exit 1);
-bash 3.2.57 unmatched glob = literal pass-through (`ls: *.xyz:
-No such file or directory`); noclobber refusal = `zsh: file
-exists` vs `/bin/bash: f: cannot overwrite existing file`; BSD
-`find -print0 | xargs -0` returns intact spaced names while the
-naive pipe breaks (BSD `wc: ./fy: open: No such file`); and
-`2>&1 > file` does NOT merge on either Mac shell (order rule
-holds). The Mac-capture OPEN flag is now CLEARED.
+Per PLAN.md Section 10. Chapter 6 is executable and almost
+entirely real sandbox output, so this log is light on external
+pins (only the two scaffolding-tool versions) and heavy on
+transcript provenance. One provenance class this chapter, plus a
+single cross-referenced Mac transcript owned by Chapter 5:
 
-### Streams 0/1/2: stdin=0, stdout=1, stderr=2
-- chapter/section: Ch 6, "Three streams"
-- source: POSIX.1-2017 (IEEE Std 1003.1) "Base Definitions",
-  Section 3 (Standard Input/Output/Error) and `<unistd.h>`
-  STDIN_FILENO=0 / STDOUT_FILENO=1 / STDERR_FILENO=2
-  (https://pubs.opengroup.org/onlinepubs/9699919799/)
-- accessed: 2026-06-30
-- verifies: the three streams and their file-descriptor numbers
-- demonstrated live: `transcripts/ch06-streams.txt`
-  (GNU coreutils 8.32, sandbox)
-- confirmable: yes
+- **Real, sandbox (Linux/GNU baseline):** Ubuntu 22.04.5 LTS,
+  GNU bash 5.1.16, GNU coreutils 8.32, aarch64. The scaffold and
+  pitfall demos run in throwaway `/tmp` scratch directories; the
+  tour runs in a clean copy of the asset-pricing project's
+  repo-relevant tree at `/tmp/ap` (scripts + data + output +
+  the root files, with `.venv/`, the `renv/` library, caches,
+  and render products excluded). Transcripts: `ch05-scaffold.txt`,
+  `ch05-place-files.txt`, `ch05-tour.txt`, `ch05-brace-space.txt`,
+  `ch05-scaffold-tools.txt`. Every shown `$` block was diffed
+  byte-for-byte against its transcript.
+- **No new Mac capture this chapter.** The one place the layout
+  meets a platform divergence, case-insensitive filenames, was
+  captured on the author's Mac for Chapter 5
+  (`transcripts/ch04-case-mac.txt`, macOS 26.5.1) and is
+  cross-referenced here, not re-shown. There is therefore no
+  `capture-ch05-mac.sh`: nothing in this chapter behaves
+  differently enough on macOS to earn one.
 
-### `>` truncates, `>>` appends; `set -o noclobber` refuses, `>|` overrides
-- chapter/section: Ch 6, "Redirecting output to files"; DANGER
-- source: Bash Reference Manual, "Redirections" (Redirecting
-  Output `>`, Appending `>>`, and the `noclobber` option / `>|`)
-  (https://www.gnu.org/software/bash/manual/html_node/Redirections.html);
-  Bash Reference Manual, "The Set Builtin" (`noclobber` via
-  `set -C` / `set -o noclobber`)
-  (https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html)
-- accessed: 2026-06-30
-- verifies: `>` truncates an existing file before writing; `>>`
-  appends; `noclobber` makes `>` refuse to overwrite an existing
-  regular file; `>|` forces the overwrite anyway
-- demonstrated live: `transcripts/ch06-redirect.txt` (bash 5.1,
-  sandbox). Interactive refusal message `bash: note.txt: cannot
-  overwrite existing file` confirmed via `bash -i` in the same
-  sandbox. The run-to-log provenance block (`{ ...; } > run.log
-  2>&1`; the REPRODUCIBILITY callout) is captured separately in
-  `transcripts/ch06-provenance.txt`.
-- version note: n/a (stable bash feature)
-- confirmable: yes
+Masks: none this chapter. The scaffold, tour, and pitfall use
+plain `ls`/`ls -R`/`find` and throwaway `/tmp` paths, so no owner
+columns, homes, or hostnames appear. The tool versions are read
+with `python3 -c "... __version__"` (not `--version`), so they
+print only the bare version string, no install path and no
+account name. There is therefore nothing to mask and no mask is
+claimed (an earlier draft version-checked with `--version`, whose
+`site-packages` path carried the account name; that approach was
+dropped in favor of `__version__`, which sidesteps the path
+entirely). Access date for the two external pins below:
+2026-07-02.
 
-### `2>&1` redirects stderr to stdout's CURRENT target; order matters
-- chapter/section: Ch 6, "Separating errors from results"
-- source: Bash Reference Manual, "Redirections" (Redirecting
-  Standard Output and Standard Error; "the order of redirections
-  is significant")
-  (https://www.gnu.org/software/bash/manual/html_node/Redirections.html)
-- accessed: 2026-06-30
-- verifies: `> file 2>&1` merges both into file; `2>&1 > file`
-  does not, because `2>&1` duplicates stdout's destination at the
-  point it appears
-- demonstrated live: `transcripts/ch06-stderr.txt` (bash 5.1,
-  sandbox)
-- confirmable: yes
+Forward/'"will" references: Ch 12 is drafted and committed, so
+its cross-references are present tense ("Chapter 12 makes that
+literal", the `make` regeneration). Ch 13 (environments; uv/renv
+locks), Ch 14 (SSH to a server), and the companion Git book's
+layout / never-commit chapters are cited as scope pointers
+("Chapter 13's subject", "after you have SSH'd ... Chapter 14"),
+never as claims that a stub already teaches or verifies anything.
 
-### `&>` is a bash/zsh shorthand, not POSIX; portable form is `> file 2>&1`
-- chapter/section: Ch 6, "Separating errors from results";
+### mkdir -p with brace expansion (the one-line scaffold)
+- chapter/section: "Scaffold the whole tree in one move"
+- source: live sandbox capture `ch05-scaffold.txt`: `mkdir
+  asset-pricing`, `cd` in, then `mkdir -p data/{raw,clean}
+  scripts output/{figures,tables}` (`echo $?` -> 0), `ls -R`
+  walking the built tree, and `echo` on the same brace pattern
+  showing the five expanded paths. The one-liner uses three
+  separate brace groups (not one nested path token) so each
+  typed line stays within the ~64-char width rule; the nested
+  form is named in prose as legal but is not the shown command.
+  Operationalizes Ch 5's `mkdir -p` (which flagged this
+  scaffolding use forward) and `ls -R`.
+- accessed: 2026-07-02 (capture date)
+- verifies: exactly what is shown; brace expansion happens in
+  the shell before `mkdir` runs (demonstrated by the `echo`)
+- confirmable: yes (transcript; byte-diffed)
+
+### touch placeholders + ls -a (front-matter files)
+- chapter/section: "Scaffold the whole tree in one move"
+- source: live sandbox capture `ch05-place-files.txt` (first
+  block): `touch README.md Makefile report.qmd pyproject.toml
+  .gitignore` (wrapped with a real `\` continuation) and `ls -a`
+  showing `.gitignore` visible only because of `-a`.
+- accessed: 2026-07-02 (capture date)
+- verifies: creating empty top-level files; the dotfile is
+  hidden from plain `ls` (callback to Ch 5's `-a`)
+- confirmable: yes (transcript)
+
+### PITFALL: a space inside the braces
+- chapter/section: "Scaffold the whole tree in one move"; PITFALL
+- source: live sandbox capture `ch05-brace-space.txt`: `echo
+  data/{raw, clean}` printing the pattern verbatim (expansion
+  suppressed by the space), then `mkdir -p data/{raw, clean}`
+  silently creating a `data/{raw,` directory and a top-level
+  `clean}` (word-split into two arguments), confirmed by `ls`
+  and `ls data`. Exit status is zero, so the failure is silent.
+- accessed: 2026-07-02 (capture date)
+- verifies: the real, reproducible consequence of a space inside
+  a brace group; ties back to the same word-splitting named in
+  the naming section
+- confirmable: yes (transcript; byte-diffed)
+
+### The project tour (a place for everything)
+- chapter/section: "A place for everything: a tour of the project"
+- source: live sandbox capture `ch05-tour.txt` on the clean
+  `/tmp/ap` copy: `ls` (root), `ls -R data` (raw vs clean),
+  `ls scripts` (numbered 00-04 + helpers), `ls -R output`
+  (figures + tables). Names each home the running example uses;
+  the figure `fig-ch05-layout` summarizes the raw -> scripts ->
+  generated flow. **Human-review addition (2026-07-02):** an
+  annotated layout tree opens the section as a labeled,
+  non-runnable `text` map (per-home roles inline, no `$`
+  prompts); the prose notes "walking it with the Chapter 5
+  commands confirms it is really on disk," so the real `ls -R`
+  output is the evidence and the tree is the schematic. The
+  tree's names were checked line-for-line against `ch05-tour.txt`;
+  the following naming paragraph was trimmed to complement the
+  tree (the raw/clean/output split) rather than re-list every
+  home.
+- accessed: 2026-07-02 (capture date)
+- verifies: the actual layout of `sandbox/asset-pricing/`, so
+  the chapter delivers exactly the structure Ch 7 opens by
+  assuming ("raw data here, scripts there, output in its own
+  folder"); the annotated tree matches that real output
+- confirmable: yes (transcript; the tour output and the annotated
+  map match the committed sandbox project minus the
+  git-ignored/cache paths)
+
+### Directory hygiene + tracked-vs-regenerated (incl. the .gitkeep caveat)
+- chapter/section: "Raw in, generated out"; "What Git tracks and
+  what `make` rebuilds"; REPRODUCIBILITY; PITFALL
+- source: the raw-vs-generated flow AND the "ignored dirs are
+  recreated by the pipeline" claim are read directly from the
+  committed `sandbox/asset-pricing/`: the scripts each create
+  their own output directory before writing, verified in the code
+  (`00_make_data.py:188` `RAW.mkdir(parents=True, exist_ok=True)`;
+  `01_clean.py:60` `CLEAN.mkdir(...)`; `02_portfolio.py:65`
+  `OUT.parent.mkdir(...)`; `03_figure.py:35` `FIG.mkdir(...)`;
+  `04_regression.R:34` `dir.create("output/tables",
+  recursive=TRUE)`), and the ignore is real (`.gitignore`
+  `/sandbox/**/data/` + `/sandbox/**/output/`, so `data/raw`,
+  `data/clean`, and `output` are fully untracked). **Codex round
+  1 fix (blocker):** the earlier draft taught `.gitkeep` inside
+  `data/raw`/`data/clean`/`output` to make empty dirs survive a
+  commit, which is FALSE, those paths are git-ignored, so a
+  `.gitkeep` under them is ignored too. The `.gitkeep` command
+  block was removed; the section now teaches (a) the ignored dirs
+  are not on a fresh clone and the scripts/`make` recreate them,
+  and (b) `.gitkeep` is the technique for a genuinely
+  *non-ignored* empty dir and explicitly does NOT keep an ignored
+  one. **Codex re-review then caught a surviving instance:** the
+  Try-it exercise 4 still told readers to add `.gitkeep` to the
+  four ignored data/output dirs, re-enacting the corrected
+  pattern; it was rewritten to "test the `.gitkeep` boundary" on
+  a non-ignored `study/logs/` and to explain why `.gitkeep` does
+  NOT go under the `.gitignore`d paths. REPRODUCIBILITY routes
+  the "one command rebuilds
+  everything" claim to Ch 12 (drafted); the never-commit rationale
+  routes to the companion Git book.
+- accessed: 2026-07-02 (source read of the sandbox scripts +
+  `.gitignore`)
+- verifies: the tracked-vs-ignored split, the pipeline's
+  directory self-creation (code-verified), and the corrected
+  `.gitkeep` caveat; no `.gitkeep` command block is shown
+- confirmable: yes (the scripts' `mkdir`/`dir.create` calls and
+  the `.gitignore` patterns are in the committed sandbox project)
+
+### DIVERGENCE: case-insensitive names biting the layout (cross-ref Ch 5)
+- chapter/section: "Names that survive the trip to the server";
   DIVERGENCE
-- source: Bash Reference Manual, "Redirections" (`&>file`
-  documented as equivalent to `>file 2>&1`, noted as preferred
-  bash form but non-standard); POSIX.1-2017 Shell Command
-  Language, "Redirection" (no `&>` operator)
-  (https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
-- accessed: 2026-06-30
-- verifies: `&>` is undefined in POSIX `sh`; `> file 2>&1` is the
-  portable spelling across Bourne-family shells
-- version note: current; `&>` behavior stable in bash and zsh
-- confirmable: yes; Mac side confirmed in
-  `ch06-divergence-mac.txt` (zsh 5.9 + bash 3.2.57): `2>&1 > file`
-  does not merge on either shell (order rule holds)
+- source: NOT re-captured. This is Chapter 5's case-sensitivity
+  divergence (`ch04-case.txt` Linux side; `ch04-case-mac.txt`
+  macOS APFS side) applied to directory names in a project that
+  moves from a case-insensitive Mac to a case-sensitive Linux
+  server. The chapter points at `transcripts/ch04-case-mac.txt`
+  for the captured macOS behavior rather than duplicating it.
+- accessed: 2026-07-02 (Ch 5 capture reused)
+- verifies: the layout-level consequence (a wrong-case path that
+  works on the Mac fails on the server); no new claim beyond
+  what Ch 5 already captured on both platforms
+- confirmable: yes (via the Ch 5 transcripts)
 
-### A pipeline's exit status is the last command's; `set -o pipefail` makes any failure win
-- chapter/section: Ch 6, "Pipes and exit status"
-- source: Bash Reference Manual, "Pipelines" (exit status is that
-  of the last command unless `pipefail` is set, in which case it
-  is the last nonzero)
-  (https://www.gnu.org/software/bash/manual/html_node/Pipelines.html)
-- accessed: 2026-06-30
-- verifies: default last-stage status; `pipefail` returns the
-  rightmost nonzero status
-- demonstrated live: `transcripts/ch06-pipefail.txt` (bash 5.1,
-  sandbox)
-- version note: `pipefail` is bash/zsh/ksh; not in POSIX `sh`
-  (consistent with the book's bash-target rule, CLAUDE.md)
-- confirmable: yes
+### copier / cookiecutter (version pins; not run)
+- chapter/section: "Templating a stable layout"
+- source: real install evidence in `ch05-scaffold-tools.txt`
+  (`python3 -c` reading each package's `__version__`):
+  cookiecutter 2.7.1, copier 9.16.0, both from PyPI in the
+  sandbox. The chapter version-stamps them "as of 2026-07-02"
+  and does NOT run a scaffold: a template is its own project
+  (placeholder syntax, a config file, a token-named directory),
+  and teaching that syntax is out of scope (the Ch 17
+  version-stamp + document pattern). The one template-invocation
+  block is a labeled `text` fence, "illustrative; not executed."
+- external pins (access-dated 2026-07-02): cookiecutter and
+  copier are pinned to their captured installed versions
+  (transcript) and to their PyPI/project pages
+  (cookiecutter.readthedocs.io; copier.readthedocs.io) for the
+  "current release" claim; both are volatile and stamped.
+- verifies: the tools exist, install from PyPI, and are at the
+  stated versions; the illustrative invocation is marked
+  non-runnable
+- confirmable: yes for versions (captured); the invocation is
+  deliberately not run and is labeled as such
 
-### Word-splitting: an unquoted `$var` is split on `IFS`; `"$var"` is one field
-- chapter/section: Ch 6, "Quoting"; PITFALL
-- source: Bash Reference Manual, "Word Splitting" and "Shell
-  Parameter Expansion" (`${parameter}` brace form)
-  (https://www.gnu.org/software/bash/manual/html_node/Word-Splitting.html)
-- accessed: 2026-06-30
-- verifies: unquoted expansions undergo word splitting on `IFS`
-  (default space/tab/newline); double-quoting suppresses it; the
-  brace form delimits the name
-- demonstrated live: `transcripts/ch06-quoting.txt` (bash 5.1,
-  sandbox)
-- confirmable: yes
-
-### An unmatched glob: bash passes it literally; `nullglob` makes it expand to nothing
-- chapter/section: Ch 6, "Globs are not regular expressions";
-  DIVERGENCE
-- source: Bash Reference Manual, "Filename Expansion" (unmatched
-  pattern left unchanged unless `nullglob`/`failglob` set)
-  (https://www.gnu.org/software/bash/manual/html_node/Filename-Expansion.html);
-  zsh manual, "Filename Generation" / `NOMATCH` option (unmatched
-  glob is an error by default; "no matches found")
-  (https://zsh.sourceforge.io/Doc/Release/Expansion.html)
-- accessed: 2026-06-30
-- verifies: bash default = literal pass-through; `shopt -s
-  nullglob` = empty expansion; zsh default (`NOMATCH` on) = hard
-  error with "no matches found"
-- demonstrated live: bash side in `transcripts/ch06-globs.txt`
-  (bash 5.1, sandbox); zsh side confirmed in
-  `ch06-divergence-mac.txt` (`zsh: no matches found`, exit 1) and
-  bash 3.2.57 literal pass-through
-- version note: zsh `NOMATCH` is the long-standing default
-- confirmable: yes (bash and zsh both captured)
-
-### Null-safe lists: `find -print0` + `xargs -0`; null is the only separator a path cannot contain
-- chapter/section: Ch 6, "Null-safe file lists"; DIVERGENCE
-- source: GNU findutils manual, `find` "-print0" and `xargs`
-  "-0 / --null"
-  (https://www.gnu.org/software/findutils/manual/html_node/find_html/);
-  POSIX "pathname" definition (a path may contain any byte except
-  NUL and `/`), Base Definitions Section 3.271
-  (https://pubs.opengroup.org/onlinepubs/9699919799/)
-- accessed: 2026-06-30
-- verifies: `-print0`/`-0` use the NUL byte as the separator;
-  NUL and `/` are the only bytes excluded from a filename, so NUL
-  is the only fully safe delimiter; newlines are legal in names,
-  so `IFS=$'\n'` is insufficient. BSD (macOS) `find`/`xargs` also
-  provide `-print0`/`-0`.
-- demonstrated live: `transcripts/ch06-nullsafe.txt` (GNU
-  findutils 4.8, sandbox); BSD parity confirmed in
-  `ch06-divergence-mac.txt` (intact spaced names; naive pipe
-  breaks with BSD `wc: ./fy: open: No such file`)
-- version note: `-print0`/`-0` present on GNU and BSD
-- confirmable: yes (GNU and BSD both captured)
-
-### `rm -rf` is recursive+forced and irreversible; preserve-root guards literal `/` only; `${VAR:?word}` aborts on empty/unset
-- chapter/section: Ch 6, "rm -rf and the shell with no undo";
-  DANGER, RECOVERY
-- source: GNU coreutils manual, `rm` invocation (`-r` recursive,
-  `-f` force; "removed files cannot be recovered"; `rm` refuses to
-  recursively operate on `/` unless `--no-preserve-root` is given,
-  the default since coreutils 6.4/2006)
-  (https://www.gnu.org/software/coreutils/manual/html_node/rm-invocation.html);
-  BSD/macOS `rm` man page (recursive delete of `/` is disallowed
-  by default); Bash Reference Manual, "Shell Parameter Expansion"
-  (`${parameter:?word}`: if null or unset, the expansion of word
-  is written to stderr and a non-interactive shell exits)
-  (https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html)
-- accessed: 2026-06-30
-- verifies: `rm -rf` semantics and non-recoverability; that a
-  bare `rm -rf /` is refused by modern GNU/BSD `rm` (preserve-root)
-  but this does NOT cover `rm -rf /*` (glob expands to non-`/`
-  names) nor deletion of a wrong non-root path, so the chapter no
-  longer claims a bare `rm -rf /` "deletes the whole filesystem";
-  the `:?` guard aborts the command when the variable is
-  empty/unset.
-  Note for honesty: `:?` causes a NON-interactive shell to exit;
-  interactively it aborts the current command and the shell
-  survives. The transcript runs the empty-var case in a subshell
-  `( ... )` so the captured behavior matches the interactive
-  prompt (command aborts, shell lives, tree intact).
-- demonstrated live: `transcripts/ch06-rm-rf.txt` (bash 5.1,
-  sandbox, all in /tmp); interactive `:?` form re-confirmed via
-  `bash -i`.
-- confirmable: yes
-
-### `curl | sh` runs unreviewed remote code; servers can detect piping; verify-then-run is the mitigation
-- chapter/section: Ch 6, "Never pipe a stranger into your shell";
-  DANGER (quarantined; NOT executed)
-- source: the server-side detection technique. The live host for
-  the original writeup no longer resolves (confirmed in the Codex
-  audit, 2026-06-30), so cite the Internet Archive capture of
-  "Detecting the use of 'curl | bash' server side"
-  (https://web.archive.org/web/https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/)
-  and the independent, reachable proof-of-concept
-  (https://github.com/Stijn-K/curlbash_detect); `type`/`command
-  -v` behavior, Bash Reference Manual "Bourne Shell Builtins"
-  (`type -a`, `command -v`)
-  (https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html)
-- accessed: 2026-06-30
-- verifies: the pattern executes unread code with user privileges;
-  a server CAN serve different bytes to a piped client because a
-  shell consumes the stream line by line and pauses to execute,
-  a TCP-buffer/timing side channel (NOT a difference in the HTTP
-  request itself; the chapter wording was corrected to say so);
-  no integrity check unless the user adds one; `type -a` lists
-  all PATH matches in order and `command -v` resolves what runs
-  (the PATH-hijack check)
-- demonstrated live (the SAFE parts only): `type -a sort`,
-  `command -v sha256sum`, and `sha256sum` are captured in
-  `transcripts/ch06-path-hijack.txt` (bash 5.1, sandbox). The
-  `curl | sh` line itself is NEVER executed (shown in a
-  non-runnable `text` block); the verify-then-run block is
-  labeled an illustrative template (`example.com` placeholder).
-- version note: version-stamped "current as of 2026"; the
-  server-side-detection claim is a demonstrated technique, not a
-  universal guarantee, and is phrased as "can," not "does."
-- confirmable: yes, via the Internet Archive capture plus the
-  reachable PoC repo. NOTE: the original live host
-  (idontplaydarts.com) no longer resolves (Codex audit,
-  2026-06-30); the claim is corroborated by the archived article,
-  the PoC repo, and multiple independent write-ups found by web
-  search. The GNU `type -a` / `command -v` behavior is captured
-  in `transcripts/ch06-path-hijack.txt`.
+### Internal cross-references (not externally pinned)
+- chapter/section: Ch 6 throughout
+- source: this book, Ch 5 (`mkdir -p`, `ls -R`, `ls -a`, `\`
+  line continuation, case sensitivity), Ch 7 (opens on this
+  chapter's layout), Ch 12 (one `make` regenerates
+  `data/clean` + `output`), Ch 13 (uv/renv locks; environments),
+  Ch 14 (SSH to a server). The companion Git book is
+  cross-referenced for the canonical-layout rationale (its
+  replication-package chapter) and for what must never be
+  committed, not re-taught (PLAN Section 6).
+- accessed: n/a
+- verifies: the chapter delivers the layout Ch 1/2/4 promised
+  and Ch 7 assumes, and sets up rather than steals Ch 7's
+  danger, Ch 12's Make, and Ch 13's environment jobs
+- confirmable: yes (internal)
 
 ## Gate confirmations
 
-- **Mac divergence transcript: DONE (2026-06-30).**
-  `capture-ch06-mac.sh` was run on the Mac and produced
-  `ch06-divergence-mac.txt` (macOS 26.5.1, zsh 5.9, bash
-  3.2.57), empirically confirming all four divergence claims:
-  (a) zsh `no matches found` on an unmatched glob vs bash
-  literal pass-through; (b) the noclobber refusal wording
-  (`zsh: file exists` vs `/bin/bash: ... cannot overwrite
-  existing file`); (c) BSD `find -print0`/`xargs -0` parity and
-  the naive-pipe breakage; (d) `2>&1 > file` order on zsh and
-  bash 3.2.57. The three DIVERGENCE callouts now cite captured
-  output, not documented behavior alone.
-- **`curl | sh` citation: RESOLVED (2026-06-30).** The
-  from-memory Daniel Stenberg URL was dropped. The live
-  idontplaydarts host no longer resolves, so the source pin is
-  now the Internet Archive capture of the 2016 idontplaydarts
-  article plus the independent PoC repo. The chapter's mechanism
-  wording was also corrected: detection is a TCP-buffer/timing
-  side channel (a shell consumes the stream line by line), NOT
-  "the request looks different." The claim is corroborated by
-  the archived article, the PoC repo, and multiple independent
-  search hits.
+- **Validator: 0 errors / 0 warnings** in the sandbox (whole
+  book, via a PyYAML-equipped `python3 tools/validate_book.py
+  book`) AND under the canonical `uv run` on the Mac (confirmed
+  2026-07-02). The two brace one-liners were rewritten from a
+  single nested path token (which was intrinsically > 64 chars)
+  into separate brace groups so every typed line satisfies the
+  width rule with real, re-captured output.
+- **Render: two issues found and fixed, then re-render PASSED.**
+  (a) The §5.2 annotated tree used Unicode box glyphs that dropped
+  out of the PDF (Codex, Ch 2 p.19); switched to ASCII connectors
+  (`|--`/`` `-- ``/`|`). (b) The figure's HTML SVG was BROKEN:
+  `dvisvgm --pdf` (the skill's `render.sh` path) emitted a 1-node
+  SVG (only the first card, no text), so the HTML figure was
+  near-empty (the PDF figure was fine, which is why the first
+  117-page PDF render looked OK). The SVG is rebuilt
+  font-independently (`gs -dNoOutputFonts` traces all text to
+  paths, then `pdftocairo -svg`) and the figure now uses
+  `\usepackage{lmodern}` so the `\ttfamily` labels outline
+  cleanly; the rebuilt SVG (290 KB) was rasterized and eyeballed
+  complete. **Codex re-rendered on the Mac (2026-07-02, Darwin,
+  quarto 1.9.36): `quarto render book` passed, 118-page PDF; the
+  ASCII trees render correctly (Ch 2 p.19, Ch 6 p.56) and Figure
+  5.1 is clean (p.58).**
+- **Figure:** one authored TikZ exhibit `fig-ch05-layout`
+  (textbook-diagrams design system; raw -> scripts -> generated
+  flow, tracked-root band). Built with `pdflatex`; PDF is the
+  `lmodern` build (135 KB) and the web SVG is the
+  `gs -dNoOutputFonts` + `pdftocairo -svg` outline (290 KB, text
+  as paths, no font dependency), NOT the broken `dvisvgm --pdf`
+  output. Source + PDF + SVG committed under
+  `book/assets/figures/ch05/`; the `.tex` header records the
+  build recipe. Rasterized and inspected complete before install,
+  then confirmed in Codex's 118-page Mac render (Figure 5.1 clean
+  on p.58). Per the durable figure rule now in `CLAUDE.md`, the
+  SVG is eyeballed separately from the PDF.
+- **Counts:** 6 numbered content sections (4 beginner, 2
+  advanced) + unnumbered Try-it; callouts 1 REPRODUCIBILITY,
+  2 PITFALL (space-in-braces; editing-raw-in-place / mixing
+  generated into source), 1 DIVERGENCE (case-insensitive names,
+  cross-ref Ch 5). No DANGER (nothing here destroys; not forced).
+  0 em-dashes; all shown `$` blocks byte-diffed to a `ch05-*`
+  transcript.
+- **External pins:** only the two scaffolding-tool versions
+  (cookiecutter 2.7.1, copier 9.16.0), captured from a real
+  install and stamped 2026-07-02 (Codex confirmed both are the
+  current PyPI releases). No dead-host/Internet-Archive fallback
+  needed. Everything else is real sandbox output or an internal /
+  Git-book cross-reference.
+- **Codex blind audit round 1 (2026-07-02): 3 blockers + 1
+  tighten, ALL FIXED (the `.gitkeep` fix took two passes: the
+  section prose first, then the Try-it exercise on Codex
+  re-review).** (1) the `.gitkeep`-in-ignored-dirs workflow was
+  false in BOTH the section and Try-it exercise 4, both rewritten
+  (see the hygiene entry above); (2) a stale mask claim (the
+  chapter/verification said
+  `ch05-scaffold-tools.txt` held a masked `/home/[account]` but
+  the `__version__` capture shows no path), removed; (3) stale
+  gate docs (render/validator) reconciled here and across
+  CHANGELOG / RESUME / handover; (4, tighten) added the
+  synthetic-data exception sentence in "Raw in, generated out"
+  (`00_make_data.py` generates the synthetic raw stand-in; treat
+  it as immutable from that seam on). What Codex passed:
+  validator 0/0, render + figure, counts, block/transcript
+  matches, the case-sensitivity reuse, and the version claims.
