@@ -20,7 +20,7 @@ is built is worth far more than memorizing any one command's
 options, and it is what lets you read the next command you have
 never seen.
 
-## The shape of a command {#sec-command-anatomy .tier-beginner}
+## The shape of a command {#sec-command-anatomy}
 
 A command line is a program name, then zero or more options and
 arguments, separated by spaces. In `ls -la data/`, the program
@@ -55,7 +55,7 @@ everything off, so `'$VAR'` is the four literal characters
 `$VAR`. Backslash escapes a single character, and at the very
 end of a line it joins that line to the next.
 
-## Reading the brackets {.tier-beginner}
+## Reading the brackets
 
 Brackets mean one thing in a book's documentation and something
 else at the shell, which is a common source of confusion.
@@ -85,7 +85,7 @@ recognize them when they appear.
 > or `'*.csv'`, so the shell hands the pattern to the command
 > instead of expanding it first.
 
-## Common commands at a glance {.tier-beginner}
+## Common commands at a glance
 
 @tbl-common-commands is the short list you will see again and
 again. Treat it as a map, not a syllabus: each command gets its

@@ -17,8 +17,8 @@ learned how to install software through a package manager instead
 of by downloading mystery binaries, and met the supply-chain
 rule that governs the rest: verify before you run. Windows
 readers also get the two things they specifically need, why to
-work inside WSL2 and what will bite them if they try to follow
-this book's instructions in PowerShell instead.
+work inside WSL2 and what will trip them up if they try to
+follow this book's instructions in PowerShell instead.
 
 A note on where the output comes from, because this chapter's
 provenance is unusually mixed. The Linux track is real output
@@ -36,12 +36,11 @@ install), and the PowerShell sidebar. One rule holds across all
 three tracks and is the reason the quarantine is so large: this
 chapter shows the real output of *inspection* commands, but it
 never runs an *installer*, on any machine, for exactly the reason
-Chapter 7 would not run a blind `curl | sh`. One deliberate mask,
-as in Chapter 2: where a Mac path would show the account name it
-reads `/Users/[account]`, a scrub for this public book; the
-brackets are a placeholder your own machine fills in.
+Chapter 7 would not run a blind `curl | sh`. As in Chapter 2,
+where a Mac path would show the account name it reads
+`/Users/[account]`, a placeholder your own machine fills in.
 
-## Opening a terminal, and knowing what you are in {.tier-beginner}
+## Opening a terminal, and knowing what you are in
 
 Chapter 2 drew the distinction this section rests on: the
 terminal is the window, and the shell is the program running
@@ -94,7 +93,7 @@ panes. It is worth almost none of your attention right now. What
 runs inside it, the shell, is the thing the next section pins
 down.
 
-## Which shell you have, and why it matters {.tier-beginner}
+## Which shell you have, and why it matters
 
 Chapter 2 promised that this chapter would sort out which shell
 you have. Two commands answer it. `echo $SHELL` prints your
@@ -152,7 +151,7 @@ install. For now, just know which bash your platform hands you by
 default.
 :::
 
-## Package managers: how you install things {.tier-beginner}
+## Package managers: how you install things
 
 The wrong way to install research software is to hunt down a
 website, download a binary, and hope. The right way is a
@@ -199,7 +198,7 @@ sudo apt install tldr
 Other Linux families differ: Fedora and RHEL use `dnf`, Arch uses
 `pacman`. This book does not teach them, but the shape is the
 same, and you route to your distribution's manager the way you
-route to your platform's. (Ubuntu's own docs note a wrinkle worth
+route to your platform's. (Ubuntu's own docs note a quirk worth
 carrying to Chapter 11: `apt` is meant for interactive use, and
 `apt-get` is the stable interface to call from scripts.)
 
@@ -228,7 +227,7 @@ manager for system things and reach for Homebrew when you need a
 version the distribution does not carry.
 :::
 
-## The Apple Silicon PATH note {.tier-beginner}
+## The Apple Silicon PATH note
 
 Chapter 2's PATH divergence showed that on an Apple Silicon Mac,
 Homebrew's tools sit at the front of your PATH under
@@ -284,7 +283,7 @@ PATH-hijacking risk Chapter 7 raised, and it applies to anything
 you prepend here.
 :::
 
-## Installing safely: verify, do not blind-pipe {.tier-beginner}
+## Installing safely: verify, do not blind-pipe
 
 Homebrew has to be installed before you can use it, and the way
 its own homepage tells you to do that is, uncomfortably, the exact
@@ -372,7 +371,7 @@ this hazard, and Chapter 17 returns to it because an AI agent can
 compose and run exactly this line on your behalf.
 :::
 
-## /mnt/c and the WSL2 boundary {.tier-advanced}
+## /mnt/c and the WSL2 boundary (ADVANCED) {.tier-advanced}
 
 Chapter 2 noted that inside WSL2 you work in one Unix tree with
 the Windows `C:` drive mounted at `/mnt/c`, and promised this
@@ -398,12 +397,12 @@ not where your repository should live. The line-ending issue
 returns in Chapter 11, which will pin the locale and text settings
 that keep results stable across machines.
 
-## The PowerShell sidebar {.tier-advanced}
+## The PowerShell sidebar (ADVANCED) {.tier-advanced}
 
 This book does not teach PowerShell. Windows researchers should
 work inside WSL2, where the entire book applies. But you will meet
 PowerShell, it is what opens by default on Windows, so here is what
-bites if you try to run this book's Unix instructions in it. Four
+goes wrong if you try to run this book's Unix instructions in it. Four
 points, then we stop (all current as of 2026-07-01, pinned to
 Microsoft Learn).
 

@@ -8,12 +8,57 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 3: plumbing sweep, repetition trim, and
+  an ADVANCED-only heading-tier relabel book-wide (2026-07-11; not
+  yet committed). Carries the pending `9ddb38e` hash-line from
+  Session 2 (already in the working tree; a commit cannot contain
+  its own hash).** Three edits, from the author review
+  (`private/review-response-2026-07-08.md` Section 6, Session 3 row,
+  and points 6 and 7). (1) **Plumbing sweep (point 6).** The eight
+  non-reader-facing mask/capture sentences that narrated the capture
+  and masking mechanics to readers (Chapters 5, 6, 8, 9, 13, 14, 15,
+  16) were removed or, where a chapter's own output shows bracket
+  placeholders, reframed as a lean reader legend (what `[account]` /
+  `[hostname]` / `[ip]` mean in that chapter's blocks) instead of a
+  "the captures mask, at capture time, ..." methodology aside. The
+  masking contract is now disclosed once, book-wide, in a new "About
+  the captured output" note in the Preface (`index.qmd`), which
+  states the real-output contract and the bracket-placeholder mask
+  and renders in both HTML and PDF. (2) **Repetition/tic trim (point
+  7).** The filler "wrinkle" was thinned from four uses to one, and
+  the deliberate-voice "bite" from thirteen to five (kept where it
+  lands, reworded the boilerplate provenance-note copies with varied
+  words so no new tic replaces it). (3) **Tier relabel (point 8d /
+  the print-bug fix).** Beginner is now the unlabeled default: all 89
+  `.tier-beginner` class tokens were stripped from headings; the one
+  heading that combined the token with an id dropped `.tier-beginner`
+  and kept `#sec-command-anatomy`. Each of the 37 ADVANCED sections
+  now carries a visible `(ADVANCED)`
+  suffix in its heading text, e.g.
+  `## Automatic variables (ADVANCED) {.tier-advanced}`. The
+  `.tier-advanced` class is kept as an inert hook (grep/count still
+  work); the badge-printing `::before` rules were removed from
+  `book/includes/custom.scss`, since they rendered only in HTML and
+  dropped out of the LaTeX PDF (the bug this replaces). Chapter 1's
+  tier explanation was reworded to drop the "a heading marked
+  BEGINNER" promise and describe the unmarked default plus the
+  `(ADVANCED)` mark. The tier contract was reconciled in `CLAUDE.md`
+  (per-chapter workflow, pre-handover self-check, writing rules, and
+  the personal-data-mask disclosure rule) and `PLAN.md` Section 9 so
+  they mandate the by-exception scheme, not label-both-tiers. Files
+  touched: `book/index.qmd`, `book/includes/custom.scss`, all 18
+  `book/chapters/*.qmd` (tier strip), and prose edits in Chapters 1,
+  3, 5, 6, 7, 8, 9, 13, 14, 15, 16, 18. Validator 0/0; 0 em-dashes;
+  `(ADVANCED)`-suffix count equals `{.tier-advanced}` count (37).
 - **Review-response Session 2: scripting primer in Chapter 11 +
-  back-references from Chapter 7 (2026-07-09; NOT yet committed as
-  of this writing; validator 0/0 in-sandbox on the two changed
-  files; canonical Mac `uv run` + `quarto render book` + Codex
-  blind audit + human review pending before commit).** The author
-  review (Preface-Ch12) asked that the shell-script constructs be
+  back-references from Chapter 7 (2026-07-09; committed 2026-07-09
+  as `9ddb38e`, `9ddb38e87aa6415143d08c094fc41daa2c284edc`,
+  message "Add scripting primer and byte-faithfulness fixes";
+  cleared the Codex blind-audit rounds + human review; validator
+  0/0 and `quarto render book` clean. This hash-line rides in the
+  next commit since a commit cannot contain its own hash).** The
+  author review (Preface-Ch12) asked that the shell-script
+  constructs be
   taught before they are used. A new BEGINNER section "Reading a
   script: tests, branches, and loops" was added to Chapter 11
   ("Scripts that fail loudly"), placed after "Fail loudly:
@@ -58,8 +103,8 @@ are not part of this repo; this file is the repo-visible history.
   authored fresh in the primer.
 
 - **Review-response Session 2 book-wide byte-faithfulness sweep
-  (2026-07-09; part of the Session-2 change set, NOT yet
-  committed).** After Codex flagged two byte-faithful drifts in
+  (2026-07-09; part of the Session-2 change set, committed in
+  `9ddb38e`).** After Codex flagged two byte-faithful drifts in
   Chapter 7, all 256 shown `$`/`>` code blocks across the chapters
   were checked against `transcripts/*.txt` (a block must be a
   contiguous transcript substring, modulo the accepted `\`
@@ -177,6 +222,8 @@ are not part of this repo; this file is the repo-visible history.
   cite is routed through paper-wiki in a later session). Each content
   section is tiered `{.tier-beginner}` per the current contract; the
   planned book-wide switch to ADVANCED-only labeling is a later pass.
+  (Superseded by the Session 3 entry above: those beginner badges were
+  stripped and beginner is now the unlabeled default.)
   Sandbox pre-check `python3 tools/validate_book.py book` = 0 errors, 0
   warnings; the canonical Mac `uv run` validator + `quarto render book`
   + Codex audit + human review remain to run before commit.

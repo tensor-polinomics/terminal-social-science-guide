@@ -5,39 +5,17 @@ $primary: #2c5f8a;
 /*-- scss:rules --*/
 
 /* ------------------------------------------------------------------
-   Tier badges. Tag a section heading with a tier class:
-     ## The daily loop {.tier-beginner}
-     ## Inspecting the connection {.tier-advanced}
-   Quarto applies that class to BOTH the wrapping <section> and the
-   heading element, so the badge MUST be scoped to the heading only.
-   Targeting `.tier-* > :first-child::before` (the old rule) matched
-   twice (once via the section -> the <h2>, once via the <h2> -> its
-   section-number <span>) and printed the badge twice. Scoping to the
-   heading elements themselves yields exactly one badge.
+   Section tiers. Beginner is the unlabeled default; only sections
+   that assume the basics are marked, with a plain "(ADVANCED)" suffix
+   written into the heading text itself, e.g.
+     ## Inspecting the connection (ADVANCED) {.tier-advanced}
+   The visible suffix carries the tier in BOTH HTML and PDF. The old
+   CSS `::before` badges rendered only in HTML and vanished from the
+   LaTeX PDF (the print bug this replaces), so no badge is printed
+   here. `.tier-advanced` is kept as an inert class hook (it tags the
+   wrapping <section> for optional future styling and keeps the
+   tier-count grep working); it draws nothing on its own.
    ------------------------------------------------------------------ */
-:is(h1, h2, h3, h4, h5, h6).tier-beginner::before,
-:is(h1, h2, h3, h4, h5, h6).tier-advanced::before {
-  display: inline-block;
-  font-size: 0.70rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 0.10rem 0.5rem;
-  border-radius: 0.35rem;
-  margin-right: 0.5rem;
-  vertical-align: middle;
-}
-:is(h1, h2, h3, h4, h5, h6).tier-beginner::before {
-  content: "BEGINNER";
-  background: #e6f4ea;
-  color: #1e7e34;
-  border: 1px solid #bcdfc7;
-}
-:is(h1, h2, h3, h4, h5, h6).tier-advanced::before {
-  content: "ADVANCED";
-  background: #fdecea;
-  color: #b23b2e;
-  border: 1px solid #f4c7c0;
-}
 
 /* ------------------------------------------------------------------
    Custom callouts. Quarto ships note/tip/warning/important/caution.

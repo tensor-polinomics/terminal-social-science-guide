@@ -49,11 +49,11 @@ full-screen tools (`lazygit`, `btop`, `ncdu`) are version-
 stamped but not run, because a full-screen program owns the
 terminal and cannot be captured in a transcript, the same reason
 Chapters 10 and 17 could not script an interactive session.
-Captures were masked (account, home path) at capture time, and
-`zoxide` was pointed at a throwaway database so the author's real
-directory history never appears.
+Where output would show the author's account or home path it
+reads `[account]` instead, and `zoxide` was pointed at a
+throwaway database so no real directory history appears.
 
-## eza: `ls` with a git column {.tier-beginner}
+## eza: `ls` with a git column
 
 `eza` is a drop-in-nicer `ls`. It takes the same everyday flags
 Chapter 5 taught, `-l` for a long listing, `-a` for hidden
@@ -90,7 +90,7 @@ color are the parts that do not survive print, and they are also
 the parts you can most happily live without: the git column is
 the substance.
 
-## bat: `cat` that shows structure {.tier-beginner}
+## bat: `cat` that shows structure
 
 `bat` is `cat` (Chapter 7) with the reading experience improved.
 It prints a file with a line-number gutter, syntax highlighting
@@ -136,7 +136,7 @@ few tools here that is harmless in a pipeline: asked to feed
 another program, it gets out of the way. `--color=never` and
 `--paging=never` just fix the output for a static capture.
 
-## zoxide and fzf: getting there faster {.tier-beginner}
+## zoxide and fzf: getting there faster
 
 Two tools change how you *move* rather than how you *look*.
 `zoxide` is a smarter `cd` (Chapter 5). It watches the
@@ -199,7 +199,7 @@ Aliasing for interactive comfort is reasonable; Chapter 18 shows
 how to do it so it degrades gracefully when the tool is absent.
 :::
 
-## delta: readable diffs {.tier-advanced}
+## delta: readable diffs (ADVANCED) {.tier-advanced}
 
 `delta` is a pager for diffs. It does not produce diffs; it
 takes the output of `git diff` (or a plain `diff`) and re-renders
@@ -238,7 +238,7 @@ moved from 10 to 5. `delta` makes a diff pleasanter to read; the
 diff itself, which is the thing your review depends on, is what
 git gives you on any machine, styled or not.
 
-## The TUIs: lazygit, btop, and ncdu {.tier-advanced}
+## The TUIs: lazygit, btop, and ncdu (ADVANCED) {.tier-advanced}
 
 A TUI, a terminal user interface, is a full-screen program that
 takes over the whole terminal, redraws as you press keys, and
@@ -272,7 +272,7 @@ you are most likely to actually want on a server, and, as
 Chapter 14 noted, the one you can sometimes get there through a
 module system or a userspace install.
 
-## The portability tax {.tier-beginner}
+## The portability tax
 
 Everything above earns its place on your laptop and loses it on
 a bare server, so it is worth naming precisely what breaks and

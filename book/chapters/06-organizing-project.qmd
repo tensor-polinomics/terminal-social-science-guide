@@ -36,12 +36,9 @@ on the author's Mac for Chapter 5 and is cross-referenced here
 rather than shown twice. The scaffolding tools `copier` and
 `cookiecutter` are version-stamped from a real install
 (`ch05-scaffold-tools.txt`) but not run, for a reason the last
-section explains. Nothing in this chapter's output carries
-user-specific data, so unlike Chapter 5 there is nothing to
-mask: the demos use throwaway `/tmp` paths and plain `ls`, which
-prints no account names or home directories.
+section explains.
 
-## Scaffold the whole tree in one move: `mkdir -p` with braces {.tier-beginner}
+## Scaffold the whole tree in one move: `mkdir -p` with braces
 
 A project needs the same handful of directories every time: a
 place for raw data, a place for cleaned data, a place for
@@ -173,7 +170,7 @@ these, a stray space is almost always the cause; write the
 pattern with no spaces after the commas.
 :::
 
-## A place for everything: a tour of the project {.tier-beginner}
+## A place for everything: a tour of the project
 
 Scaffolding makes the folders; the point of the folders is that
 every file then has one obvious home. The asset-pricing project
@@ -275,7 +272,7 @@ code will regenerate. The terminal's job, and this chapter's, is
 to build and move around that structure fluently. Everything
 below is about keeping it honest.
 
-## Raw in, generated out {.tier-beginner}
+## Raw in, generated out
 
 The single most important line in the layout runs between
 `data/raw` and everything else: raw data is an **input**, never
@@ -336,7 +333,7 @@ produces belongs under `data/clean` or `output`, never beside
 the code that made it.
 :::
 
-## What Git tracks and what `make` rebuilds {.tier-beginner}
+## What Git tracks and what `make` rebuilds
 
 Because output is regenerable and raw data is treated like
 licensed material that must never be committed, most of the tour
@@ -382,7 +379,7 @@ directory you *do* want in the repository but that happens to
 start empty, such as a tracked `logs/` folder a script writes
 into, and never expect it to resurrect an ignored one.
 
-## Names that survive the trip to the server {.tier-advanced}
+## Names that survive the trip to the server (ADVANCED) {.tier-advanced}
 
 A layout is only as portable as the names in it, and names are
 where a project built on a Mac quietly breaks on a Linux server.
@@ -412,7 +409,7 @@ its own folders. The captured macOS side of this collision is in
 `transcripts/ch04-case-mac.txt`, from the previous chapter.
 :::
 
-## Templating a stable layout: `copier` and `cookiecutter` {.tier-advanced}
+## Templating a stable layout: `copier` and `cookiecutter` (ADVANCED) {.tier-advanced}
 
 Once you have built the same scaffold a few times, the `mkdir -p`
 one-liner starts to feel like something that should be saved.

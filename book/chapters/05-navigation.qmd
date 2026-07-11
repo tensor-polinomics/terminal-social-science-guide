@@ -34,19 +34,13 @@ This is also the first chapter to hit real BSD-versus-GNU
 divergences on everyday commands, where the macOS tools behave
 differently from the Linux baseline; those are captured on the
 author's Mac (`transcripts/capture-ch04-mac.sh`, the
-`ch04-*-mac.txt` files) and quoted where they bite. The
-deliberate masks, as in Chapter 2: a home path reads
-`/Users/[account]`, and because this chapter is the first to
-show `ls -l`, whose owner and group columns print an account
-name, that name is masked to `[account]` as well; the brackets
-are a placeholder your own machine fills in. The Mac
-transcripts carry one further scrub the chapter never displays
-but the capture records: the macOS per-account temp directory
-that `readlink -f` and `realpath` resolve paths into
-(`/private/var/folders/<hash>/...`) has its identifying folder
-hash masked to `/private/var/folders/[tmpdir]`.
+`ch04-*-mac.txt` files) and quoted where they matter. Because
+this chapter is the first to show `ls -l`, whose owner and
+group columns print an account name, that name reads
+`[account]`, and a home path reads `/Users/[account]`; the
+brackets are a placeholder your own machine fills in.
 
-## Where you are and what is here: `pwd` and `ls` {.tier-beginner}
+## Where you are and what is here: `pwd` and `ls`
 
 Every session starts with the same two questions: where am I
 standing, and what is in front of me. `pwd` (print working
@@ -88,7 +82,7 @@ project top. That silent precondition, the one Chapter 2
 flagged behind "run `ls data/raw`," is the first thing the
 next section makes concrete.
 
-## Moving through the tree: `cd` {.tier-beginner}
+## Moving through the tree: `cd`
 
 `cd` (change directory) moves the shell to another place in
 the tree. Give it a relative path and it moves down from where
@@ -182,7 +176,7 @@ absolute paths or `cd`s to a known directory first, a
 discipline Chapter 11 will build into scripts that fail loudly.
 :::
 
-## Looking closely: `ls -l`, `-a`, and `stat` {.tier-beginner}
+## Looking closely: `ls -l`, `-a`, and `stat`
 
 Bare `ls` gives names. Its options give detail, and three of
 them earn a place in the daily loop. `-l` (long) prints one
@@ -355,10 +349,10 @@ count, or Python's `os.stat`); do not assume one `stat`
 invocation runs on both.
 :::
 
-## Making and clearing directories: `mkdir` and `rmdir` {.tier-beginner}
+## Making and clearing directories: `mkdir` and `rmdir`
 
 `mkdir` (make directory) creates a directory; `rmdir` (remove
-directory) removes an empty one. The wrinkle worth learning on
+directory) removes an empty one. The subtlety worth learning on
 day one is what happens when you ask for a nested path whose
 middle pieces do not exist yet. Plain `mkdir` refuses, because
 it makes exactly one directory:
@@ -418,7 +412,7 @@ which has no such guard rail and no undo. That command, and the
 care it demands, is Chapter 7's territory; `rmdir` is the tool
 for the safe, everyday case of tidying up an empty folder.
 
-## Copying and moving: `cp` and `mv` {.tier-beginner}
+## Copying and moving: `cp` and `mv`
 
 `cp` (copy) duplicates a file; `mv` (move) relocates one, and
 because relocating within a directory is the same as renaming,
@@ -533,7 +527,7 @@ hard truth Chapter 7 draws for `rm`, and the reason the
 look-before-you-leap habit is cheaper than the alternative.
 :::
 
-## Symbolic links: `ln -s` {.tier-advanced}
+## Symbolic links: `ln -s` (ADVANCED) {.tier-advanced}
 
 A **symbolic link** (symlink) is a small file that points at
 another path by name, a stable alias for something whose real
@@ -614,7 +608,7 @@ rather than to lean on `readlink -f` or `realpath` and hope
 the target machine is new enough.
 :::
 
-## When names collide: case sensitivity {.tier-advanced}
+## When names collide: case sensitivity (ADVANCED) {.tier-advanced}
 
 Whether `Foo.txt` and `foo.txt` are two files or one is a
 property of the *filesystem*, not the shell, and it is one of

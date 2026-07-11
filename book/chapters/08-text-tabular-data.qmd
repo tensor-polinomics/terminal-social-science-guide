@@ -36,12 +36,9 @@ a throwaway `/tmp` scratch directory, never the project's own
 data. The macOS/BSD divergences (`sed -i`, awk, `sort` under a
 locale) and the DuckDB session are captured on the author's
 Mac (`transcripts/capture-ch07-mac.sh`, the `ch07-*-mac.txt`
-files) and quoted where they bite. Nothing in this chapter's
-shown output carries user-specific data, so no masks appear in
-the blocks; the capture script still applies the standard
-masks at capture time as a guard.
+files) and quoted where they differ.
 
-## Search without opening the file: `grep` {.tier-beginner}
+## Search without opening the file: `grep`
 
 `grep` reads lines and prints the ones that match a pattern.
 That one sentence covers most of its daily use: it is how you
@@ -112,7 +109,7 @@ really about one column, reach for the column tools later in
 this chapter, which parse fields instead of scanning lines.
 :::
 
-## Globs match filenames, regex matches content {.tier-beginner}
+## Globs match filenames, regex matches content
 
 Chapter 7 introduced globbing, the shell's own wildcard
 language, and promised that this chapter would separate it
@@ -198,7 +195,7 @@ for *which files*, regex for *which lines*. Chapter 9 will
 draw the same line from the other side, when it searches file
 trees and their contents.
 
-## Edit the stream, not the file: `sed` {.tier-beginner}
+## Edit the stream, not the file: `sed`
 
 `sed`, the stream editor, reads lines, applies an edit, and
 writes the result to stdout. Its everyday form is the
@@ -310,7 +307,7 @@ script meant for both platforms, write `-i.bak` or avoid `-i`
 altogether and redirect to a new file.
 :::
 
-## Columns from lines: `cut`, `sort`, `uniq`, and `tr` {.tier-beginner}
+## Columns from lines: `cut`, `sort`, `uniq`, and `tr`
 
 `grep` selects rows. The natural companion selects columns:
 `cut -d, -f...` splits each line on a delimiter and keeps the
@@ -488,7 +485,7 @@ of this book's standard script header rather than teaching it
 here.
 :::
 
-## `awk`, the twenty percent {.tier-advanced}
+## `awk`, the twenty percent (ADVANCED) {.tier-advanced}
 
 `awk` is a full programming language, and this book refuses to
 teach it as one, because for a researcher with Python and R a
@@ -576,7 +573,7 @@ POSIX awk) and they run everywhere; anything fancy enough to
 need gawk's manual is fancy enough to be a Python script.
 :::
 
-## JSON without tears: `jq` {.tier-advanced}
+## JSON without tears: `jq` (ADVANCED) {.tier-advanced}
 
 Not everything a researcher touches is tabular. API responses,
 package lockfiles, and tool configuration are JSON, nested
@@ -635,7 +632,7 @@ equivalent of the shallow awk kit: enough for every
 look-something-up job, with a real query language underneath
 when you eventually want more.
 
-## When lines run out: SQL over CSV and Parquet with DuckDB {.tier-beginner}
+## When lines run out: SQL over CSV and Parquet with DuckDB
 
 Every tool so far sees lines. The questions that outgrow them
 are the ones that see **tables**: join the panel to the factor

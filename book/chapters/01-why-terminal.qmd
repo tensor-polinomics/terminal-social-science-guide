@@ -44,7 +44,7 @@ author's Mac, and its output is pasted from a saved transcript,
 never invented. When you reach those chapters you will see the
 machinery; here you only need the map.
 
-## The payoff starts on the laptop {.tier-beginner}
+## The payoff starts on the laptop
 
 The running example that threads through this book is a small
 empirical asset-pricing study. It simulates a panel of stock
@@ -114,7 +114,7 @@ instructions, and doing repetitive work in one shot, carried out
 at a larger scale and across machines. It is one skill; the
 laptop is just where you first cash it in.
 
-## The moment the laptop is not enough {.tier-beginner}
+## The moment the laptop is not enough
 
 The everyday payoffs above hold on any project, small or large.
 The dramatic one arrives when a project stops being small. A
@@ -184,7 +184,7 @@ single command and not a week of remembering. Where you would
 reach to re-explain reproducibility, cross-reference it instead.
 :::
 
-## The journey this book takes {.tier-beginner}
+## The journey this book takes
 
 The book is organized as one continuous motion, the path your
 own project takes as it grows up. You start on the laptop and
@@ -270,14 +270,15 @@ username and folder, and on a Mac's zsh it ends in `%` rather
 than `$`), but the reading rule is the same everywhere: type
 what follows the prompt symbol, never the symbol itself.
 
-Second, technical sections are tiered. A heading marked
-BEGINNER is written to be copied and run with everything
-explained; a heading
-marked ADVANCED assumes you have the basics and moves faster.
-This chapter is nearly all framing, so it tiers only lightly;
-the technical chapters lean on the split heavily. Read the
-beginner track first and come back for the advanced material
-when you want it.
+Second, technical sections are tiered. Most are written for
+beginners and carry no label: they are meant to be copied and
+run with everything explained. Sections that assume you already
+have the basics and move faster are marked (ADVANCED) in the
+heading, and can be skipped on a first pass without losing the
+thread. This chapter is nearly all framing, so little here is
+marked; the technical chapters lean on the split more heavily.
+Read the unmarked track first and come back for the (ADVANCED)
+material when you want it.
 
 Third, the book assumes a particular setup and is honest about
 where that assumption bends. The default reader is on a Mac

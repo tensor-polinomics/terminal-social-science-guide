@@ -43,7 +43,7 @@ only the resulting `PATH`. Paths and the account name are masked
 and long `PATH` tails are
 elided with a marked `[...]`.
 
-## Which file loads when {.tier-beginner}
+## Which file loads when
 
 Two yes/no questions decide which startup files a shell reads. Is
 it a *login* shell (the first shell of a session, the one a fresh
@@ -81,7 +81,7 @@ The third command printed nothing: a non-interactive bash read no
 startup file at all. (The one exception is the `BASH_ENV`
 variable: if it names a file, a script sources it first. Almost
 no one sets it, and you should not rely on it being set.) One
-more wrinkle worth knowing is the fallback: a login shell reads
+more detail worth knowing is the fallback: a login shell reads
 the first of the three profile files that exists, so on a machine
 with only `~/.profile` and no `~/.bash_profile`, the login shell
 reads `~/.profile`.
@@ -129,7 +129,7 @@ in a real tab), so a Mac tab reads `.zprofile` *and* `.zshrc`.
 Many Linux terminal emulators instead open a non-login
 interactive shell, so a Linux tab reads only `.bashrc` (or
 `.zshrc`), never the profile. That is why the same
-`.bash_profile`-versus-`.bashrc` split bites differently on the
+`.bash_profile`-versus-`.bashrc` split behaves differently on the
 two platforms, and why a PATH edit a Mac user puts in
 `.bash_profile` can silently do nothing for a Linux user, and the
 reverse. Test your own tab with `[[ -o login ]]` in zsh or
@@ -138,7 +138,7 @@ leading-dash convention is a bash-only heuristic and does not
 report login state in zsh.
 :::
 
-## PATH, and why order matters {.tier-beginner}
+## PATH, and why order matters
 
 `PATH` is the list of directories the shell searches to turn a
 command name into a program (Chapter 2). Two things about it are
@@ -192,7 +192,7 @@ reading ~/.bashrc
 /home/[account]/.local/bin:/usr/local/sbin:[...]
 ```
 
-## The portable dotfile {.tier-beginner}
+## The portable dotfile
 
 Now the promissory notes come due. The aliases, the `noclobber`
 setting, the history option, and the modern-kit hooks are all
@@ -272,7 +272,7 @@ enthusiasts. None of them is needed to make config that survives,
 and each adds a layer that can itself fail on a bare server. Keep
 your dotfiles small, plain, and guarded, and they travel.
 
-## Works in terminal, fails over SSH {.tier-advanced}
+## Works in terminal, fails over SSH (ADVANCED) {.tier-advanced}
 
 The sharpest version of the whole problem is the seam Chapter 14
 flagged: a non-interactive `ssh host 'cmd'` runs a shell that
@@ -337,7 +337,7 @@ the script or Makefile set its own environment the Chapter 11
 way rather than trusting a dotfile ran.
 :::
 
-## Scheduled and non-interactive contexts: cron, launchd, CI {.tier-advanced}
+## Scheduled and non-interactive contexts: cron, launchd, CI (ADVANCED) {.tier-advanced}
 
 Scheduled jobs are the same seam, one step further from your
 terminal, and the reason they surprise people is that they start
@@ -399,7 +399,7 @@ Config that survives is config the job sets for itself, not
 config it inherits from the human who happened to write it.
 :::
 
-## Config that survives all three {.tier-beginner}
+## Config that survives all three
 
 The whole chapter reduces to one rule: put each setting where the
 situation that needs it will actually read it. Sort your config

@@ -53,7 +53,7 @@ section, captured AI-free in the sandbox
 as a snapshot to re-verify, and the principles around it as the
 part meant to last.
 
-## What an agent in the terminal actually is {.tier-beginner}
+## What an agent in the terminal actually is
 
 Strip away the chat interface and a terminal agent is a loop:
 it reads your request, decides on an action, and takes it, then
@@ -81,7 +81,7 @@ a new actor. What can it change without asking me? What can it
 reach? Where does what I type end up? The rest of this chapter is
 those questions, one at a time.
 
-## Permission models: ask, allow, and auto {.tier-beginner}
+## Permission models: ask, allow, and auto
 
 Every terminal agent has a setting that controls how often it
 stops to ask before acting. This is the single most important
@@ -170,7 +170,7 @@ table. A setting you assume rather than check is the one that
 surprises you.
 :::
 
-## The destructive-command boundary {.tier-beginner}
+## The destructive-command boundary
 
 An agent in ask mode is safe in the way a careful colleague is
 safe: it shows you each command before running it. The danger
@@ -222,7 +222,7 @@ Appendix A's recovery options apply to an agent's
 `rm` exactly as to your own.
 :::
 
-## File and scope boundaries {.tier-advanced}
+## File and scope boundaries (ADVANCED) {.tier-advanced}
 
 The second question, after "what can it do without asking," is
 "where can it do it." Every one of these tools is built around a
@@ -269,7 +269,7 @@ the agent, the same look-before-you-act rule Chapter 7 applied to
 blast radius and add the minimum.
 :::
 
-## Network access and the supply chain {.tier-advanced}
+## Network access and the supply chain (ADVANCED) {.tier-advanced}
 
 The third question is what the agent can reach beyond your disk.
 An agent that can make network requests can download and run
@@ -312,7 +312,7 @@ machine with your real credentials, is the arrangement the vendors
 reserve for disposable sandboxes, and so should you.
 :::
 
-## Secrets in prompts {.tier-beginner}
+## Secrets in prompts
 
 Chapter 10 taught that a secret leaks not only through Git but
 through shell history, logs, and screenshots. An agent adds a new
@@ -348,7 +348,7 @@ know its default and turn off what you do not want retained. A key
 that reaches a transcript should be rotated, not hoped over.
 :::
 
-## Review discipline: diff before you accept {.tier-beginner}
+## Review discipline: diff before you accept
 
 The habit that makes agent assistance safe is the one the
 companion Git book already argues for human collaborators: read
@@ -395,7 +395,7 @@ an agent overwrote, the recovery story is the same bleak Chapter 7
 described: there may not be one.
 :::
 
-## Reproducibility of agent-run commands {.tier-advanced}
+## Reproducibility of agent-run commands (ADVANCED) {.tier-advanced}
 
 An agent is fast, which tempts you to let it *do* things rather
 than *record* things, and that temptation is the quiet enemy of
@@ -432,7 +432,7 @@ introduced. The agent speeds up writing the pipeline; it does not
 get to be the pipeline.
 :::
 
-## What an agent must never run unsupervised {.tier-beginner}
+## What an agent must never run unsupervised
 
 Most of an agent's work is low-stakes and reversible, and for
 that work a looser posture is a reasonable trade. A short list of

@@ -46,13 +46,13 @@ connection that started it, is captured on the author's Mac
 against a real remote Linux server by
 `transcripts/capture-ch14-mac.sh`. Because a remote session's
 prompt, `tmux ls`, and status line all expose identifying
-values, the captures mask, at capture time, the account
-(`[account]`), the hostname (`[hostname]`), and any address
-(`[ip]`); the server alias is shown as `lab-server` and every
-session name (`job`, `work`, `analysis`, `build`) is one the
-book chose, not a real one.
+values, the blocks show placeholders: the account is
+`[account]`, the hostname `[hostname]`, and any address `[ip]`;
+the server alias is `lab-server` and every session name (`job`,
+`work`, `analysis`, `build`) is one the book chose, not a real
+one.
 
-## Sessions that outlive the connection {.tier-beginner}
+## Sessions that outlive the connection
 
 The whole tool reduces to a short loop: start a session, detach
 from it, list what is running, reattach, and eventually end it.
@@ -119,7 +119,7 @@ box use the server's tmux and leave your local terminal plain,
 so there is only ever one prefix to think about.
 :::
 
-## Sessions, windows, and panes {.tier-beginner}
+## Sessions, windows, and panes
 
 A session is not flat. It contains *windows* (like tabs, one
 full screen each), and a window can be split into *panes* (tiled
@@ -166,7 +166,7 @@ research work you can go a long way with a single window and
 never split a pane at all; the structure is there when a long
 job wants its own window while you keep working in another.
 
-## Surviving a disconnect on a remote job {.tier-beginner}
+## Surviving a disconnect on a remote job
 
 This is the payoff, and the reason the chapter exists. The
 mechanism is easiest to see locally first. Start a stepwise job
@@ -293,7 +293,7 @@ so the record survives no matter what the session does. (tmux's
 but the two habits above are simpler and more portable.)
 :::
 
-## What tmux does not do {.tier-advanced}
+## What tmux does not do (ADVANCED) {.tier-advanced}
 
 tmux is precise about what it protects, and overselling it
 invites a false sense of safety. It keeps a session alive *on
@@ -333,7 +333,7 @@ what you no longer need with `tmux kill-session -t name`. The
 sessions do not clean up after themselves, and on a shared
 server other people can see them cluttering the process table.
 
-## screen, and driving tmux from a script {.tier-advanced}
+## screen, and driving tmux from a script (ADVANCED) {.tier-advanced}
 
 Before tmux there was `screen`, and it may still be the only
 multiplexer on an older or minimal server where tmux is not

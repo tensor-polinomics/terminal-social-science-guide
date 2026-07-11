@@ -12,7 +12,7 @@ local shell.
 
 The spine of the chapter is a single idea: the same project
 and the same workflow, on a machine you cannot see, with the
-Linux boundary flagged where it bites. `ssh` opens a shell on
+Linux boundary flagged where it counts. `ssh` opens a shell on
 the remote box and runs commands there; a key and a config
 file make the connection authenticated and repeatable; `rsync`
 moves the project across and the results back without
@@ -30,17 +30,16 @@ AWS EC2 Ubuntu box), captured by `transcripts/capture-ch13-mac.sh`;
 `rsync`'s semantics, `ssh-keygen`, `tar`, and `du` run in this
 book's Linux sandbox, where they need no network and behave
 exactly as they do remotely. Because everything SSH touches is
-identifying, the captures mask, at capture time, the server's
-hostname (`[hostname]`), any literal address (`[ip]`), the
-account name (`[account]`), and the home path (`~`) with its
+identifying, the blocks show placeholders: the server's
+hostname is `[hostname]`, any literal address `[ip]`, the
+account name `[account]`, and the home path `~` with its
 mount (`[mount]`) and device (`[device]`); the server alias is
-shown throughout as `lab-server`. No private key is ever shown.
-The one keypair on display is a throwaway generated for the
-book.
+`lab-server` throughout. No private key is ever shown. The one
+keypair on display is a throwaway generated for the book.
 
 ![The laptop-to-server motion this chapter delivers. Your laptop is where you edit and version; a key and `~/.ssh/config` open an authenticated, named connection to a remote Linux box; `rsync` moves the project across (lockfiles, not built environments) and results back; `uv sync` and `renv::restore()` rebuild the environment on arrival. The same pattern reaches a GPU pod or an HPC login node, which you learn to recognize rather than master.](../assets/figures/ch13/fig-ch13-motion){#fig-ch13-motion fig-alt="A left-to-right diagram. On the left a card labeled 'laptop (edit, version, Git)'. An arrow labeled 'ssh: key + ~/.ssh/config' leads to a center card 'remote Linux box'. Between them two arrows: 'rsync -a (lockfiles travel)' pointing right and 'rsync results back' pointing left. Above the center card, 'uv sync / renv::restore() rebuild the environment'. On the right two faded cards, 'GPU pod (+ a meter)' and 'HPC login node (sbatch)', labeled 'recognize and route'." width="5.6in" fig-pos="H"}
 
-## Reaching a shell on a machine you cannot see {.tier-beginner}
+## Reaching a shell on a machine you cannot see
 
 `ssh` logs you into a remote host and runs commands there. Give
 it an address and it opens an interactive shell; give it a
@@ -93,7 +92,7 @@ fingerprint. If you cannot explain the change, stop and treat
 it as an interception until proven otherwise.
 :::
 
-## Keys, and the permissions that make them work {.tier-beginner}
+## Keys, and the permissions that make them work
 
 Typing a password on every connection does not scale and cannot
 be scripted. Key authentication replaces it with a pair of
@@ -191,7 +190,7 @@ both machines. Chapter 10's `chmod` fixes all of them; the key
 material is rarely the problem.
 :::
 
-## A config file, and forwarding a port {.tier-beginner}
+## A config file, and forwarding a port
 
 Retyping `ssh -p 22 -i ~/.ssh/id_ed25519 account@host`
 every time invites mistakes. `~/.ssh/config` gives the whole
@@ -266,7 +265,7 @@ you do not fully trust; a jump host (`-J`) or a dedicated
 per-host key is usually the safer tool.
 :::
 
-## Moving the project with `rsync` {.tier-beginner}
+## Moving the project with `rsync`
 
 `scp file lab-server:path` copies a single file over the same
 SSH connection, which is fine for one file. For a directory
@@ -376,7 +375,7 @@ them. The portable habit: stick to the common flags, and run
 exists.
 :::
 
-## Did the bytes survive the trip? {.tier-beginner}
+## Did the bytes survive the trip?
 
 Moving data is not the same as moving it *intact*, and on
 restricted or licensed data an undetected truncation is a real
@@ -462,7 +461,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 it is a full-screen TUI rather than a one-shot command, it
 belongs with the modern-kit tools in Chapter 16.
 
-## Rebuilding the environment, and surviving a disconnect {.tier-advanced}
+## Rebuilding the environment, and surviving a disconnect (ADVANCED) {.tier-advanced}
 
 The project is now on the server without its environments, and
 this is the moment Chapter 13 was built for. `uv sync` reads
@@ -530,7 +529,7 @@ can detach from, walk
 away, and reattach to later to watch a job run live, is `tmux`,
 which the next chapter is about.
 
-## The bigger remote worlds: GPU pods and HPC {.tier-advanced}
+## The bigger remote worlds: GPU pods and HPC (ADVANCED) {.tier-advanced}
 
 Two larger remote settings are worth recognizing, because the
 skills above carry straight into them and the goal is to route

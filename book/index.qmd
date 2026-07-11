@@ -1,5 +1,31 @@
 # Preface {.unnumbered}
 
-<!-- STUB (Phase 0). No preface prose yet, by design. Written after the
-     exemplar chapters lock the style at G2. Mirror the Git book's hero
-     band + feature cards (HTML-only, decorative). -->
+<!-- STUB (Phase 0). The full preface prose (hero band + feature cards,
+     HTML-only, decorative; reproducibility, intimidation-but-worth-it,
+     shell-for-agentic-tools) is written in Session 6 of the
+     review-response workstream. The "About the captured output" note
+     below was added in Session 3 as the single book-wide disclosure of
+     the real-output and masking contract; Session 6 weaves it into the
+     finished preface rather than duplicating it. -->
+
+## About the captured output {.unnumbered}
+
+Every command in this book is shown with its real output. The
+blocks are captured from actual terminal sessions, most on a
+Linux machine, the macOS and BSD divergences on a Mac, and the
+remote examples against a real server; none is typed up from
+memory or invented. Where a tool has to be described rather
+than run, such as a full-screen program or a Stata or EViews
+recipe, the block is labeled as such so you never mistake it
+for a real capture.
+
+Because the repository is public, values that would identify a
+person or a machine are changed before an output is saved: an
+account or user name, a home directory, a hostname, and a
+network address are each replaced with a bracketed placeholder,
+`[account]`, `[hostname]`, `[ip]`, and the like, that your own
+machine fills in with the real value. Two other edits are marked
+wherever they occur: a very long hash is shortened for
+readability (`49b3a1733cf2...`), and a stretch of repetitive or
+cache-dependent noise is elided with a bracketed `[...]`. Those
+marks aside, every block is exactly what the command printed.

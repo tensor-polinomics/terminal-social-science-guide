@@ -44,7 +44,7 @@ sandbox-specific uv advisory about hardlinking across
 filesystems is silenced in the captures and disclosed in the
 transcript notes.
 
-## A language environment is not a shell variable {.tier-beginner}
+## A language environment is not a shell variable
 
 The word "environment" is doing two jobs in this book, and
 they must not blur. Chapter 2 taught the *shell* environment:
@@ -105,7 +105,7 @@ lockfile. Read the split as a division of labor: on one side
 the declared intent (a manifest file, or the code renv reads),
 on the other a lockfile for machines replaying a resolution.
 
-## Restore and run: `uv sync` and `uv run` {.tier-beginner}
+## Restore and run: `uv sync` and `uv run`
 
 The payoff of a committed lockfile is what a collaborator, or
 you on a new machine, does with it. They clone the project and
@@ -227,7 +227,7 @@ every Python node (`PY := uv run python`), so a `make` in this
 project has been running inside the locked environment all
 along.
 
-## Change it on purpose: `uv add` {.tier-beginner}
+## Change it on purpose: `uv add`
 
 A pinned environment is not a frozen one; it changes when you
 say so, and the discipline is that every change lands in both
@@ -290,7 +290,7 @@ followed by committing the manifest and lockfile in the same
 commit, so no collaborator can receive one without the other.
 :::
 
-## The same job for R: renv {.tier-beginner}
+## The same job for R: renv
 
 The project's R half makes the same promise with one tool
 swap: renv. One difference is structural: renv has no
@@ -357,7 +357,7 @@ before your first line of code runs. That is why the Makefile
 needs no special wrapper for its R node: the project directory
 itself is the switch.
 
-## Provenance: what did this run against? {.tier-beginner}
+## Provenance: what did this run against?
 
 Chapter 11 taught the run log: `tee` what a job printed, so
 there is a record of what happened. The environment deserves
@@ -413,10 +413,9 @@ record, which is what a clean `renv::status()` asserted. The
 fuller R receipt is `sessionInfo()`, which reports the R
 version, the platform, the BLAS in use, the locale (Chapter
 11's `LC_ALL` showing up on the R side), and the version of
-every attached package; the capture script records one full
-`sessionInfo()` for this project in the transcript, and the
-Try-it has you save your own. It is the standard first
-attachment when you report a puzzling result to anyone.
+every attached package; the Try-it has you save your own. It
+is the standard first attachment when you report a puzzling
+result to anyone.
 
 ::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
 The reproducibility stack of Part III has three layers, and it
@@ -437,7 +436,7 @@ checksums are for. Each layer covers a specific drift; the
 habit is running all of them, not trusting one.
 :::
 
-## Commit the lock, not the environment {.tier-advanced}
+## Commit the lock, not the environment (ADVANCED) {.tier-advanced}
 
 If lockfiles are committed, why not commit `.venv/` and
 `renv/library/` too and skip the restore step? Because an
@@ -519,7 +518,7 @@ of `.venv/`; it is `uv sync` and `renv::restore()`, which
 Chapter 14 will lean on when this project moves to a remote
 server.
 
-## Beyond uv and renv {.tier-advanced}
+## Beyond uv and renv (ADVANCED) {.tier-advanced}
 
 Two honest boundary notes close the chapter. First,
 alternatives exist and you will meet them: Python environments

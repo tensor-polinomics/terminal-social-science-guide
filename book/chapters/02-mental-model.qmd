@@ -18,9 +18,7 @@ working directory, the environment, the PATH, or the exit
 code. The error message will assume you know what those words
 mean. After this chapter you will.
 
-A note on where the output comes from. From here on, every
-command this book shows is really run, and its output is
-pasted from a saved transcript, never invented. The portable
+A note on where the output comes from. The portable
 GNU/Linux demonstrations in this chapter ran in the book's
 Linux sandbox (Ubuntu 22.04, GNU bash 5.1, GNU coreutils
 8.32; the `ch02-*` transcript files), some of them inside the
@@ -29,16 +27,14 @@ in a throwaway `/tmp` directory. The macOS side, zsh, the BSD
 tools, and Homebrew's PATH, was captured on the author's Mac
 (macOS 26.5.1, zsh 5.9; `transcripts/ch02-*-mac.txt`,
 produced by `capture-ch02-mac.sh`) and is quoted where the
-platforms genuinely differ. One deliberate mask: in Mac
-output, the account segment of home paths reads
-`/Users/[account]`, a documented scrub for this public book.
-The brackets are a placeholder, not something a machine
-prints: run the same commands yourself and that segment
-shows your own account name. Everything else in every block
-is verbatim from its transcript. The one figure in this chapter is an authored
+platforms genuinely differ. This is the first chapter to show
+a masked value: in Mac output, the account segment of home
+paths reads `/Users/[account]`, a placeholder you would see
+filled in with your own account name if you ran the same
+commands. The one figure in this chapter is an authored
 diagram, not captured output.
 
-## Terminal, shell, operating system {.tier-beginner}
+## Terminal, shell, operating system
 
 Three different programs cooperate every time you type a
 command, and the words for them are used interchangeably in
@@ -99,7 +95,7 @@ underneath?
 
 \FloatBarrier
 
-## One tree of files {.tier-beginner}
+## One tree of files
 
 Everything the shell touches lives in a single tree of
 directories that starts at the **root**, written `/`. There
@@ -198,7 +194,7 @@ layout discipline for what goes where *inside* your territory
 is the companion Git book's canonical-layout argument;
 Chapter 6 will build that layout from the shell.
 
-## A command becomes a process {.tier-beginner}
+## A command becomes a process
 
 When the shell runs a program, the kernel creates a
 **process**: one running instance of that program, with its
@@ -245,7 +241,7 @@ will do for you in Chapter 15. Managing processes you have
 started, pausing them, backgrounding them, stopping them, is
 Chapter 10's subject.
 
-## Why `cd` is not a program {.tier-advanced}
+## Why `cd` is not a program (ADVANCED) {.tier-advanced}
 
 Most commands are separate programs on disk. A few are not,
 and the reason is the process model from the last section.
@@ -290,7 +286,7 @@ diagnostic: when a command behaves differently from what its
 manual says, `type` tells you whether you are even running
 the thing whose manual you read.
 
-## The environment: what a process inherits {.tier-beginner}
+## The environment: what a process inherits
 
 Besides a working directory, every process carries a set of
 named strings called **environment variables**: `HOME` is
@@ -362,7 +358,7 @@ a leak surface too; keeping keys out of the environment and
 your shell history is part of Chapter 10's job, alongside the
 Git book's rules for keeping them out of repositories.
 
-## How the shell finds a command: `PATH` {.tier-beginner}
+## How the shell finds a command: `PATH`
 
 When you type `python3`, the shell has to turn that word into
 a file to execute, and it does not search the whole disk. It
@@ -466,7 +462,7 @@ works everywhere) or your shell's `type`, and treat `which`
 as the one to distrust in instructions you find online.
 :::
 
-## Three streams, in the abstract {.tier-beginner}
+## Three streams, in the abstract
 
 Every process is born with three communication channels
 already open, and the names recur in every error message and
@@ -523,7 +519,7 @@ re-pointing these streams; this section only needs you to
 know the three channels exist, are distinct, and are wired
 to every process the kernel starts.
 
-## Exit codes: how a command reports back {.tier-beginner}
+## Exit codes: how a command reports back
 
 Output is for you; the **exit code** is for the machinery.
 Every process, when it ends, hands the kernel one small
@@ -588,7 +584,7 @@ not an if. In scripts, `set -e` (Chapter 11) will remove
 the need to babysit `$?` by hand.
 :::
 
-## Getting unstuck: `--help`, `man`, and `tldr` {.tier-beginner}
+## Getting unstuck: `--help`, `man`, and `tldr`
 
 The mental model's last piece is knowing where the answers
 live, because nobody memorizes options. There are three

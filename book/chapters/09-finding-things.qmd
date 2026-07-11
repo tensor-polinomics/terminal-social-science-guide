@@ -38,12 +38,9 @@ every file-deleting demonstration confined to a throwaway
 macOS/BSD `find` divergences and the `fd` runs are captured on
 the author's Mac (`transcripts/capture-ch08-mac.sh`, the
 `ch08-*-mac.txt` files), because `fd` is not installable in the
-sandbox and BSD `find` differs from GNU `find`. Nothing in this
-chapter's shown output carries user-specific data, so no masks
-appear in the blocks; the capture script still applies the
-standard masks at capture time as a guard.
+sandbox and BSD `find` differs from GNU `find`.
 
-## Finding files by name: `find` {.tier-beginner}
+## Finding files by name: `find`
 
 `find` takes a place to start and a test to apply, and prints
 every file beneath that place that passes the test. The
@@ -89,7 +86,7 @@ often, because it filters out directories that happen to match
 the name pattern; its companions are `-type d` for directories
 and `-type l` for symbolic links.
 
-## Finding by type, time, and size {.tier-beginner}
+## Finding by type, time, and size
 
 Name is only the most obvious property. `find` can select on
 the same file metadata Chapter 5 read with `ls -l` and `stat`:
@@ -138,7 +135,7 @@ to reverse in your head, so read `-mtime -N` as "newer than N
 days" and `-mtime +N` as "older than N days" and check the
 answer against a file whose age you know.
 
-## Acting on what you find: `-exec` and null-safe `xargs` {.tier-beginner}
+## Acting on what you find: `-exec` and null-safe `xargs`
 
 Finding files is half the job; the other half is doing
 something with them. `find` can run a command on each result
@@ -220,7 +217,7 @@ The two log files are gone and `keep.txt` remains. Never let
 the first time you see a match list be *after* you deleted it.
 :::
 
-## Glob or regex, from the finding side {.tier-beginner}
+## Glob or regex, from the finding side
 
 Chapter 8 promised this line would be drawn again from the
 other direction, and here it is. When `find` matches a name,
@@ -270,7 +267,7 @@ alternation or character classes across the path.
 
 ::: {.callout-note .divergence title="DIVERGENCE"}
 `find` is one of the sharpest BSD-versus-GNU divergences on
-everyday commands. Two bite in this chapter. First, the regex
+everyday commands. Two stand out in this chapter. First, the regex
 flag: GNU `find` (Linux) selects the engine with `-regextype
 posix-extended`, shown above; BSD `find` (macOS) has no
 `-regextype` and instead takes a `-E` flag *before* the
@@ -317,7 +314,7 @@ regex or formatting flags only inside a script you know the
 platform of. The appendix divergence table collects these.
 :::
 
-## Searching contents across a tree: `ripgrep` {.tier-beginner}
+## Searching contents across a tree: `ripgrep`
 
 `find` matches on a file's name and metadata; it never looks
 inside. Chapter 8's `grep` looked inside, but at one file you
@@ -389,7 +386,7 @@ The division of labor is the same one Chapter 8 drew, now with
 a tool that applies both halves at once: a glob (`-g`) chooses
 the files, a regex (the pattern) chooses the lines.
 
-## `fd`: the ergonomic `find` {.tier-advanced}
+## `fd`: the ergonomic `find` (ADVANCED) {.tier-advanced}
 
 `find` is universal and portable, and its syntax shows its
 age: tests spelled `-name`, `-type`, `-print0`, an argument
@@ -431,7 +428,7 @@ machine to make the daily search quick. But `fd` shares one
 default with `rg` that is a genuine trap for a researcher, and
 that default is the subject of the last section.
 
-## When search skips your data {.tier-advanced}
+## When search skips your data (ADVANCED) {.tier-advanced}
 
 Here is a search that looks like it worked and did not. The
 word `firm` runs all through the project, so list every file

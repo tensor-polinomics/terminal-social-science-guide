@@ -32,7 +32,7 @@ sandbox (Ubuntu 22.04, GNU Make 4.3; the `ch11-*` transcript
 files). The Stata and EViews recipes near the end are
 illustrative and never executed, and are labeled as such.
 
-## What a build tool is for {.tier-beginner}
+## What a build tool is for
 
 A build tool answers one question well: given a set of files
 that are built from other files, what is the least work
@@ -50,7 +50,7 @@ companion book) and it does not reproduce your environment
 narrow job is exactly what a multi-step, multi-language
 pipeline needs.
 
-## The study as a dependency graph {.tier-beginner}
+## The study as a dependency graph
 
 Our running example is a chain. Each script reads one or two
 files and writes the next:
@@ -85,7 +85,7 @@ languages, which is precisely why it can glue a Python data
 pipeline to an R regression to a Quarto paper without any of
 them knowing about the others.
 
-## Anatomy of a rule, and the TAB trap {.tier-beginner}
+## Anatomy of a rule, and the TAB trap
 
 A Makefile is a list of rules. Each rule has three parts: a
 **target** (the file to build), its **prerequisites** (the
@@ -144,7 +144,7 @@ next-but-one section shows. For a modern Make on a Mac, `brew
 install make` installs it as `gmake`.
 :::
 
-## Automatic variables {.tier-advanced}
+## Automatic variables (ADVANCED) {.tier-advanced}
 
 Writing the target and prerequisites out twice, once in the
 header and again in the recipe, is repetitive and a source of
@@ -188,7 +188,7 @@ different script, different inputs) and there is no repeated
 pattern to factor out. Pattern rules earn their keep when many
 files share one recipe; six unique steps do not.
 
-## One command builds the paper {.tier-beginner}
+## One command builds the paper
 
 Here is the spine of our Makefile, the rule chain that turns
 the dependency graph into something `make` can run. Variables
@@ -289,7 +289,7 @@ commit the data) and the reason the example is synthetic in
 the first place.
 :::
 
-## Rebuilding only what changed {.tier-beginner}
+## Rebuilding only what changed
 
 The reason to use Make instead of a script that runs every
 step is that Make runs *only the stale steps*. Immediately
@@ -357,7 +357,7 @@ This selective rebuild is the feature. On a project where the
 data step takes an hour, you do not want to rerun it because
 you edited a figure caption.
 
-## When timestamps lie {.tier-advanced}
+## When timestamps lie (ADVANCED) {.tier-advanced}
 
 Make decides "out of date" by comparing modification times: a
 target is stale if any prerequisite is newer. That rule is
@@ -434,7 +434,7 @@ install make` gives you `gmake` 4.x. The deeper lesson is that
 proxy can fail*. That is the motivation for the next section.
 :::
 
-## Smoke checks that fail loudly {.tier-beginner}
+## Smoke checks that fail loudly
 
 If timestamps can lie, do not let the build be the only judge
 of whether the result is right. Our Makefile carries a `check`
@@ -490,7 +490,7 @@ suspect a timestamp tie has confused Make: it sidesteps the
 mtime logic entirely.
 :::
 
-## .PHONY: targets that are not files {.tier-advanced}
+## .PHONY: targets that are not files (ADVANCED) {.tier-advanced}
 
 `all`, `check`, `clean`, and `help` name actions, not files.
 There is no file called `check` on disk, so if a directory
@@ -525,7 +525,7 @@ its paths inside the project, and never let a variable that
 could be empty sit next to `rm -rf`.
 :::
 
-## The Python tier runs anywhere {.tier-advanced}
+## The Python tier runs anywhere (ADVANCED) {.tier-advanced}
 
 Because Make orchestrates files and shell commands, the parts
 of the graph written in a portable language are portable too.
@@ -573,7 +573,7 @@ This is the toolchain split made concrete: the portable tier
 runs anywhere, the R and Quarto tiers run where they are
 installed, and the same Makefile drives both.
 
-## Stata and EViews in the graph {.tier-advanced}
+## Stata and EViews in the graph (ADVANCED) {.tier-advanced}
 
 Not every tool a social scientist uses is scriptable from a
 Unix shell in the same way. Two common ones, Stata and EViews,
@@ -626,7 +626,7 @@ this way, so a replicator knows what they cannot regenerate
 from code alone.
 :::
 
-## just, and when to outgrow Make {.tier-advanced}
+## just, and when to outgrow Make (ADVANCED) {.tier-advanced}
 
 Two questions come up once a pipeline grows. First, why not
 `just`? `just` is a modern command runner with a friendlier

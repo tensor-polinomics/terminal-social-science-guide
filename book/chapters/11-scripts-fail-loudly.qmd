@@ -50,7 +50,7 @@ bash-3.2 failures, and BSD `/usr/bin/time` and `date`. Those
 Mac blocks are marked where they appear. No real credential or
 account name appears anywhere; scratch paths are relative.
 
-## The shebang and the bash target {.tier-beginner}
+## The shebang and the bash target
 
 A script is just a text file of commands, but the kernel needs
 to be told which interpreter should read it. That is the job of
@@ -127,7 +127,7 @@ the bash-4 features above; when it need not, install a current
 bash and target it.
 :::
 
-## Fail loudly: `set -euo pipefail` {.tier-beginner}
+## Fail loudly: `set -euo pipefail`
 
 By default a shell script keeps going after a command fails. It
 runs the next line, and the next, whatever happened before, so a
@@ -212,7 +212,7 @@ turns the missing input into an immediate nonzero exit, which is
 the whole point of the previous block.
 :::
 
-## Reading a script: tests, branches, and loops {.tier-beginner}
+## Reading a script: tests, branches, and loops
 
 The scripts in this chapter, and the Make pipeline of Chapter
 12, lean on a small grammar that reads an exit code, branches
@@ -390,7 +390,7 @@ branches on it, `for` and `while` repeat, and `{ ...; }`
 groups. The next section puts the first two to work in a guard
 that stops a script before it touches missing data.
 
-## Exit codes you can act on: `exit`, `$?`, and `trap` {.tier-beginner}
+## Exit codes you can act on: `exit`, `$?`, and `trap`
 
 The primer read an exit code with `$?` and branched on it with
 `if`; here the move is from *reading* a code to *setting* it.
@@ -529,7 +529,7 @@ the last `+` line before the error and you have the failing
 command with its real arguments.
 :::
 
-## Lint before you run: ShellCheck and shfmt {.tier-beginner}
+## Lint before you run: ShellCheck and shfmt
 
 A script that fails loudly at runtime is good; a script whose
 bugs are caught *before* it runs is better. **ShellCheck** is a
@@ -600,7 +600,7 @@ current as of 2026-07-03), not in every environment, so treat
 them as a local pre-flight rather than something the server is
 guaranteed to have.
 
-## Leave a run log you can trust {.tier-advanced}
+## Leave a run log you can trust (ADVANCED) {.tier-advanced}
 
 A long job that printed its progress and then scrolled away
 leaves you nothing to point to when you ask, later, what it
@@ -676,7 +676,7 @@ that runs unchanged on both, the shell keyword `time` (no path)
 gives a short real/user/sys line on either.
 :::
 
-## Pin the environment: `LC_ALL` and `TZ` {.tier-beginner}
+## Pin the environment: `LC_ALL` and `TZ`
 
 A script can be correct and still give two different answers on
 two machines, because some tools read their behavior from the
@@ -745,7 +745,7 @@ script that must run on both is to pin `TZ` and avoid
 platform-specific `date` parsing, or to compute timestamps in a
 language layer (Python, R) whose date handling you control.
 
-## Putting it together: a `verify.sh` for the project {.tier-advanced}
+## Putting it together: a `verify.sh` for the project (ADVANCED) {.tier-advanced}
 
 The pieces of this chapter combine into a small script the
 running example actually needs: a guard that checks the raw data
