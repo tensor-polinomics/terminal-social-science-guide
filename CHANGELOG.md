@@ -8,11 +8,55 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 4: first-use gloss audit across the
+  chapters the review memo numbers Ch 2, 4, 6, 7, 8 (current
+  numbering 2, 5, 7, 8, 9 after the Session-1 mini-chapter
+  insertion) (2026-07-11; not yet committed). Carries the pending
+  `7a61e86` hash-line from Session 3 (already in the working tree; a
+  commit cannot contain its own hash).** Root cause C of the author
+  review (`private/review-response-2026-07-08.md` Section 6, Session
+  4 row, and the #C first-use items): commands used before they are
+  glossed. One consistent pass added short prose glosses at first
+  use only; it added no new command blocks (every shown `$`/`>`
+  block stays transcript-backed), no new callouts, and changed no
+  section or ADVANCED-mark count. Chapter 2 (`02-mental-model.qmd`):
+  `echo` (prints its arguments) at its first use `echo $HOME`; and
+  the `DATASET=panel_v2` assignment, the no-spaces-around-`=` rule,
+  and the `${...}` braces (the existing `:-` default explanation
+  kept and folded in). Chapter 5 (`05-navigation.qmd`): `printf` and
+  `cat` at their first use in the copy-and-clobber demo. Chapter 7
+  (`07-pipes-redirection-danger.qmd`): decoded `cut -d, -f1` (`-d`
+  sets the delimiter, `-f1` keeps field 1); added the `tail -n +N`
+  ("from line N") versus `head -n N` / `tail -n N` ("a count of N")
+  asymmetry; and glossed `shopt -s` (bash's option switch) and the
+  `find . -name ... | xargs` idiom (`.` is the start directory;
+  `xargs` builds a command line from stdin). Chapter 8
+  (`08-text-tabular-data.qmd`): labeled `F0000` a synthetic firm id
+  at first use; and glossed `duckdb -c` (one-shot SQL, like
+  `bash -c`; `-csv` was already explained). Chapter 9
+  (`09-finding-things.qmd`): glossed `touch` and taught `-t` as the
+  POSIX-portable timestamp flag, with `-d` (used in the chapter)
+  flagged as non-POSIX whose accepted date strings vary by
+  implementation (GNU free-form vs BSD/macOS narrower), so `-t` is
+  the portable choice. Skipped where a
+  gloss already exists (per the memo's corrections): `grep -n`
+  (Chapter 8), `600` and `$HOME`, and Chapter 8's own `cut -d, -f`
+  decode. New source pin: `verification/chapter-09.md` claim 6 (the
+  `touch` `-t`/`-d` portability, doc-pinned, corrected in Codex
+  round 1, not Mac-captured).
+  Files touched: `book/chapters/02-mental-model.qmd`,
+  `05-navigation.qmd`, `07-pipes-redirection-danger.qmd`,
+  `08-text-tabular-data.qmd`, `09-finding-things.qmd`, and
+  `verification/chapter-09.md`. Validator 0/0; 0 em-dashes added.
 - **Review-response Session 3: plumbing sweep, repetition trim, and
-  an ADVANCED-only heading-tier relabel book-wide (2026-07-11; not
-  yet committed). Carries the pending `9ddb38e` hash-line from
-  Session 2 (already in the working tree; a commit cannot contain
-  its own hash).** Three edits, from the author review
+  an ADVANCED-only heading-tier relabel book-wide (2026-07-11;
+  committed and pushed 2026-07-11 as `7a61e86`,
+  `7a61e862d230859112996a7bc1bca13171604017`, message "Close
+  Session 3 review-response cleanup"; cleared the Codex blind-audit
+  rounds and human review; validator 0/0 and `quarto render book`
+  clean. Shipped Session 2's pending `9ddb38e` hash-line; this
+  entry's own `7a61e86` hash-line rides in the next commit, since a
+  commit cannot contain its own hash).** Three edits, from the author review
   (`private/review-response-2026-07-08.md` Section 6, Session 3 row,
   and points 6 and 7). (1) **Plumbing sweep (point 6).** The eight
   non-reader-facing mask/capture sentences that narrated the capture

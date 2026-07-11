@@ -146,8 +146,10 @@ Chapter 5's subject; here you only need the model.
 
 Two locations get shorthand names. Your **home directory** is
 where your login starts and where your own files live; the
-shell abbreviates it `~`. On the author's Mac, home is under
-`/Users`, and the top of the tree looks like this:
+shell abbreviates it `~`. The `echo` command prints its
+arguments, so `echo $HOME` prints whatever the shell has
+stored in the `$HOME` variable; on the author's Mac that home
+is under `/Users`, and `ls /` then shows the top of the tree:
 
 ```bash
 $ echo $HOME
@@ -326,9 +328,14 @@ $ bash -c 'echo "child sees: ${DATASET:-unset}"'
 child sees: panel_v2
 ```
 
-The `${DATASET:-unset}` form prints the variable's value, or
-the word `unset` when there is none, so the child's view is
-visible either way. Before the `export`, the child shell,
+`DATASET=panel_v2` is a variable assignment: a name, an `=`,
+and a value, with **no spaces around the `=`** (write
+`DATASET = panel_v2` and the shell instead reads `DATASET` as
+a command to run). The `${DATASET:-unset}` form then reads the
+value back, the braces marking where the name ends and the
+`:-unset` supplying the word `unset` to print when the
+variable has no value, so the child's view is visible either
+way. Before the `export`, the child shell,
 and it could just as well be your Python or R process, has
 no idea `DATASET` exists.
 

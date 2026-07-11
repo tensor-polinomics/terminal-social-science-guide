@@ -114,6 +114,20 @@ $ touch -d '2020-06-01 12:00:00' old_backup.csv
 $ touch -d '2026-07-01 09:00:00' recent_edit.py
 ```
 
+`touch` creates an empty file when the name does not exist
+and, given a timestamp flag, sets that file's modification
+time, which is what stages the two files at known ages here.
+Two flags set the time. `-t` is the POSIX-portable one,
+taking a terse `[[CC]YY]MMDDhhmm[.ss]` stamp, so
+`touch -t 202006011200 old_backup.csv` is the portable
+spelling of the first line above and behaves the same under
+GNU and BSD. The `-d` flag used here, taking a human-readable
+date, is not in POSIX, and *which* date strings it accepts
+varies by implementation: GNU parses very free-form dates
+(even `-d yesterday`), while BSD/macOS `touch` accepts only a
+narrower format. Reach for `-t` in anything meant to run on
+both platforms.
+
 ```bash
 $ find . -type f -mtime -30 | sort
 ./recent_edit.py

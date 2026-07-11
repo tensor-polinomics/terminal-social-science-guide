@@ -62,8 +62,10 @@ $ grep -F 'F0000,2011-01' data/raw/firm_panel.csv
 F0000,2011-01,-0.012231,911.6632,41.9506,1387.1572
 ```
 
-That is firm `F0000`'s first row in the panel. Two more
-options finish the daily kit. `-n` prints the line number of
+That is firm `F0000`'s first row in the panel, a synthetic
+identifier: the panel is simulated data, its 300 firms labeled
+`F0000` through `F0299`. Two more options finish the daily
+kit. `-n` prints the line number of
 each match, which is how you learn the header is line 1:
 
 ```bash
@@ -655,7 +657,11 @@ used, which is why the counts below agree with the sandbox
 runs above. The `-csv` flag makes the client print plain CSV
 instead of its default box-drawn table, keeping the output in
 the same format the rest of this chapter reads and writes
-(and pipeable into every tool above).
+(and pipeable into every tool above). The `-c` flag in the
+queries below hands the client a single SQL statement to run
+and then exit, the same one-shot idea as `bash -c` in Chapter
+2; a query too long for one line is fed on stdin through a
+heredoc instead, as the join near the end shows.
 
 ```bash
 $ duckdb --version

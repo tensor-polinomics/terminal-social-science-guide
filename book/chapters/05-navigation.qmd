@@ -458,7 +458,13 @@ into `archive/`, leaving `data/raw` with just the original.
 Both commands did their work silently, which is convenient
 until the destination already exists. Then the quiet becomes
 dangerous: copying or moving onto an existing file **replaces
-it**, with no prompt and no copy left behind.
+it**, with no prompt and no copy left behind. The next block
+builds its own test files with two small utilities the book
+leans on from here on: `printf` prints its text argument (the
+`\n` is a newline), and paired with `>` (redirection, which
+Chapter 7 covers) it writes that text into a file instead of
+the screen; `cat` prints a file's contents back to you, the
+quickest way to check what a file now holds.
 
 ```bash
 $ printf 'keep me\n' > results.csv

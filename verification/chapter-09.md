@@ -119,6 +119,29 @@ capture time as a guard, per `transcripts/README.md`.
    are
    real output on the two platforms the book targets (the
    appendix divergence table collects them).
+6. **`touch -t` is the POSIX-portable timestamp flag
+   (`[[CC]YY]MMDDhhmm[.SS]`); `-d` (human-readable date) is not
+   in POSIX and the date strings it accepts vary by
+   implementation.** The chapter's `touch -d '2020-06-01
+   12:00:00'` block is real GNU output (sandbox, GNU coreutils
+   8.32). The Session-4 gloss teaches `-t` as portable and `-d`
+   as the non-portable choice. Basis: POSIX `touch` (IEEE Std
+   1003.1) specifies `-t`, `-r`, `-a`, `-m`, `-c` and no `-d`;
+   GNU coreutils `-d, --date=STRING` parses free-form dates
+   (`-d yesterday`); FreeBSD/OpenBSD/macOS `touch(1)` also
+   document a `-d`, but accept a narrower (ISO-8601-style)
+   format, so a free-form GNU `-d` string need not parse on a
+   Mac. **Codex round 1 correction (2026-07-11):** an earlier
+   draft claimed "BSD/macOS `touch` has no `-d` and rejects it";
+   that is FALSE on the current gate machine -- Codex verified
+   `/usr/bin/touch -d '2020-06-01 12:00:00'` SUCCEEDS on macOS
+   26.5, and current BSD man pages list `-d`. The gloss was
+   corrected to the accurate portability point (`-t` portable;
+   `-d` non-POSIX with implementation-varying date parsing); no
+   "rejects it" claim ships. Still doc-pinned, not Mac-captured:
+   a capture contrasting a free-form GNU `-d` string that fails
+   on BSD would be needed to upgrade this to a full DIVERGENCE
+   callout, and is deferred.
 
 ## Cross-chapter promises touched
 
@@ -170,3 +193,11 @@ to `fd 10.4.2`). Validator: canonical command is
 sandbox; confirm on the Mac at the gate). Bare `python3
 tools/validate_book.py book` requires PyYAML, which a stock Mac
 `python3` lacks, so always use the `uv run` form.
+
+Session 4 (2026-07-11, first-use gloss audit): added a prose
+gloss of `touch` (creates an empty file / sets mtime) with `-t`
+POSIX-portable and `-d` non-portable (its accepted date strings
+vary by implementation), at the timestamp-staging block; no new
+command block, callout, or section (all counts above
+unchanged). See pinned claim 6 for the `-t`/`-d` source basis,
+the Codex round-1 correction, and the capture caveat.
