@@ -1,0 +1,51 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in throwaway /tmp scratch directories. Covers cp
+      (duplicate a file), cp -r (copy a directory tree), mv
+      (rename in place, then move into a directory), the
+      silent-overwrite hazard (cp onto an existing file
+      replaces it with no prompt), and the `cp -i`
+      interactive guard declining an overwrite. The `n`
+      answer to `cp -i` was fed on stdin for capture; a
+      reader types `n` and presses return. No user-specific
+      data.
+---
+# --- cp, cp -r, mv ---
+$ ls data/raw
+factors.csv
+$ cp data/raw/factors.csv data/raw/factors_backup.csv
+$ ls data/raw
+factors.csv
+factors_backup.csv
+$ cp -r data data_snapshot
+$ ls data_snapshot/raw
+factors.csv
+factors_backup.csv
+$ mv data/raw/factors_backup.csv data/raw/factors_2026.csv
+$ ls data/raw
+factors.csv
+factors_2026.csv
+$ mv data/raw/factors_2026.csv archive/
+$ ls archive
+factors_2026.csv
+
+# --- silent overwrite, then reset, then the -i guard ---
+# (one continuous scratch; the reset before cp -i is shown so
+#  there is no hidden "keep me" reappearing.)
+$ printf 'keep me\n' > results.csv
+$ printf 'different\n' > new.csv
+$ ls results.csv
+results.csv
+$ cp new.csv results.csv
+$ cat results.csv
+different
+$ printf 'keep me\n' > results.csv
+$ cp -i new.csv results.csv
+cp: overwrite 'results.csv'?
+$ cat results.csv
+keep me

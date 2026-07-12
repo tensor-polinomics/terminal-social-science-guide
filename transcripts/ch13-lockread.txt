@@ -1,0 +1,32 @@
+# transcript
+chapter: 13
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32; jq 1.6
+date: 2026-07-04
+captured-by: sandbox
+note: read-only commands in the real project directory; relative paths only.
+---
+$ sed -n '/^dependencies = \[/,/^\]/p' pyproject.toml
+dependencies = [
+    "numpy>=2.0",
+    "polars>=1.0",
+    "pyarrow>=15.0",
+    "matplotlib>=3.8",
+    "statsmodels>=0.14",
+]
+$ grep -n '^name = "statsmodels"' -A1 uv.lock
+1331:name = "statsmodels"
+1332-version = "0.14.6"
+$ jq -r '.R.Version' renv.lock
+4.5.3
+$ jq -r '.Packages.fixest.Version' renv.lock
+0.14.2
+$ grep -nE '\.venv|renv/' .gitignore
+32:.venv/
+37:renv/library/
+38:renv/local/
+39:renv/cellar/
+40:renv/lock/
+41:renv/python/
+42:renv/staging/

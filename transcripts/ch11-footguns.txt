@@ -1,0 +1,33 @@
+# transcript
+chapter: 11
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16
+date: 2026-07-03
+captured-by: sandbox
+note: throwaway /tmp scratch; no personal data shown.
+---
+$ cat footgun.sh
+#!/usr/bin/env bash
+set -e
+count_rows() {
+  local n=$(wc -l < missing.csv)   # command fails...
+  echo "count_rows kept going, n=[$n]"
+}
+count_rows
+echo "main continued past set -e"
+$ ./footgun.sh
+./footgun.sh: line 4: missing.csv: No such file or directory
+count_rows kept going, n=[]
+main continued past set -e
+$ cat footgun2.sh
+#!/usr/bin/env bash
+set -e
+f() { false; echo "  f kept going"; }
+if f; then echo "  if-branch"; fi
+false && echo "unreached"
+echo "main continued past set -e"
+$ ./footgun2.sh
+  f kept going
+  if-branch
+main continued past set -e

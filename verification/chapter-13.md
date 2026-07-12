@@ -9,7 +9,7 @@ Two blocks run on the user's Mac (renv::status/restore; the
 R.version.string/packageVersion receipts) because the sandbox
 has no R and cannot reach CRAN (confirmed at G0); those were
 drafted from best-known values and RECONCILED byte-for-byte
-2026-07-04 against the user's `capture-ch12-mac.sh` run (the
+2026-07-04 against the user's `capture-ch13-mac.sh` run (the
 Ch 8 DuckDB / Ch 9 `fd` / Ch 11 ShellCheck pattern; two
 drafted guesses corrected). External behavior is pinned to
 official docs, fetched 2026-07-04.
@@ -28,9 +28,9 @@ official docs, fetched 2026-07-04.
   only the new package, and the real project lock is never
   touched. The lockfile and `renv/` reads run read-only in the
   real project directory with relative paths. Transcripts:
-  `ch12-uv-version.txt`, `ch12-uv-sync.txt`, `ch12-uv-run.txt`,
-  `ch12-venv-tree.txt`, `ch12-uv-list.txt`, `ch12-uv-add.txt`,
-  `ch12-lockread.txt`, `ch12-renv-tree.txt`. Every sandbox block
+  `ch13-uv-version.txt`, `ch13-uv-sync.txt`, `ch13-uv-run.txt`,
+  `ch13-venv-tree.txt`, `ch13-uv-list.txt`, `ch13-uv-add.txt`,
+  `ch13-lockread.txt`, `ch13-renv-tree.txt`. Every sandbox block
   the chapter shows was diffed against its transcript as a
   contiguous substring (14 blocks, all byte-identical; see
   counts). Capture-noise disclosure: `UV_LINK_MODE=copy` is
@@ -45,8 +45,8 @@ official docs, fetched 2026-07-04.
   `packageVersion("fixest")` (section 5), all via
   non-interactive `Rscript` in the real project on the user's
   Mac (macOS 26.5.1, zsh 5.9; R 4.5.3, renv 1.2.3), captured by
-  `transcripts/capture-ch12-mac.sh` into `ch12-renv-mac.txt`
-  (plus the Mac `uv --version` stamp in `ch12-uv-mac.txt` and
+  `transcripts/capture-ch13-mac.sh` into `ch13-renv-mac.txt`
+  (plus the Mac `uv --version` stamp in `ch13-uv-mac.txt` and
   one full `sessionInfo()` after `library(fixest)` recorded for
   the log and described in prose, not shown as a block). Both
   chapter blocks were re-diffed and are byte-identical. Two
@@ -72,7 +72,7 @@ official docs, fetched 2026-07-04.
   nothing version-specific about the Mac install, so no chapter
   text changed. The `renv.lock`-side values the receipts agree
   with are sandbox-verified by `jq` (R 4.5.3, fixest 0.14.2,
-  `ch12-lockread.txt`), consistent with Chapter 8's committed
+  `ch13-lockread.txt`), consistent with Chapter 8's committed
   jq reads of the same file.
 - **Authored, non-capture:** the `.venv/` annotated layout tree
   (section 2) is a labeled non-runnable `text` schematic (the
@@ -83,13 +83,13 @@ official docs, fetched 2026-07-04.
 ## Behavior verified live in the sandbox (not assumed)
 
 - **`uv sync` restores the locked environment from a bare copy**
-  (`ch12-uv-sync.txt`): with only `pyproject.toml` + `uv.lock` +
+  (`ch13-uv-sync.txt`): with only `pyproject.toml` + `uv.lock` +
   `scripts/` present, `uv sync` selects CPython 3.10.12, creates
   `.venv/`, and installs all 20 packages at exactly the locked
   versions (`statsmodels==0.14.6` etc.); a second `uv sync`
   verifies instead of reinstalling ("Checked 20 packages").
 - **`uv run` executes inside the project environment without
-  activation** (`ch12-uv-run.txt`): step 0 of the pipeline runs
+  activation** (`ch13-uv-run.txt`): step 0 of the pipeline runs
   in the restored copy and reprints the locked content hash
   `49b3a173...`. The chapter is precise that the numbers
   reproduce because the generator is deterministic by design
@@ -97,7 +97,7 @@ official docs, fetched 2026-07-04.
   re-derived here); the lockfile's contribution is that the
   code computing them is version-identical everywhere.
 - **`uv add` updates environment, manifest, and lock together**
-  (`ch12-uv-add.txt`): `uv add tabulate` installs
+  (`ch13-uv-add.txt`): `uv add tabulate` installs
   tabulate==0.10.0, appends `"tabulate>=0.10.0"` to the
   `pyproject.toml` dependencies stanza, and writes the pinned
   `0.10.0` entry into `uv.lock` (shown by before/after reads).
@@ -105,7 +105,7 @@ official docs, fetched 2026-07-04.
   drafted-guess-would-have-been-wrong case: tabulate's
   well-known version is 0.9.0.
 - **The manifest declares ranges, the lock records exact
-  versions** (`ch12-lockread.txt`): the real project's
+  versions** (`ch13-lockread.txt`): the real project's
   dependencies stanza is five `>=` floors; `uv.lock` pins
   `statsmodels 0.14.6` and every other package the project
   pulls in (28 `[[package]]` entries; the count includes the
@@ -115,16 +115,16 @@ official docs, fetched 2026-07-04.
   and `jq` reads R 4.5.3 / fixest 0.14.2 out of `renv.lock`
   (36 packages, agreeing with Chapter 8's committed jq reads).
 - **The environment is a machine-wired artifact**
-  (`ch12-venv-tree.txt`): `.venv/pyvenv.cfg` records
+  (`ch13-venv-tree.txt`): `.venv/pyvenv.cfg` records
   `home = /usr/bin` and `readlink .venv/bin/python` resolves to
   `/usr/bin/python3`, the sandbox machine's interpreter (shown
   with `readlink`, not `ls -l`, so no owner column appears).
 - **The project ignores the environments and tracks the locks**
-  (`ch12-lockread.txt`): the real `.gitignore` lists `.venv/`
+  (`ch13-lockread.txt`): the real `.gitignore` lists `.venv/`
   and `renv/library/` (+ renv/local, cellar, lock, python,
   staging), while `uv.lock` and `renv.lock` are tracked.
 - **renv's on-disk layout is platform-named**
-  (`ch12-renv-tree.txt`): the real project's `.Rprofile` is the
+  (`ch13-renv-tree.txt`): the real project's `.Rprofile` is the
   one-line `source("renv/activate.R")`, `renv/` holds
   activate.R / library / settings.json / staging, and the
   library sits under `renv/library/macos/R-4.5` (built on the
@@ -226,7 +226,7 @@ official docs, fetched 2026-07-04.
   future or on another machine" (the chapter's "renv's
   documentation is blunt" sentence). The exact clean-state
   output line is NOT quoted in the reference page; it is
-  transcript-backed by the Mac capture (`ch12-renv-mac.txt`,
+  transcript-backed by the Mac capture (`ch13-renv-mac.txt`,
   reconciled byte-for-byte 2026-07-04; see provenance
   classes).
 - **renv, dependencies() reference**

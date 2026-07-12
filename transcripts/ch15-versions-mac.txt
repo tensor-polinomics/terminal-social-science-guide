@@ -1,41 +1,15 @@
 # transcript
 chapter: 15
-os: macOS 26.5.1 (Apple Silicon)
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
 shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
-tool: modern CLI kit + TUIs (version anchor)
-date: 2026-07-06
+tool: macOS tmux + screen
+date: 2026-07-05
 captured-by: user-mac
-note: PROBE + version anchor for the 'current as of 2026-07-06'
-note: stamp. Nine tools; any 'not found' line is a to-install
-note: signal, not a chapter claim. The three TUIs (lazygit,
-note: btop, ncdu) appear ONLY here: a full-screen TUI owns the
-note: terminal and cannot be scripted, so --version is their
-note: only evidence (the Ch 16 quarantine pattern).
+note: The Mac's own tmux (Homebrew) and screen versions, for the
+note: version stamp; the Linux side is in ch15-screen.txt. No
+note: personal data in these version lines.
 ---
-
-$ eza --version
-eza - A modern, maintained replacement for ls
-
-$ bat --version
-bat 0.26.1
-
-$ delta --version
-delta 0.19.2
-
-$ zoxide --version
-zoxide 0.9.9
-
-$ fzf --version
-0.70.0 (Homebrew)
-
-$ lazygit --version
-commit=, build date=, build source=Homebrew, version=0.62.2, os=darwin, arch=arm64, git version=2.53.0
-
-$ btop --version
-btop version: [1m1.4.7[0m
-
-$ ncdu --version
-ncdu 2.9.2
-
-$ fd --version
-fd 10.4.2
+$ tmux -V
+tmux 3.7a
+$ screen --version
+Screen version 4.00.03 (FAU) 23-Oct-06

@@ -25,18 +25,18 @@ verified by a real run.
   scripted capture (the Ch 10 interactive-shell lesson). All
   sessions run in the sandbox with book-chosen names (`work`,
   `job`, `analysis`, `build`); pane size fixed at 80x24 (`-x`,
-  `-y`) so captures are stable. Transcripts: `ch14-coreloop.txt`
-  (new/ls/kill lifecycle), `ch14-progress.txt` (a job
+  `-y`) so captures are stable. Transcripts: `ch15-coreloop.txt`
+  (new/ls/kill lifecycle), `ch15-progress.txt` (a job
   progressing while detached, two `capture-pane` dumps),
-  `ch14-structure.txt` (window/pane containment via
-  `list-windows`/`list-panes`), `ch14-sendkeys.txt`
-  (`send-keys` + `capture-pane`), `ch14-selfdestruct.txt` (a
+  `ch15-structure.txt` (window/pane containment via
+  `list-windows`/`list-panes`), `ch15-sendkeys.txt`
+  (`send-keys` + `capture-pane`), `ch15-selfdestruct.txt` (a
   session whose only command exits ends by itself),
-  `ch14-screen.txt` (`screen --version` only; `screen -ls` is
+  `ch15-screen.txt` (`screen --version` only; `screen -ls` is
   not shown because its socket path embeds the account name).
 - **Mac + real remote server, captured by
-  `transcripts/capture-ch14-mac.sh`:** `ch14-versions-mac.txt`
-  (the Mac's tmux + screen versions) and `ch14-server-mac.txt`
+  `transcripts/capture-ch15-mac.sh`:** `ch15-versions-mac.txt`
+  (the Mac's tmux + screen versions) and `ch15-server-mac.txt`
   (the survive-a-disconnect demo). The script hardcodes NO
   personal data; it derives the server hostname, account, and
   home at runtime and masks them at capture time, emits the
@@ -48,7 +48,7 @@ verified by a real run.
   then read its intact `tee` log, proving nothing depended on
   the first connection staying open. STATUS: RECONCILED
   byte-for-byte 2026-07-05 after the user ran
-  `capture-ch14-mac.sh` (Mac tmux 3.7a, screen 4.00.03; server
+  `capture-ch15-mac.sh` (Mac tmux 3.7a, screen 4.00.03; server
   session created 19:57:08, Connection C at step 8, log tail at
   steps 14-16). The chapter shows Connection A (start), B
   (`tmux ls`, session present), C (`capture-pane`, step 8), and
@@ -63,22 +63,22 @@ verified by a real run.
 - A detached session created with `tmux new-session -d` appears
   in `tmux ls` with no client attached, and `tmux kill-session`
   removes it; when the last session ends, the tmux server exits
-  (`no server running on ...`). (`ch14-coreloop.txt`.)
+  (`no server running on ...`). (`ch15-coreloop.txt`.)
 - A job in a detached session keeps running with no terminal
   attached: two `capture-pane -p` calls a few seconds apart show
-  it advanced from 3 to 7 steps. (`ch14-progress.txt`.) This is
+  it advanced from 3 to 7 steps. (`ch15-progress.txt`.) This is
   the persistence mechanism, captured without ever attaching.
 - The session/window/pane containment is real:
   `new-window`/`split-window` build a session with two windows,
   the second holding two panes, confirmed by
-  `list-windows`/`list-panes`. (`ch14-structure.txt`.)
+  `list-windows`/`list-panes`. (`ch15-structure.txt`.)
 - `send-keys` types a command into a pane and `capture-pane`
   reads the result, both without attaching.
-  (`ch14-sendkeys.txt`.)
+  (`ch15-sendkeys.txt`.)
 - The self-destruct PITFALL is a real run, not a doc claim: a
   session whose only process is the job ends the moment the job
   exits, so `tmux ls` a few seconds later reports no server.
-  (`ch14-selfdestruct.txt`.) The documented mechanism is
+  (`ch15-selfdestruct.txt`.) The documented mechanism is
   `remain-on-exit` (off by default), so a window closes when its
   program exits and the last window closing ends the session.
 

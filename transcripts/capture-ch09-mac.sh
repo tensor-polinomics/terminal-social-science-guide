@@ -1,46 +1,41 @@
 #!/usr/bin/env bash
-# Capture the Ch 9 (Processes, permissions & secrets) macOS/BSD
-# facts on the user's Mac.
+# Capture the Ch 9 (Finding things) macOS/BSD facts on the
+# user's Mac.
 #
-# Ch 9's portable/GNU output (background jobs, signals, chmod,
-# env inheritance, the ps arg leak, bash shell-history hygiene,
-# the .gitignore read) is captured in the book's Linux sandbox
-# (ch09-*.txt). This script captures the two things the sandbox
-# cannot, and BOTH are ordinary non-interactive commands (no
-# interactive shell is driven, so nothing hangs on a real
-# terminal):
-#   1. ch09-chown-mac.txt - chown/chgrp ownership. Changing a
-#      file's OWNER to another user needs root even on macOS, so
-#      this shows the privilege-free chown-to-yourself plus the
-#      honest un-privileged failure (chown to another user) as
-#      the evidence that ownership is privileged. No sudo is run.
-#      ls -l and a chgrp change are recorded for reference below
-#      the block the chapter shows.
-#   2. ch09-ps-mac.txt   - BSD `ps` exposes command-line args
-#      exactly as GNU ps does, confirming the leak is not a
-#      Linux-only quirk.
+# Ch 9's portable/GNU output (find, ripgrep, xargs) is captured
+# in the book's Linux sandbox (ch09-*.txt). This script captures
+# the two things the sandbox cannot:
+#   1. ch09-find-mac.txt  - BSD `find` divergences from GNU:
+#      the regex flag is `-E` before the path (not GNU's
+#      `-regextype`), `-printf` does not exist, and BSD `find`
+#      insists on a starting path. Each is recorded with its
+#      real output and, where it fails, its exit status.
+#   2. ch09-fd-mac.txt    - `fd` (REAL Mac capture): fd is a
+#      blocked GitHub-release binary in the sandbox, like DuckDB
+#      in Ch 8, so its output comes from the Mac. Version, a
+#      by-extension search, and the .gitignore-aware default
+#      (which hides the ignored data file until `-I`).
 #
-# (Interactive shell history is NOT captured here. It is a
-# per-shell interactive feature; driving an interactive zsh/bash
-# from a script on a real terminal makes the shell read the
-# keyboard, not the script, so it hangs. The bash form is shown
-# from the Linux sandbox instead, and the zsh form is pinned to
-# the zsh manual in verification/chapter-09.md.)
+# Everything runs in a throwaway copy of the running example
+# made into a git repo, so fd's ignore behavior is real; the
+# copy is removed on exit and the project itself is untouched.
 #
 # Run on the Mac, from the terminal repo root
-# (source-private/terminal), the way ch04/ch07/ch08 were run:
+# (source-private/terminal), the way ch05/ch08 were run:
 #   bash transcripts/capture-ch09-mac.sh
 # then review the two ch09-*-mac.txt files it writes and paste
 # them back (or just say "done" and let the chapter be
 # reconciled against them).
 #
-# Requirements: zsh on PATH (for the transcript header only) and
-# python3 (for the ps demo). Its only writes are mktemp scratch
-# dirs (removed on exit) and the transcripts/ folder. Nothing is
-# installed, no sudo is run, and no real credential is touched.
+# Requirements: the running example's files must exist
+# (sandbox/asset-pricing/scripts/*.py and data/raw/*.csv; run
+# `make` in sandbox/asset-pricing first if the data is missing),
+# and `fd` must be on PATH (brew install fd). The script checks
+# both and says what is missing. Its only writes are ONE mktemp
+# scratch (removed on exit) and the transcripts/ folder.
 
-# NOT set -e: the un-privileged `chown` is EXPECTED to fail and
-# must be recorded, not fatal.
+# NOT set -e: a nonzero demo (the failing BSD `-printf`) must be
+# recorded, not fatal.
 set -uo pipefail
 
 # Quiet the recurring environment-noise lines (G2 convention).
@@ -48,10 +43,11 @@ unset VIRTUAL_ENV
 export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
 
 # PRIVACY MASK, applied AT CAPTURE TIME (public-repo scrub,
-# transcripts/README.md; same helper as capture-ch08-mac.sh
-# incl. the $TMPDIR folder-hash scrub). Ch 9 is extra
-# exposure-prone: ls -l / id / ps print the account name, so the
-# account mask matters here in particular.
+# transcripts/README.md; copied from capture-ch08-mac.sh incl.
+# the $TMPDIR folder-hash scrub). These demos print relative
+# paths, but errors and the scratch location can expose the home
+# path, the account name, or the per-account $TMPDIR hash, so
+# all three masks are applied to every captured line.
 acct="$(id -un)"
 mask() {
   sed -E \
@@ -61,9 +57,11 @@ mask() {
 }
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+root="$(cd "$here/.." && pwd)"
+proj="$root/sandbox/asset-pricing"
 
-cout="$here/ch09-chown-mac.txt"
-pout="$here/ch09-ps-mac.txt"
+fout="$here/ch09-find-mac.txt"
+dout="$here/ch09-fd-mac.txt"
 
 os_name="$(sw_vers -productName 2>/dev/null || echo macOS)"
 os_ver="$(sw_vers -productVersion 2>/dev/null || echo '?')"
@@ -84,73 +82,86 @@ hdr() {
   echo "---"
 }
 
-# =============================================================
-# 1. chown / chgrp ownership.
-# =============================================================
-cscratch="$(mktemp -d "${TMPDIR:-/tmp}/ch09chown.XXXXXX")"
-cd "$cscratch" || exit 1
-echo "fake key material" > key.pem
-
-# A group the account already belongs to but that differs from
-# the file's current group, if one exists (for a visible chgrp).
-curgrp="$(stat -f '%Sg' key.pem)"
-altgrp=""
-for g in $(id -Gn); do
-  if [ "$g" != "$curgrp" ]; then altgrp="$g"; break; fi
+# Preflight: data/scripts files and fd.
+missing=0
+for f in "$proj/scripts/00_make_data.py" \
+  "$proj/data/raw/firm_panel.csv" \
+  "$proj/.gitignore"; do
+  if [ ! -f "$f" ]; then
+    echo "MISSING: $f (run \`make\` in sandbox/asset-pricing)" >&2
+    missing=1
+  fi
 done
+if ! command -v fd >/dev/null 2>&1; then
+  echo "MISSING: fd not on PATH (brew install fd)" >&2
+  missing=1
+fi
+[ "$missing" -eq 1 ] && exit 1
 
+# A throwaway copy of the project, made a git repo so fd's
+# ignore behavior is real. Removed on exit.
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/ch09mac.XXXXXX")"
+cleanup() { rm -rf "$scratch"; }
+trap cleanup EXIT
+
+ap="$scratch/asset-pricing"
+mkdir -p "$ap"
+# Copy the taught tree: scripts, data, and the .gitignore that
+# drives the ignore demo. Keep it small and deterministic.
+cp -R "$proj/scripts" "$ap/scripts"
+cp -R "$proj/data" "$ap/data"
+cp "$proj/.gitignore" "$ap/.gitignore"
+rm -rf "$ap/scripts/__pycache__" 2>/dev/null
+cd "$ap" || exit 1
+git init -q >/dev/null 2>&1
+
+# --- 1. BSD find divergences ---------------------------------
 {
-  hdr "BSD chown/chgrp (macOS base)" \
-    "Changing a file's OWNER to another user needs root even on" \
-    "macOS, so this shows the privilege-free parts and the" \
-    "honest un-privileged failure. No sudo is run. The account" \
-    "name is masked to [account]; standard group names (staff," \
-    "admin, ...) are not user-identifying and are left as-is." \
-    "The chapter shows the two chown lines and the failure" \
-    "contiguously; ls -l and a chgrp change are recorded below" \
-    "the chapter's block for reference."
+  hdr "BSD find (macOS base)" \
+    "BSD \`find\` (macOS) diverges from GNU find (Linux, the" \
+    "sandbox). The regex engine is selected with a \`-E\` flag" \
+    "BEFORE the path, not GNU's \`-regextype\`; \`-printf\` does" \
+    "not exist; and a starting path is required. Run in a" \
+    "throwaway git-repo copy of the project. Listings sorted" \
+    "for determinism. No user data in these lines."
   echo ""
-  echo "\$ chown \"\$(id -un)\" key.pem      # to yourself: allowed"
-  chown "$(id -un)" key.pem 2>&1 | mask
-  echo "\$ chown daemon key.pem           # to another user: denied"
-  out="$(chown daemon key.pem 2>&1)"; st=$?
+  echo "\$ find -E scripts -regex '.*/0[0-9]_.*[.]py' | sort"
+  find -E scripts -regex '.*/0[0-9]_.*[.]py' 2>&1 | sort | mask
+  echo ""
+  echo "\$ find scripts -name '*.py' -printf '%f\\n'"
+  find scripts -name '*.py' -printf '%f\n' </dev/null 2>&1 | mask
+  echo ""
+  echo "\$ find -name '*.py'"
+  out="$(find -name '*.py' </dev/null 2>&1)"
+  st=$?
   printf '%s\n' "$out" | mask
   echo "\$ echo \$?"
   echo "$st"
-  echo ""
-  echo "# --- for reference (not shown in the chapter) ---"
-  echo "\$ ls -l key.pem"
-  ls -l key.pem | mask
-  if [ -n "$altgrp" ]; then
-    echo "\$ chgrp ${altgrp} key.pem"
-    chgrp "$altgrp" key.pem 2>&1 | mask
-    echo "\$ ls -l key.pem"
-    ls -l key.pem | mask
-  fi
-} > "$cout"
+} >"$fout"
 
-cd "$here" || exit 1
-rm -rf "$cscratch"
-
-# =============================================================
-# 2. BSD ps exposes command-line args too.
-# =============================================================
-python3 -c 'import time; time.sleep(30)' --password=hunter2 &
-pspid=$!
-sleep 0.5
+# --- 2. fd: the ergonomic find -------------------------------
 {
-  hdr "BSD ps (macOS base)" \
-    "macOS ships BSD ps; Linux ships procps-ng. A secret in a" \
-    "command's args is exposed by ps on both. ps aux (BSD form)" \
-    "works on both platforms; ps -ef (System V) is the GNU" \
-    "idiom. hunter2 is a fake placeholder. ps -o pid,args prints" \
-    "no owner column, so nothing is masked."
+  hdr "fd ($(fd --version 2>/dev/null | head -1))" \
+    "REAL Mac capture (fd is a blocked GitHub-release binary in" \
+    "the sandbox, like DuckDB in Ch 8). fd searches from the" \
+    "current dir by default, matches a regex, and skips" \
+    ".gitignore'd paths (the project ignores data/); \`-I\`" \
+    "turns that off. Run in the throwaway git-repo copy. Output" \
+    "sorted for determinism where a list is shown. No user" \
+    "data in these lines."
   echo ""
-  echo "\$ ps -o pid,args -p \"\$!\""
-  ps -o pid,args -p "$pspid" 2>&1 | mask
-} > "$pout"
-kill "$pspid" 2>/dev/null
-wait "$pspid" 2>/dev/null
+  echo "\$ fd --version"
+  fd --version 2>&1 | mask
+  echo ""
+  echo "\$ fd -e py | sort"
+  fd -e py 2>&1 | sort | mask
+  echo ""
+  echo "\$ fd firm_panel"
+  fd firm_panel 2>&1 | mask
+  echo ""
+  echo "\$ fd -I firm_panel"
+  fd -I firm_panel 2>&1 | mask
+} >"$dout"
 
-echo "captured -> $cout"
-echo "captured -> $pout"
+echo "captured -> $fout"
+echo "captured -> $dout"

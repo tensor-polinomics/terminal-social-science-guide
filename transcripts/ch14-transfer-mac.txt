@@ -1,0 +1,69 @@
+# transcript
+chapter: 14
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: rsync push/pull + cross-machine checksum
+date: 2026-07-05
+captured-by: user-mac
+note: rsync -av EXCLUDING .venv/ and renv/library/: the lockfiles
+note: (uv.lock, renv.lock) travel; the built environments do NOT
+note: (Ch 13). Then the moved CSVs are checksummed on both ends
+note: (Mac shasum -a 256 vs server sha256sum) to prove the bytes
+note: survived (Ch 11's manifest idea, across machines). All paths
+note: and the transfer's host: prefixes are masked.
+---
+$ rsync -av --exclude='.venv' --exclude='renv/library' \
+    sandbox/asset-pricing/ lab-server:ch14-demo/
+report_files/libs/bootstrap/bootstrap.min.js
+report_files/libs/clipboard/
+report_files/libs/clipboard/clipboard.min.js
+report_files/libs/quarto-html/
+report_files/libs/quarto-html/anchor.min.js
+report_files/libs/quarto-html/popper.min.js
+report_files/libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css
+report_files/libs/quarto-html/quarto.js
+report_files/libs/quarto-html/tippy.css
+report_files/libs/quarto-html/tippy.umd.min.js
+report_files/libs/quarto-html/tabsets/
+report_files/libs/quarto-html/tabsets/tabsets.js
+scripts/
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+scripts/04_regression.R
+scripts/bootstrap_renv.R
+scripts/check.py
+scripts/__pycache__/
+scripts/__pycache__/00_make_data.cpython-312.pyc
+
+sent 4994461 bytes  received 1024 bytes  2474114 bytes/sec
+total size is 4989006  speedup is 1.00
+
+# Checksum the transferred CSVs on the SERVER:
+$ ssh lab-server 'cd ch14-demo && find . -name "*.csv" | sort \
+    | xargs sha256sum'
+54989b4637304f96016a4877d20be4b144165c2db6ee4e7720350cf4ce9b99b1  ./data/clean/portfolio.csv
+8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  ./data/raw/factors.csv
+5056f91931a3c99e95aa79125c22fc4bc025c49210c99ff52b9dcef6352a92af  ./data/raw/firm_panel.csv
+
+# ...and on the MAC with shasum -a 256 (Ch 3's divergence):
+$ find . -name '*.csv' | sort | xargs shasum -a 256
+54989b4637304f96016a4877d20be4b144165c2db6ee4e7720350cf4ce9b99b1  ./data/clean/portfolio.csv
+8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  ./data/raw/factors.csv
+5056f91931a3c99e95aa79125c22fc4bc025c49210c99ff52b9dcef6352a92af  ./data/raw/firm_panel.csv
+
+# Pull one directory back to show the reverse direction:
+$ rsync -av lab-server:ch14-demo/scripts/ /tmp/pull/
+00_make_data.py
+01_clean.py
+02_portfolio.py
+03_figure.py
+04_regression.R
+bootstrap_renv.R
+check.py
+__pycache__/
+__pycache__/00_make_data.cpython-312.pyc
+
+sent 204 bytes  received 32883 bytes  330870000 bytes/sec
+total size is 32172  speedup is 0.97

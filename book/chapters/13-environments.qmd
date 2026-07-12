@@ -39,12 +39,12 @@ chapter is what each step runs inside.
 
 A note on where the output comes from. Everything uv, and
 every file read, is executed in this book's Linux sandbox
-(Ubuntu 22.04.5, uv 0.11.19, CPython 3.10.12; the `ch12-*`
+(Ubuntu 22.04.5, uv 0.11.19, CPython 3.10.12; the `ch13-*`
 transcripts): the restore-and-run demos in clean `/tmp` copies
 of the asset-pricing project, and the lockfile reads in the
 real project directory with relative paths. The R and renv
 blocks run on the author's Mac
-(`transcripts/capture-ch12-mac.sh`), because the sandbox has
+(`transcripts/capture-ch13-mac.sh`), because the sandbox has
 no R and cannot reach CRAN; those blocks are marked where they
 appear. No account name or home path appears in any block; one
 sandbox-specific uv advisory about hardlinking across
@@ -328,7 +328,7 @@ on `uv add`. `renv::restore()` reads `renv.lock` and installs
 exactly those versions, the analogue of `uv sync`. And
 `renv::status()` reports whether library and lockfile agree,
 run here from the shell on the author's Mac (captured in
-`transcripts/ch12-renv-mac.txt`; R is Mac-only in this book's
+`transcripts/ch13-renv-mac.txt`; R is Mac-only in this book's
 build, as every chapter using it has noted):
 
 ```bash
@@ -403,7 +403,7 @@ they were installed from; save that beside the run log
 (`uv pip list > logs/env-$(date -u +%Y%m%d).txt`, the Chapter
 11 dated-log habit) and the question "what did the June run
 use?" has an answer on file. R's receipts run on the author's
-Mac (`transcripts/ch12-renv-mac.txt`, like the renv blocks
+Mac (`transcripts/ch13-renv-mac.txt`, like the renv blocks
 above); the short ones name the interpreter and the package
 that computed your table:
 

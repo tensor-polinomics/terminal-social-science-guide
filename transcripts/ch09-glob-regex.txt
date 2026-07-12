@@ -1,0 +1,25 @@
+# transcript
+chapter: 09
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU findutils 4.8.0
+date: 2026-07-03
+captured-by: sandbox
+note: Clean /tmp project copy (git repo). The same four numbered
+note: scripts are matched two ways: -name takes a GLOB, -regex
+note: takes a REGEX over the whole path (posix-extended). Sorted
+note: for determinism. No user data.
+---
+
+$ find scripts -name '0?_*.py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+
+$ find scripts -regextype posix-extended \
+    -regex '.*/0[0-9]_.*[.]py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py

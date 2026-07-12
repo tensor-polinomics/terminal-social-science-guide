@@ -1,21 +1,41 @@
 # transcript
 chapter: 16
 os: macOS 26.5.1 (Apple Silicon)
-shell: zsh (login default)
-tool: Claude Code + OpenAI Codex + Gemini CLI
-date: 2026-07-01
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: modern CLI kit + TUIs (version anchor)
+date: 2026-07-06
 captured-by: user-mac
-note: version anchor for the 'current as of 2026-07-01'
-      stamp. All three CLIs are quarantined in the chapter
-      by choice (volatile, API-costing live sessions), not
-      because any is missing. Read-only: --version only.
+note: PROBE + version anchor for the 'current as of 2026-07-06'
+note: stamp. Nine tools; any 'not found' line is a to-install
+note: signal, not a chapter claim. The three TUIs (lazygit,
+note: btop, ncdu) appear ONLY here: a full-screen TUI owns the
+note: terminal and cannot be scripted, so --version is their
+note: only evidence (the Ch 17 quarantine pattern).
 ---
 
-$ claude --version
-2.1.197 (Claude Code)
+$ eza --version
+eza - A modern, maintained replacement for ls
 
-$ codex --version
-codex-cli 0.142.5
+$ bat --version
+bat 0.26.1
 
-$ gemini --version
-0.49.0
+$ delta --version
+delta 0.19.2
+
+$ zoxide --version
+zoxide 0.9.9
+
+$ fzf --version
+0.70.0 (Homebrew)
+
+$ lazygit --version
+commit=, build date=, build source=Homebrew, version=0.62.2, os=darwin, arch=arm64, git version=2.53.0
+
+$ btop --version
+btop version: [1m1.4.7[0m
+
+$ ncdu --version
+ncdu 2.9.2
+
+$ fd --version
+fd 10.4.2

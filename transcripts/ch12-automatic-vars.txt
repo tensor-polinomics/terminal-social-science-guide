@@ -1,0 +1,29 @@
+# transcript
+chapter: 12
+os: Ubuntu 22.04.5 LTS (workspace sandbox, aarch64)
+shell: bash 5.1.16
+tool: GNU Make 4.3
+date: 2026-06-30
+captured-by: sandbox
+note: Automatic variables, shown on a throwaway two-input
+      rule. a.txt holds "alpha"; b.txt holds "beta". In the
+      Makefile the symbols are doubled ($$@) so make passes a
+      literal $@ to echo; the recipe's last line concatenates
+      the prerequisites into the target.
+---
+$ cat Makefile
+combined.txt: a.txt b.txt
+	@echo 'target      $@ = $@'
+	@echo 'first prereq $< = $<'
+	@echo 'all prereqs  $^ = $^'
+	cat $^ > $@
+
+$ make
+target      $@ = combined.txt
+first prereq $< = a.txt
+all prereqs  $^ = a.txt b.txt
+cat a.txt b.txt > combined.txt
+
+$ cat combined.txt
+alpha
+beta

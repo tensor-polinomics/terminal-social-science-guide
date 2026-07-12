@@ -1,0 +1,16 @@
+# transcript
+chapter: 12
+os: macOS 26.5.2 (Apple Silicon)
+shell: bash 3.2.57(1)-release (script)
+tool: BSD stat (macOS)
+date: 2026-07-09
+captured-by: user-mac
+note: Real study mtimes after a forced correct rebuild
+      (make -B report.html). NON-deterministic: the two
+      epoch values change per run, so the Ch 12 stat
+      block is a one-time record updated to match this
+      file. Relative paths; no personal data.
+---
+$ stat -f '%Fm  %N' output/tables/ff5_alpha.tex report.html
+1783601038.862631182  output/tables/ff5_alpha.tex
+1783601041.000129705  report.html

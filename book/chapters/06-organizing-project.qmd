@@ -27,7 +27,7 @@ you are never again guessing where a file belongs.
 
 A note on where the output comes from. Every command here runs
 in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16,
-GNU coreutils 8.32; the `ch05-*.txt` transcript files): a fresh
+GNU coreutils 8.32; the `ch06-*.txt` transcript files): a fresh
 `/tmp` scratch directory for building a tree from scratch, and
 a clean copy of the asset-pricing project for the tour. This
 chapter needs no separate macOS capture, because the one place
@@ -35,7 +35,7 @@ the platforms diverge, case-insensitive filenames, was captured
 on the author's Mac for Chapter 5 and is cross-referenced here
 rather than shown twice. The scaffolding tools `copier` and
 `cookiecutter` are version-stamped from a real install
-(`ch05-scaffold-tools.txt`) but not run, for a reason the last
+(`ch06-scaffold-tools.txt`) but not run, for a reason the last
 section explains.
 
 ## Scaffold the whole tree in one move: `mkdir -p` with braces
@@ -247,7 +247,7 @@ ff5_alpha.txt
 
 The real output matches the annotated map line for line, which
 is the point: the structure is legible at a glance
-(@fig-ch05-layout). The part worth reading closely is the
+(@fig-ch06-layout). The part worth reading closely is the
 three-way split the annotations spell out. `data/raw` holds the
 fixed inputs the pipeline starts from (`factors.csv` and
 `firm_panel.csv`, the synthetic stand-ins for licensed data);
@@ -261,7 +261,7 @@ describe and drive the whole thing, the `Makefile` and
 explains it, and the environment locks that pin the Python and R
 versions (Chapter 13).
 
-![A research project has one home for each kind of file: fixed raw inputs, the code that reads them, and the results the code regenerates. Raw data flows in, scripts transform it, and every output can be rebuilt, so only the inputs and the code are precious.](../assets/figures/ch05/fig-ch05-layout){#fig-ch05-layout fig-alt="A left-to-right diagram. On the left, a neutral card 'data/raw' labeled immutable inputs. An arrow labeled read leads to a blue card 'scripts' in the center, the numbered code. An arrow labeled write leads to two green cards on the right, 'data/clean' and 'output/ (figures, tables)', labeled regenerated. Below, a neutral band lists the tracked root files: Makefile, report.qmd, README.md, pyproject.toml plus uv.lock, renv.lock, and .gitignore." width="5.6in" fig-pos="H"}
+![A research project has one home for each kind of file: fixed raw inputs, the code that reads them, and the results the code regenerates. Raw data flows in, scripts transform it, and every output can be rebuilt, so only the inputs and the code are precious.](../assets/figures/ch06/fig-ch06-layout){#fig-ch06-layout fig-alt="A left-to-right diagram. On the left, a neutral card 'data/raw' labeled immutable inputs. An arrow labeled read leads to a blue card 'scripts' in the center, the numbered code. An arrow labeled write leads to two green cards on the right, 'data/clean' and 'output/ (figures, tables)', labeled regenerated. Below, a neutral band lists the tracked root files: Makefile, report.qmd, README.md, pyproject.toml plus uv.lock, renv.lock, and .gitignore." width="5.6in" fig-pos="H"}
 
 Why this shape and not another is the companion Git book's
 argument, in its chapters on the canonical project layout and on
@@ -406,7 +406,7 @@ The rule is small and pays off exactly when it is most expensive
 to debug, after you have SSH'd the project to a server (Chapter
 14) and the pipeline that ran all week on your laptop cannot find
 its own folders. The captured macOS side of this collision is in
-`transcripts/ch04-case-mac.txt`, from the previous chapter.
+`transcripts/ch05-case-mac.txt`, from the previous chapter.
 :::
 
 ## Templating a stable layout: `copier` and `cookiecutter` (ADVANCED) {.tier-advanced}
@@ -421,7 +421,7 @@ long-standing one; `copier` is a newer alternative whose extra
 trick is that it can *update* an existing project when the
 template later changes. As of 2026-07-02 the current releases are
 `cookiecutter` 2.7.1 and `copier` 9.16.0, both installable from
-PyPI into a Python environment (`ch05-scaffold-tools.txt`).
+PyPI into a Python environment (`ch06-scaffold-tools.txt`).
 
 This book does not run either tool, and the reason is a matter of
 scope rather than difficulty. A template is itself a small
@@ -460,8 +460,8 @@ safe to experiment:
 
 ```text
 # illustrative setup (placeholder path; not a captured run):
-mkdir -p /tmp/ch05-play
-cd /tmp/ch05-play
+mkdir -p /tmp/ch06-play
+cd /tmp/ch06-play
 ```
 
 Everything below happens in there; `/tmp` is cleared on reboot,

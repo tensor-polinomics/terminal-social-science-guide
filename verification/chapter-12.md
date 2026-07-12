@@ -1,7 +1,7 @@
 # Source-verification log: Chapter 12 (Make)
 
 Per PLAN.md Section 10. Command behavior is verified by running
-it and capturing real output (see the `ch11-*` transcripts);
+it and capturing real output (see the `ch12-*` transcripts);
 this log pins the external/version-volatile claims to
 authoritative sources. Access date for all web sources below:
 2026-06-30.
@@ -10,8 +10,8 @@ authoritative sources. Access date for all web sources below:
 > `stat -f '%Fm  %N' output/tables/ff5_alpha.tex report.html`
 > block (the mtime-margin demo) previously showed output that was
 > in no transcript. It is now captured in
-> `transcripts/ch11-mtime-mac.txt` (macOS 26.5.2, BSD stat) via
-> the new `transcripts/capture-ch11-mtime-mac.sh` (forced
+> `transcripts/ch12-mtime-mac.txt` (macOS 26.5.2, BSD stat) via
+> the new `transcripts/capture-ch12-mtime-mac.sh` (forced
 > `make -B report.html` rebuild, then `stat`). The block was
 > de-wrapped onto one line and updated to the real mtimes
 > (`1783601038.862631182  ...` / `1783601041.000129705  ...`,
@@ -23,7 +23,7 @@ authoritative sources. Access date for all web sources below:
 > lines in the two `touch`/`stat`/`make` blocks and de-wrapped +
 > reblanked the `sed`/`make check` failure block in this chapter
 > (all contiguous substrings of
-> `ch11-timestamp-mac`/`ch11-make-mac`).
+> `ch12-timestamp-mac`/`ch12-make-mac`).
 
 ### Automatic variables: $@ is the target, $< the first prereq, $^ all prereqs
 - chapter/section: Ch 12, "Automatic variables"
@@ -31,7 +31,7 @@ authoritative sources. Access date for all web sources below:
   (https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html)
 - accessed: 2026-06-30
 - verifies: the meaning of `$@`, `$<`, `$^`; also demonstrated
-  live in `transcripts/ch11-automatic-vars.txt` (GNU Make 4.3)
+  live in `transcripts/ch12-automatic-vars.txt` (GNU Make 4.3)
 - version note: n/a (stable feature)
 - confirmable: yes
 
@@ -64,7 +64,7 @@ authoritative sources. Access date for all web sources below:
   sometimes skipped the report render on the Mac; the diagnostic
   mtimes are noted in the build state). The general mtime rule
   is shown deterministically in
-  `transcripts/ch11-timestamp-mac.txt` (equal `touch -t` mtimes
+  `transcripts/ch12-timestamp-mac.txt` (equal `touch -t` mtimes
   -> skip; one second newer -> rebuild).
 - version note: 3.81 = one-second behavior; 4.x = sub-second.
   Empirically confirmed on macOS Make 3.81 and Linux Make 4.3.
@@ -73,8 +73,8 @@ authoritative sources. Access date for all web sources below:
 ### Recipe lines require a TAB; the "did you mean TAB" hint is the same on Make 3.81 and 4.3
 - chapter/section: Ch 12, "Anatomy of a rule, and the TAB trap";
   DIVERGENCE callout
-- source: captured output `transcripts/ch11-tab-trap.txt`
-  (GNU Make 4.3, sandbox) and `transcripts/ch11-tab-trap-mac.txt`
+- source: captured output `transcripts/ch12-tab-trap.txt`
+  (GNU Make 4.3, sandbox) and `transcripts/ch12-tab-trap-mac.txt`
   (GNU Make 3.81, macOS); GNU Make manual, "Rule Syntax" for the
   TAB requirement
   (https://www.gnu.org/software/make/manual/html_node/Rule-Syntax.html)
@@ -90,7 +90,7 @@ authoritative sources. Access date for all web sources below:
 
 ### `cat -A` is GNU-only; macOS (BSD) cat uses `cat -et` for the same view
 - chapter/section: Ch 12, TAB-trap PITFALL + DIVERGENCE callout
-- source: captured `transcripts/ch11-tab-trap-mac.txt` (cat -et
+- source: captured `transcripts/ch12-tab-trap-mac.txt` (cat -et
   on macOS); BSD cat man page (no -A option) vs GNU coreutils
   cat (-A = -vET)
 - accessed: 2026-06-30
@@ -102,7 +102,7 @@ authoritative sources. Access date for all web sources below:
 ### macOS ships GNU Make 3.81; `brew install make` provides gmake 4.x
 - chapter/section: Ch 12, two DIVERGENCE callouts
 - source: transcript headers (Mac = GNU Make 3.81 in
-  `ch11-make-mac.txt`; sandbox = 4.3); Homebrew `make` formula
+  `ch12-make-mac.txt`; sandbox = 4.3); Homebrew `make` formula
   (https://formulae.brew.sh/formula/make), which installs GNU
   Make as `gmake`
 - accessed: 2026-06-30

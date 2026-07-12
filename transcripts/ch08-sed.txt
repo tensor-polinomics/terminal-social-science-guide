@@ -1,0 +1,24 @@
+# transcript
+chapter: 08
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU sed 4.8
+date: 2026-07-02
+captured-by: sandbox
+note: run in a clean copy of the asset-pricing project placed at
+note: /tmp/ap; the edited copy is written to throwaway /tmp/ch08
+note: scratch, never back onto the raw input. No user-specific
+note: data is shown, so no masks are applied.
+---
+
+$ sed -n '1,3p' data/raw/factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+2011-01,0.001383,-0.028095,0.011202,0.015937,0.008839,0.001464
+2011-02,0.040907,0.02056,0.029508,-0.002205,0.023696,0.000857
+
+$ sed '1s/mkt_rf/mkt_excess/' data/raw/factors.csv \
+    > /tmp/ch08/factors_renamed.csv
+$ head -1 /tmp/ch08/factors_renamed.csv
+month,mkt_excess,smb,hml,rmw,cma,rf
+$ head -1 data/raw/factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf

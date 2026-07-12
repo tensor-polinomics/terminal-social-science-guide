@@ -1,0 +1,21 @@
+# transcript
+chapter: 17
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU diffutils 3.8
+date: 2026-07-01
+captured-by: sandbox
+note: "Review the diff before you accept" demo for the review-
+      discipline section. No AI tool is involved: a copy of the
+      real pipeline script scripts/02_portfolio.py was edited in
+      /tmp as an agent might (deciles -> quintiles), and diff -U 0
+      shows the one-line change a reviewer must catch. Stable
+      -L labels replace the volatile mtime lines.
+---
+$ diff -U 0 -L a/02_portfolio.py -L b/02_portfolio.py \
+    02_portfolio.py.orig 02_portfolio.py
+--- a/02_portfolio.py
++++ b/02_portfolio.py
+@@ -23 +23 @@
+-N_PORT = 10  # deciles
++N_PORT = 5  # quintiles

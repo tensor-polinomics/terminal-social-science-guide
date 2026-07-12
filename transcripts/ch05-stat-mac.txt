@@ -1,0 +1,19 @@
+# transcript
+chapter: 05
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: BSD stat (macOS base)
+date: 2026-07-02
+captured-by: user-mac
+note: BSD `stat` default output differs from GNU's, and the
+note: format flag is `-f` (GNU uses `-c`) with different
+note: specifiers. %N name, %z size, %Sp perms, %Sm mtime.
+note: Owner name (via %Su, if shown) masked to [account].
+---
+
+$ stat proj/data/raw/factors.csv
+16777232 31218800 -rw-r--r-- 1 [account] staff 0 2 "Jul  2 13:45:42 2026" "Jul  2 13:45:42 2026" "Jul  2 13:45:42 2026" "Jul  2 13:45:42 2026" 4096 8 0 proj/data/raw/factors.csv
+
+$ stat -f '%N %z bytes, perms %Sp, modified %Sm' \
+>     proj/data/raw/factors.csv
+proj/data/raw/factors.csv 2 bytes, perms -rw-r--r--, modified Jul  2 13:45:42 2026

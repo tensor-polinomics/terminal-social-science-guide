@@ -11,7 +11,7 @@
 #   1. ch03-shell-mac.txt  - the login shell (zsh) and its %
 #      prompt evidence, plus the macOS system bash 3.2 floor
 #      (/bin/bash --version), the DIVERGENCE the scripting
-#      chapter (Ch 10) returns to.
+#      chapter (Ch 11) returns to.
 #   2. ch03-brew-mac.txt   - Homebrew presence, version, prefix
 #      (/opt/homebrew on Apple Silicon), and the `brew shellenv`
 #      lines that front the PATH (Apple Silicon PATH note).
@@ -76,7 +76,7 @@ today="$(date +%F)"
   echo "      optimization); a reader at the prompt types just"
   echo "      \`ps -p \$\$\`. /bin/bash is the macOS SYSTEM bash,"
   echo "      frozen at 3.2.57 (2007) for licensing reasons; this"
-  echo "      is the bash-3.2 floor Ch 10 returns to. No personal"
+  echo "      is the bash-3.2 floor Ch 11 returns to. No personal"
   echo "      data in these lines; \$HOME masking applied anyway."
   echo "---"
 

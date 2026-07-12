@@ -1,0 +1,22 @@
+# transcript
+chapter: 09
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU findutils 4.8.0
+date: 2026-07-03
+captured-by: sandbox
+note: Throwaway /tmp scratch (never the project): two files are
+note: given known modification times with touch -d, then found by
+note: age. -mtime is relative to the capture date (2026-07-03), so
+note: the two windows below straddle it. Synthetic names; no user
+note: data.
+---
+
+$ touch -d '2020-06-01 12:00:00' old_backup.csv
+$ touch -d '2026-07-01 09:00:00' recent_edit.py
+
+$ find . -type f -mtime -30 | sort
+./recent_edit.py
+
+$ find . -type f -mtime +365 | sort
+./old_backup.csv

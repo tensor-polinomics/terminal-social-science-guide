@@ -1,13 +1,13 @@
 # Source-verification log: Chapter 7 (Pipes, Redirection, Danger)
 
 Per PLAN.md Section 10. Command behavior is verified by running
-it and capturing real output (see the `ch06-*` transcripts);
+it and capturing real output (see the `ch07-*` transcripts);
 this log pins the external/version-volatile claims to
 authoritative sources. Access date for all web sources below:
 2026-06-30. The macOS/BSD divergence claims are confirmed
-empirically by `transcripts/ch06-divergence-mac.txt` (captured
+empirically by `transcripts/ch07-divergence-mac.txt` (captured
 2026-06-30 on macOS 26.5.1, Apple Silicon, zsh 5.9 + system
-bash 3.2.57, via `transcripts/capture-ch06-mac.sh`). Captured
+bash 3.2.57, via `transcripts/capture-ch07-mac.sh`). Captured
 results: zsh unmatched glob = `zsh: no matches found` (exit 1);
 bash 3.2.57 unmatched glob = literal pass-through (`ls: *.xyz:
 No such file or directory`); noclobber refusal = `zsh: file
@@ -25,7 +25,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   (https://pubs.opengroup.org/onlinepubs/9699919799/)
 - accessed: 2026-06-30
 - verifies: the three streams and their file-descriptor numbers
-- demonstrated live: `transcripts/ch06-streams.txt`
+- demonstrated live: `transcripts/ch07-streams.txt`
   (GNU coreutils 8.32, sandbox)
 - confirmable: yes
 
@@ -41,12 +41,12 @@ holds). The Mac-capture OPEN flag is now CLEARED.
 - verifies: `>` truncates an existing file before writing; `>>`
   appends; `noclobber` makes `>` refuse to overwrite an existing
   regular file; `>|` forces the overwrite anyway
-- demonstrated live: `transcripts/ch06-redirect.txt` (bash 5.1,
+- demonstrated live: `transcripts/ch07-redirect.txt` (bash 5.1,
   sandbox). Interactive refusal message `bash: note.txt: cannot
   overwrite existing file` confirmed via `bash -i` in the same
   sandbox. The run-to-log provenance block (`{ ...; } > run.log
   2>&1`; the REPRODUCIBILITY callout) is captured separately in
-  `transcripts/ch06-provenance.txt`.
+  `transcripts/ch07-provenance.txt`.
 - version note: n/a (stable bash feature)
 - confirmable: yes
 
@@ -60,7 +60,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
 - verifies: `> file 2>&1` merges both into file; `2>&1 > file`
   does not, because `2>&1` duplicates stdout's destination at the
   point it appears
-- demonstrated live: `transcripts/ch06-stderr.txt` (bash 5.1,
+- demonstrated live: `transcripts/ch07-stderr.txt` (bash 5.1,
   sandbox)
 - confirmable: yes
 
@@ -77,7 +77,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   portable spelling across Bourne-family shells
 - version note: current; `&>` behavior stable in bash and zsh
 - confirmable: yes; Mac side confirmed in
-  `ch06-divergence-mac.txt` (zsh 5.9 + bash 3.2.57): `2>&1 > file`
+  `ch07-divergence-mac.txt` (zsh 5.9 + bash 3.2.57): `2>&1 > file`
   does not merge on either shell (order rule holds)
 
 ### A pipeline's exit status is the last command's; `set -o pipefail` makes any failure win
@@ -89,7 +89,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
 - accessed: 2026-06-30
 - verifies: default last-stage status; `pipefail` returns the
   rightmost nonzero status
-- demonstrated live: `transcripts/ch06-pipefail.txt` (bash 5.1,
+- demonstrated live: `transcripts/ch07-pipefail.txt` (bash 5.1,
   sandbox)
 - version note: `pipefail` is bash/zsh/ksh; not in POSIX `sh`
   (consistent with the book's bash-target rule, CLAUDE.md)
@@ -104,7 +104,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
 - verifies: unquoted expansions undergo word splitting on `IFS`
   (default space/tab/newline); double-quoting suppresses it; the
   brace form delimits the name
-- demonstrated live: `transcripts/ch06-quoting.txt` (bash 5.1,
+- demonstrated live: `transcripts/ch07-quoting.txt` (bash 5.1,
   sandbox)
 - confirmable: yes
 
@@ -121,9 +121,9 @@ holds). The Mac-capture OPEN flag is now CLEARED.
 - verifies: bash default = literal pass-through; `shopt -s
   nullglob` = empty expansion; zsh default (`NOMATCH` on) = hard
   error with "no matches found"
-- demonstrated live: bash side in `transcripts/ch06-globs.txt`
+- demonstrated live: bash side in `transcripts/ch07-globs.txt`
   (bash 5.1, sandbox); zsh side confirmed in
-  `ch06-divergence-mac.txt` (`zsh: no matches found`, exit 1) and
+  `ch07-divergence-mac.txt` (`zsh: no matches found`, exit 1) and
   bash 3.2.57 literal pass-through
 - version note: zsh `NOMATCH` is the long-standing default
 - confirmable: yes (bash and zsh both captured)
@@ -142,9 +142,9 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   is the only fully safe delimiter; newlines are legal in names,
   so `IFS=$'\n'` is insufficient. BSD (macOS) `find`/`xargs` also
   provide `-print0`/`-0`.
-- demonstrated live: `transcripts/ch06-nullsafe.txt` (GNU
+- demonstrated live: `transcripts/ch07-nullsafe.txt` (GNU
   findutils 4.8, sandbox); BSD parity confirmed in
-  `ch06-divergence-mac.txt` (intact spaced names; naive pipe
+  `ch07-divergence-mac.txt` (intact spaced names; naive pipe
   breaks with BSD `wc: ./fy: open: No such file`)
 - version note: `-print0`/`-0` present on GNU and BSD
 - confirmable: yes (GNU and BSD both captured)
@@ -175,7 +175,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   survives. The transcript runs the empty-var case in a subshell
   `( ... )` so the captured behavior matches the interactive
   prompt (command aborts, shell lives, tree intact).
-- demonstrated live: `transcripts/ch06-rm-rf.txt` (bash 5.1,
+- demonstrated live: `transcripts/ch07-rm-rf.txt` (bash 5.1,
   sandbox, all in /tmp); interactive `:?` form re-confirmed via
   `bash -i`.
 - confirmable: yes
@@ -204,7 +204,7 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   (the PATH-hijack check)
 - demonstrated live (the SAFE parts only): `type -a sort`,
   `command -v sha256sum`, and `sha256sum` are captured in
-  `transcripts/ch06-path-hijack.txt` (bash 5.1, sandbox). The
+  `transcripts/ch07-path-hijack.txt` (bash 5.1, sandbox). The
   `curl | sh` line itself is NEVER executed (shown in a
   non-runnable `text` block); the verify-then-run block is
   labeled an illustrative template (`example.com` placeholder).
@@ -217,13 +217,13 @@ holds). The Mac-capture OPEN flag is now CLEARED.
   2026-06-30); the claim is corroborated by the archived article,
   the PoC repo, and multiple independent write-ups found by web
   search. The GNU `type -a` / `command -v` behavior is captured
-  in `transcripts/ch06-path-hijack.txt`.
+  in `transcripts/ch07-path-hijack.txt`.
 
 ## Gate confirmations
 
 - **Mac divergence transcript: DONE (2026-06-30).**
-  `capture-ch06-mac.sh` was run on the Mac and produced
-  `ch06-divergence-mac.txt` (macOS 26.5.1, zsh 5.9, bash
+  `capture-ch07-mac.sh` was run on the Mac and produced
+  `ch07-divergence-mac.txt` (macOS 26.5.1, zsh 5.9, bash
   3.2.57), empirically confirming all four divergence claims:
   (a) zsh `no matches found` on an unmatched glob vs bash
   literal pass-through; (b) the noclobber refusal wording
@@ -255,11 +255,11 @@ and loops"), instead of being explained here:
   note that the `for` loop is taught in Chapter 11's primer and
   here only illustrates word-splitting. The two `for` blocks and
   their output are unchanged (still backed by
-  `transcripts/ch06-quoting.txt`).
+  `transcripts/ch07-quoting.txt`).
 - **Redirecting-to-files / REPRODUCIBILITY, the
   `{ ...; } > run.log 2>&1` block:** a note that the `{ ...; }`
   grouping is explained in Chapter 11's primer. The block itself
-  is unchanged (still backed by `transcripts/ch06-provenance.txt`).
+  is unchanged (still backed by `transcripts/ch07-provenance.txt`).
 
 The review memo's point 13 flagged relocating a `[ ]`-spacing
 lesson "from the pipes chapter," but there is no `[ ]` test in

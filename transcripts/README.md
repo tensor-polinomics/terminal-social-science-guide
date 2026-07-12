@@ -20,12 +20,12 @@ here" and therefore are NOT stored as transcripts.
 ## Capture format (auditable; defined at G0)
 
 One transcript per file. Name it `chNN-<slug>.txt` (e.g.
-`ch06-rm-rf-danger.txt`) so it ties to its chapter. Each file begins with a
+`ch07-rm-rf.txt`) so it ties to its chapter. Each file begins with a
 header block, then the verbatim command(s) and output:
 
 ```
 # transcript
-chapter: 06
+chapter: 07
 os: macOS 15.5 (Apple Silicon)   # or: Ubuntu 24.04 (workspace sandbox)
 shell: zsh 5.9                   # or bash 5.2, etc.
 tool: GNU coreutils 9.5          # tool + version when relevant; else n/a
@@ -36,56 +36,49 @@ $ <command exactly as run>
 <verbatim output, unedited>
 ```
 
-## Transcript numbering is frozen at capture time (Session 1 renumber) — TEMPORARY
+## Transcript numbering matches the chapter (provenance realignment done)
 
-> **Temporary scaffolding, not the end state.** The freeze below holds only
-> until the dedicated provenance-realignment pass (review-response
-> `private/review-response-2026-07-08.md`, §6 Session 7), which renames every
-> transcript to match the final chapter numbering and deletes this note. Until
-> then, use the `ch(N-1)` mapping below. Do not "fix" the offset piecemeal;
-> it is resolved once, in that session.
+Every `chNN-` filename prefix and the `chapter:` header field record the
+current chapter the transcript backs: Chapter N is backed by `chNN-*`
+transcripts (`ch02-*` for Chapter 2, up through `ch18-*` for Chapter 18).
+Chapters 1-3 are unchanged; Chapter 4 (shell literacy) is reference tables
+only and has no transcripts.
 
-The `chNN-` filename prefix and the `chapter:` header field record the
-chapter number **in effect when the transcript was captured**, and are
-deliberately **not** renumbered when chapters are reordered. The
-structural revision of 2026-07-08 inserted a new mini-chapter
-(`04-shell-literacy.qmd`, "How to Read a Shell Command") after Setup, so
-the former Chapters 4-17 shifted to 5-18. Their transcripts keep their
-original prefixes.
+The Session-1 transcript and figure freeze offset was eliminated in the dedicated
+provenance-realignment pass (review-response
+`private/review-response-2026-07-08.md`, Section 6, Session 7). Every
+transcript and figure asset, each `chapter:` header, every capture-script
+name and its internal transcript-write paths, and every `![](...)` path and
+`fig-chNN` label were renamed to the current numbering. The renames leave
+shown output bytes byte-identical, touching only names, the `chapter:`
+header, note cross-references, and script-internal write paths; the
+demo/scratch alignment below edits shown content in a few disclosed
+places: the demo/scratch path renames (command paths only), the Chapter 15
+`# The Ch 10 log`->`# The Ch 11 log` cross-reference comment, the
+masked `mktemp` tag, and a removed leaked trailer.
 
-Mapping after that renumber:
+**Demo and scratch names are aligned too.** The demo directories, job
+files, and scratch dirs the captures create carry the current chapter
+number: `ch14-demo` (Chapter 14 ssh: `ch14-restore-mac.txt`,
+`ch14-transfer-mac.txt`), `ch15-job.sh` / `ch15-job.log` (Chapter 15:
+`ch15-server-mac.txt`), `/tmp/ch08/` (Chapter 8: `ch08-sed.txt`), and
+`/tmp/ch15demo` (Chapter 15: `ch15-progress.txt`, `ch15-sendkeys.txt`).
+These names appear only as directory/file paths in the commands, and every
+shown output value (checksums, step counters, package lists, CSV headers)
+is independent of the path, so they were renamed in lockstep across the
+capture script, the transcript, and the quoted chapter block; a re-run of
+the capture script reproduces the same bytes. Two special cases: the
+`mktemp` tag in `ch05-symlink-mac.txt` is masked to `ch05mac.[rand]` (the
+random suffix is non-reproducible and non-identifying; the capture script
+applies the mask at capture time), and a stray leaked `captured -> ...`
+trailer that had slipped into `ch07-divergence-mac.txt` was removed (per
+the trailer rule above). The illustrative Try-it scratch paths in the
+chapters (`/tmp/ch04-play`, `/tmp/ch05-play`) and the note-header scratch
+dirs (`/tmp/ch04mk`, `/tmp/ch04case`) were bumped too, in prose and
+metadata only.
 
-- Chapters 1-3: unchanged; transcripts `ch01`-`ch03`.
-- Chapter N for N in 5..18: backed by transcripts `chMM` where
-  `MM = N - 1` (e.g. Chapter 5, Navigation, uses `ch04-*`; Chapter 18,
-  startup files, uses `ch17-*`).
-- Chapter 4 (shell literacy): reference tables only, nothing executed,
-  so it has **no** transcripts.
-
-**Byte-faithful exception (important for the renumber).** A chapter-number
-reference that appears INSIDE a shown verbatim capture block must stay
-byte-identical to its transcript, i.e. frozen at the OLD number, even while the
-surrounding prose is renumbered. The Session-1 prose bump wrongly touched one
-such line; it has been reverted. The one live instance:
-`15-persistent-sessions.qmd` shows `# The Ch 10 log survives...` (matching
-`ch14-server-mac.txt`) directly under prose that correctly reads "its Chapter 11
-log". That 1-off between the capture (frozen 10) and the prose (current 11) is
-expected under the freeze and is resolved in Session 7, which realigns the
-transcript and the block together. Rule for content sessions: never renumber a
-chapter reference inside a `$`/`>`-prompt capture block.
-
-Renumbering the ~80 transcript files was rejected as churn that would
-rewrite provenance names cited across `CHANGELOG.md` and the handover
-trail. A chapter's own source-verification log (`verification/chapter-N.md`)
-names the exact `chMM-*` transcripts it relies on, so the link stays
-auditable despite the offset.
-
-The same freeze applies to **figure assets**: `book/assets/figures/chNN/`
-directories and the `fig-chNN` cross-reference labels keep their original
-chapter number. A `fig-chNN` label is internal (Quarto auto-numbers the
-figure by whatever chapter now contains it), so freezing it is invisible
-to readers and avoids repointing every `![](...)` at a renamed file.
-
+A chapter's own source-verification log (`verification/chapter-N.md`) names
+the exact `chNN-*` transcripts it relies on, so provenance stays auditable.
 ## Rules
 
 - Record OS + shell + tool version + date for every transcript; these drive the

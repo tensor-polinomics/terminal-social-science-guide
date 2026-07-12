@@ -1,0 +1,22 @@
+# transcript
+chapter: 15
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: tmux 3.2a
+date: 2026-07-05
+captured-by: sandbox
+note: driving a pane from OUTSIDE it. `send-keys` types a command
+note: into the session's shell (as if a person typed it) and
+note: `capture-pane` reads the result back, both without an
+note: interactive attach. This is the same command interface the
+note: book's own captures use. The pane's shell prompt is the
+note: sandbox default `$`; run_pipeline.py is the scratch stand-in
+note: from ch15-progress. No personal data.
+---
+$ tmux new-session -d -s work -x 80 -y 24 -c /tmp/ch15demo
+$ tmux send-keys -t work 'python3 run_pipeline.py' Enter
+$ tmux capture-pane -t work -p
+python3 run_pipeline.py
+$ step 1/12 done
+step 2/12 done
+step 3/12 done

@@ -11,21 +11,21 @@ provenance than on external pins. Provenance classes:
   git repository (`git init`, no commit needed) so the
   ignore-aware behavior is real; every file-deleting demo is
   confined to throwaway `/tmp` scratch, never the project's own
-  files. Transcripts: `ch08-find.txt`, `ch08-find-time.txt`,
-  `ch08-exec-xargs.txt`, `ch08-glob-regex.txt`, `ch08-printf.txt`,
-  `ch08-rg.txt`, `ch08-ignore.txt`, `ch08-find-delete.txt`.
+  files. Transcripts: `ch09-find.txt`, `ch09-find-time.txt`,
+  `ch09-exec-xargs.txt`, `ch09-glob-regex.txt`, `ch09-printf.txt`,
+  `ch09-rg.txt`, `ch09-ignore.txt`, `ch09-find-delete.txt`.
   Every sandbox block the chapter shows was diffed line-for-line
   against its transcript (see the counts section).
 - **Real, user's Mac (macOS/BSD `find` divergences + `fd`),
   read-only: INGESTED and RECONCILED 2026-07-03** (macOS
   26.5.1, zsh 5.9, Apple Silicon). The user ran
-  `transcripts/capture-ch08-mac.sh` (makes ONE `mktemp -d`
+  `transcripts/capture-ch09-mac.sh` (makes ONE `mktemp -d`
   scratch holding a git-repo copy of the project's `scripts/`
   + `data/` + `.gitignore`, removes it on exit, installs
   nothing; applies the standard capture-time masks incl. the
   `$TMPDIR` folder-hash scrub; preflight checks for `fd` and
-  the data files). It wrote `ch08-find-mac.txt` and
-  `ch08-fd-mac.txt`; masks verified (no home path, account
+  the data files). It wrote `ch09-find-mac.txt` and
+  `ch09-fd-mac.txt`; masks verified (no home path, account
   name, or `$TMPDIR` hash in either). Of the six Mac-backed
   blocks, FIVE matched the draft byte-for-byte and ONE changed:
   `fd --version` is `fd 10.4.2`, not the drafted `fd 10.2.0`
@@ -70,7 +70,7 @@ capture time as a guard, per `transcripts/README.md`.
    `.gitignore` handling, `-uu` will search hidden files ...")
    is from the same section. The chapter's PITFALL claim, and
    the "inside a git repository" wording, rest on this plus the
-   sandbox capture (`ch08-ignore.txt`): with `.git` present rg
+   sandbox capture (`ch09-ignore.txt`): with `.git` present rg
    omits `data/`, and `--no-ignore` restores it. The
    git-repo-scoping was verified live (a copy WITHOUT `.git`
    did not skip `data/`; adding `.git` made it skip).
@@ -83,7 +83,7 @@ capture time as a guard, per `transcripts/README.md`.
    sentence "pointing it straight at an ignored path searches
    that path anyway."
 3. **`find` never consults `.gitignore`.** Shown by contrast in
-   `ch08-ignore.txt` (`find . -name 'firm_panel.csv'` finds the
+   `ch09-ignore.txt` (`find . -name 'firm_panel.csv'` finds the
    ignored file). `find` (POSIX/GNU findutils) has no notion of
    git; no separate pin needed.
 4. **fd ignores `.gitignore` by default; `-I`/`--no-ignore`
@@ -99,7 +99,7 @@ capture time as a guard, per `transcripts/README.md`.
    option"; the `-h` option table lists `-I, --no-ignore`,
    `-e, --extension`, `-g, --glob`, and smart-case defaults.
    The chapter's fd blocks are ALSO real Mac captures
-   (`ch08-fd-mac.txt`, reconciled 2026-07-03), which are the
+   (`ch09-fd-mac.txt`, reconciled 2026-07-03), which are the
    primary evidence; the doc is the secondary pin, and the
    version stamp (`fd 10.4.2`) comes from the captured
    `fd --version`.
@@ -108,10 +108,10 @@ capture time as a guard, per `transcripts/README.md`.
    relevant to the Mac capture but worth knowing for a server.
 5. **BSD `find` uses `-E` for extended regex and lacks
    `-printf`; GNU `find` uses `-regextype` and has `-printf`.**
-   GNU side captured in the sandbox (`ch08-glob-regex.txt` for
-   `-regextype posix-extended`, `ch08-printf.txt` for
+   GNU side captured in the sandbox (`ch09-glob-regex.txt` for
+   `-regextype posix-extended`, `ch09-printf.txt` for
    `-printf '%f\n'`). BSD side captured on the Mac
-   (`ch08-find-mac.txt`, reconciled 2026-07-03): the
+   (`ch09-find-mac.txt`, reconciled 2026-07-03): the
    `-E`-before-path spelling matched, the `-printf` failure
    text matched byte-for-byte (`find: -printf: unknown primary
    or operator`), and `find -name` with no path fails with

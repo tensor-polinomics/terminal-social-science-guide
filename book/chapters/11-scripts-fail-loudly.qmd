@@ -34,16 +34,16 @@ pipefail`, exit codes, the `trap`, the `set -e` footguns,
 `bash -x`, `tee`, `/usr/bin/time -v`, the `TZ` and `LC_ALL`
 pinning, and the `verify.sh` anchor are executed in this book's
 Linux sandbox (Ubuntu 22.04.5, GNU bash 5.1.16, GNU coreutils
-8.32, util-linux 2.37.2; the `ch10-*` transcripts), in throwaway
+8.32, util-linux 2.37.2; the `ch11-*` transcripts), in throwaway
 `/tmp` scratch directories. The `if`/`[[ ]]`/`for`/`while` primer
 and `{ ...; }` grouping are captured the same way in
-`ch10-primer.txt`; that capture used a newer sandbox image
+`ch11-primer.txt`; that capture used a newer sandbox image
 (bash 5.2.21). Its shown output carries no version-dependent
 values (no version strings, no locale- or build-sensitive
 formatting), so re-capturing on the 22.04/bash 5.1.16 image of
-the other `ch10-*` files is expected to reproduce it, though
+the other `ch11-*` files is expected to reproduce it, though
 that was not done. Four things run on the author's Mac
-(`transcripts/capture-ch10-mac.sh`) because the sandbox cannot
+(`transcripts/capture-ch11-mac.sh`) because the sandbox cannot
 produce them: ShellCheck and shfmt (blocked release binaries,
 like DuckDB in Chapter 8 and `fd` in Chapter 9), the macOS
 bash-3.2 failures, and BSD `/usr/bin/time` and `date`. Those
@@ -100,7 +100,7 @@ The usual casualties are associative arrays (`declare -A`),
 uppercase/lowercase expansion (`${var^^}`), and `mapfile` /
 `readarray`. Asking the system bash for an associative array
 shows the floor (captured on the author's Mac,
-`transcripts/ch10-bash32-mac.txt`):
+`transcripts/ch11-bash32-mac.txt`):
 
 ```bash
 $ /bin/bash --version
@@ -536,7 +536,7 @@ bugs are caught *before* it runs is better. **ShellCheck** is a
 static analyzer for shell scripts: it reads the file and flags
 the mistakes that bite, most of all the unquoted expansion
 Chapter 7 warned about. Run it on a script with a bare `$infile`
-(captured on the author's Mac, `transcripts/ch10-lint-mac.txt`):
+(captured on the author's Mac, `transcripts/ch11-lint-mac.txt`):
 
 ```bash
 $ cat unsafe.sh
@@ -658,7 +658,7 @@ once as a record, not as a reproducible constant.
 The `-v` flag is GNU `time`, which macOS does not ship. The Mac
 has a BSD `/usr/bin/time` whose long report is `-l`, not `-v`,
 and whose layout differs (captured on the author's Mac,
-`transcripts/ch10-bsd-mac.txt`):
+`transcripts/ch11-bsd-mac.txt`):
 
 ```bash
 $ /usr/bin/time -l sleep 0.2

@@ -1,0 +1,25 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in a throwaway /tmp/ch05case scratch. On Linux
+      (case-sensitive ext4) `Foo.txt` and `foo.txt` are two
+      distinct files. On a default macOS filesystem (APFS,
+      case-insensitive) they are the SAME file; that side is
+      captured on the Mac (ch05-case-mac.txt). No
+      user-specific data.
+---
+$ touch Foo.txt
+$ touch foo.txt
+$ ls
+Foo.txt
+foo.txt
+$ printf 'upper\n' > Foo.txt
+$ printf 'lower\n' > foo.txt
+$ cat Foo.txt
+upper
+$ cat foo.txt
+lower

@@ -20,7 +20,7 @@ applied to whole dotfiles).
 
 ### Bash startup-file ORDER (run live, sandbox)
 - chapter/section: Ch 18, "Which file loads when"
-- source: real sandbox capture `transcripts/ch17-bash-order.txt`
+- source: real sandbox capture `transcripts/ch18-bash-order.txt`
   (throwaway HOME, demo `.bash_profile`/`.bashrc`/`.profile`),
   backed for the *why* by the bash(1) manual, INVOCATION section
   (Ubuntu jammy manpage,
@@ -46,7 +46,7 @@ applied to whole dotfiles).
 - chapter/section: Ch 18, "Works in terminal, fails over SSH";
   PITFALL / RECOVERY
 - source: bash(1) manual, INVOCATION (Ubuntu jammy manpage, as
-  above); real server capture `transcripts/ch17-ssh-seam-mac.txt`
+  above); real server capture `transcripts/ch18-ssh-seam-mac.txt`
 - accessed: 2026-07-07
 - verifies: bash "attempts to determine when it is being run with
   its standard input connected to a network connection, as when
@@ -66,7 +66,7 @@ applied to whole dotfiles).
   PATH edits, so `~/.local/bin` tools are not found unless named
   in full or a login shell is forced (`ssh host 'bash -lc "..."'`).
   The server capture is the ground truth; the manual explains why.
-  CONFIRMED 2026-07-07 (`ch17-ssh-seam-mac.txt`): non-interactive
+  CONFIRMED 2026-07-07 (`ch18-ssh-seam-mac.txt`): non-interactive
   `ssh host 'echo $PATH'` had no `~/.local/bin` and `command -v
   uv` reported not found; forcing `bash -lc` restored
   `~/.local/bin` and found `uv` at `/home/[account]/.local/bin/uv`.
@@ -75,10 +75,10 @@ applied to whole dotfiles).
   capture leaked the real account and home path because BSD `sed`
   on the Mac has no `\b` word boundary and the server home is not
   under `/home`; the transcript was scrubbed on ingestion and
-  `capture-ch17-ssh-mac.sh` fixed to mask the real `$HOME` path
+  `capture-ch18-ssh-mac.sh` fixed to mask the real `$HOME` path
   with plain (BSD-safe) substitutions. A SECOND pass (Codex
   blocker) masked the machine-specific data-mount path in the
-  server's `PATH`: `capture-ch17-ssh-mac.sh` now collapses any
+  server's `PATH`: `capture-ch18-ssh-mac.sh` now collapses any
   `/mnt/<...>` mount to `/mnt/[mount]` (a general BSD-safe rule
   that carries no server path in the tracked script), and the
   transcript was re-scrubbed to match. Repo re-grepped clean for
@@ -92,7 +92,7 @@ applied to whole dotfiles).
 - chapter/section: Ch 18, "The portable dotfile" (interactive-only
   caveat); "Scheduled / non-interactive contexts"
 - source: real sandbox capture
-  `transcripts/ch17-noninteractive.txt`
+  `transcripts/ch18-noninteractive.txt`
 - accessed: 2026-07-07
 - verifies: a PATH edit placed in an interactive rc is visible to
   an interactive shell (`bash -i` shows `~/.local/bin` on PATH)
@@ -107,7 +107,7 @@ applied to whole dotfiles).
 - chapter/section: Ch 18, "Which file loads when"; DIVERGENCE
 - source: zsh manual, "5.1 Startup/Shutdown Files"
   (https://zsh.sourceforge.io/Doc/Release/Files.html); real Mac
-  capture `transcripts/ch17-zsh-order-mac.txt`
+  capture `transcripts/ch18-zsh-order-mac.txt`
 - accessed: 2026-07-07
 - verifies: zsh reads `/etc/zshenv` then `$ZDOTDIR/.zshenv`
   (`HOME` if `ZDOTDIR` unset) on EVERY invocation, including
@@ -119,12 +119,12 @@ applied to whole dotfiles).
   capture confirms which markers fire for `zsh -l -i`, `zsh -i`,
   and `zsh -c`.
 - version note: zsh manual 5.9.1 (2026-05-31); user Mac zsh
-  version stamped in `ch17-versions-mac.txt`.
+  version stamped in `ch18-versions-mac.txt`.
 - confirmable: yes (manual + Mac capture)
 
 ### macOS Terminal opens a login shell (DIVERGENCE)
 - chapter/section: Ch 18, "Which file loads when"; DIVERGENCE
-- source: real Mac capture `transcripts/ch17-login-shell-mac.txt`
+- source: real Mac capture `transcripts/ch18-login-shell-mac.txt`
   (`[[ -o login ]]` and `[[ -o interactive ]]` run in a real
   Terminal.app tab, the canonical zsh tests); the login-shell
   default is confirmed by that capture, not asserted from docs
@@ -133,7 +133,7 @@ applied to whole dotfiles).
   interactive shell by default (CONFIRMED 2026-07-07:
   `[[ -o login ]]` in a real Terminal.app tab prints
   `login shell`, `[[ -o interactive ]]` prints `interactive`,
-  captured in `ch17-login-shell-mac.txt`; a WezTerm tab returned
+  captured in `ch18-login-shell-mac.txt`; a WezTerm tab returned
   the same). So a Mac tab reads `.zprofile` AND `.zshrc`. Many
   Linux terminal emulators instead start a NON-login interactive
   shell, reading only `.bashrc`/`.zshrc`, which is why the
@@ -153,7 +153,7 @@ applied to whole dotfiles).
 
 ### launchd's environment (Mac)
 - chapter/section: Ch 18, "Scheduled / non-interactive contexts"
-- source: real Mac capture `transcripts/ch17-launchd-mac.txt`
+- source: real Mac capture `transcripts/ch18-launchd-mac.txt`
   (`launchctl getenv PATH`); the `launchd.plist(5)` and
   `launchctl(1)` man pages (the `EnvironmentVariables` key)
 - accessed: 2026-07-07
@@ -164,7 +164,7 @@ applied to whole dotfiles).
   plist `EnvironmentVariables` key) rather than relying on the
   shell config. The plist is documented and quarantined, not run.
 - version note: CONFIRMED 2026-07-07: `launchctl getenv PATH`
-  printed nothing on the user's Mac (`ch17-launchd-mac.txt`),
+  printed nothing on the user's Mac (`ch18-launchd-mac.txt`),
   i.e. launchd carries no PATH from the shell config. The chapter
   states this in prose (an empty result is not shown as a fenced
   output block).
@@ -227,15 +227,15 @@ applied to whole dotfiles).
 ## Gate confirmations
 
 - **Bash order + non-interactive seam: captured live in the
-  sandbox** (`ch17-bash-order.txt`, `ch17-noninteractive.txt`),
+  sandbox** (`ch18-bash-order.txt`, `ch18-noninteractive.txt`),
   masked to `/home/[account]`.
 - **Mac + server captures DONE 2026-07-07.** The user ran
-  `capture-ch17-mac.sh` (versions: macOS 26.5.1, zsh 5.9, bash
-  3.2.57; `ch17-zsh-order-mac.txt` markers fire per the manual
-  after a ZDOTDIR fix; `ch17-launchd-mac.txt` PATH empty) and
-  `capture-ch17-ssh-mac.sh` (`ch17-ssh-seam-mac.txt`), plus the
+  `capture-ch18-mac.sh` (versions: macOS 26.5.1, zsh 5.9, bash
+  3.2.57; `ch18-zsh-order-mac.txt` markers fire per the manual
+  after a ZDOTDIR fix; `ch18-launchd-mac.txt` PATH empty) and
+  `capture-ch18-ssh-mac.sh` (`ch18-ssh-seam-mac.txt`), plus the
   `[[ -o login ]]` check in a real Terminal tab
-  (`ch17-login-shell-mac.txt`). All shown `$`-blocks are
+  (`ch18-login-shell-mac.txt`). All shown `$`-blocks are
   transcript-backed (a scripted contiguous-substring check passed:
   38/38 lines exact or `[...]`-elided-prefix). Repo re-grepped
   clean for the account name in tracked files.

@@ -1,0 +1,41 @@
+# transcript
+chapter: 13
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: uv 0.11.19
+date: 2026-07-04
+captured-by: sandbox
+note: clean /tmp copy (pyproject.toml + uv.lock + scripts/) of the asset-pricing project; UV_LINK_MODE=copy exported to silence a sandbox-specific cross-filesystem hardlink advisory; uv package cache warm, so no download lines appear.
+---
+$ ls
+pyproject.toml
+scripts
+uv.lock
+$ uv sync
+Using CPython 3.10.12 interpreter at: /usr/bin/python3
+Creating virtual environment at: .venv
+Resolved 28 packages in 0.61ms
+Installed 20 packages in 548ms
+ + contourpy==1.3.2
+ + cycler==0.12.1
+ + fonttools==4.63.0
+ + kiwisolver==1.5.0
+ + matplotlib==3.10.9
+ + numpy==2.2.6
+ + packaging==26.2
+ + pandas==2.3.3
+ + patsy==1.0.2
+ + pillow==12.2.0
+ + polars==1.42.1
+ + polars-runtime-32==1.42.1
+ + pyarrow==24.0.0
+ + pyparsing==3.3.2
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.2
+ + scipy==1.15.3
+ + six==1.17.0
+ + statsmodels==0.14.6
+ + tzdata==2026.2
+$ uv sync
+Resolved 28 packages in 1ms
+Checked 20 packages in 0.72ms

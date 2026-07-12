@@ -1,0 +1,18 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16 (export builtin)
+date: 2026-07-03
+captured-by: sandbox
+note: demonstrates that a plain shell variable is NOT inherited
+  by a child process, while an exported one is. The value
+  hunter2 is a fake placeholder secret. No user data; nothing
+  masked.
+---
+$ DB_PASSWORD=hunter2
+$ bash -c 'echo "child sees: [$DB_PASSWORD]"'
+child sees: []
+$ export DB_PASSWORD
+$ bash -c 'echo "child sees: [$DB_PASSWORD]"'
+child sees: [hunter2]

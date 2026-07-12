@@ -33,11 +33,11 @@ is written principles-first and every tool-specific detail is
 stamped "current as of 2026-07-01" and pinned to the tool's
 official documentation (logged in `verification/chapter-17.md`).
 The exact CLI versions behind that stamp are recorded on the
-author's Mac in `transcripts/ch16-versions-mac.txt`: Claude Code
+author's Mac in `transcripts/ch17-versions-mac.txt`: Claude Code
 2.1.197, OpenAI Codex CLI 0.142.5, and Gemini CLI 0.49.0. The
 permission flags this chapter names are checked against the tools'
 official docs and their captured `--help` output
-(`transcripts/ch16-help-mac.txt`). One nuance worth stating:
+(`transcripts/ch17-help-mac.txt`). One nuance worth stating:
 Codex's `--help` prints its full-bypass flag only in the long
 `--dangerously-bypass-approvals-and-sandbox` form, but the shorter
 `--yolo` alias its docs describe is real, a captured
@@ -49,7 +49,7 @@ agent interaction shown below is labeled illustrative and is
 as Chapter 7 handled the one `curl | sh` it refused to execute.
 The one real, executed demonstration is the `diff` in the review
 section, captured AI-free in the sandbox
-(`transcripts/ch16-review-diff.txt`). Treat every product detail
+(`transcripts/ch17-review-diff.txt`). Treat every product detail
 as a snapshot to re-verify, and the principles around it as the
 part meant to last.
 

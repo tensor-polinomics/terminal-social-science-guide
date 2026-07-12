@@ -1,0 +1,53 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: OpenSSH_8.9p1 (ssh-keygen, ssh-agent, ssh-add)
+date: 2026-07-05
+captured-by: sandbox
+note: a THROWAWAY ed25519 keypair generated for the book,
+note: run from inside a scratch ~/.ssh with relative paths so
+note: the commands stay short. Fixed -C comment so no real
+note: account@host leaks. The PRIVATE key body is NEVER shown;
+note: the public half and fingerprint of this demo key are
+note: safe. Owner column, scratch paths, and account masked.
+---
+$ ssh-keygen -t ed25519 -C book-demo-key -f demo_key -N ''
+Generating public/private ed25519 key pair.
+Your identification has been saved in demo_key
+Your public key has been saved in demo_key.pub
+The key fingerprint is:
+SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key
+The key's randomart image is:
++--[ED25519 256]--+
+|+++O.*B+.        |
+|o.* O.++         |
+|o+ * o  . .      |
+|oo= +    + .     |
+|BE + .  S o o    |
+|*+= o      . .   |
+|.+.+             |
+|. o              |
+| .               |
++----[SHA256]-----+
+
+# The public half is what you copy to the server, safe to show:
+$ cat demo_key.pub
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEaqncWvaHmNESKgkhbk0F7qjjgMbz171gdQCQOYOUJz book-demo-key
+
+# The fingerprint names the key without revealing it:
+$ ssh-keygen -lf demo_key.pub
+256 SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key (ED25519)
+
+# OpenSSH refuses a private key others can read. Lock it to 600:
+$ chmod 600 demo_key
+$ ls -l
+total 8
+-rw------- 1 [account] [account] 399 Jul  5 10:18 demo_key
+-rw-r--r-- 1 [account] [account]  95 Jul  5 10:18 demo_key.pub
+
+# Load it into the running agent, then list what it holds:
+$ ssh-add demo_key
+Identity added: demo_key (book-demo-key)
+$ ssh-add -l
+256 SHA256:5T0CAAnWjMoASfFhZ1nJBFsqob7lGpBqIA9jTYYfrwk book-demo-key (ED25519)

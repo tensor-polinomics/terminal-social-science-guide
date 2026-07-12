@@ -8,11 +8,11 @@ on the user's Mac and captured there; two of them (OpenAI Codex
 CLI, Gemini CLI) are not present in this book's *Linux workspace
 sandbox*, which is why the real capture is a Mac step, not a
 sandbox one. The version anchor is
-(`transcripts/ch16-versions-mac.txt`, from
-`transcripts/capture-ch16-mac.sh`, run on the user's Mac); the
+(`transcripts/ch17-versions-mac.txt`, from
+`transcripts/capture-ch17-mac.sh`, run on the user's Mac); the
 permission/sandbox flag names are additionally evidenced by
-`transcripts/ch16-help-mac.txt`. The "review the diff" demo is a
-real, AI-free sandbox capture (`transcripts/ch16-review-diff.txt`,
+`transcripts/ch17-help-mac.txt`. The "review the diff" demo is a
+real, AI-free sandbox capture (`transcripts/ch17-review-diff.txt`,
 GNU diffutils 3.8). Access date for all web sources: 2026-07-01.
 
 All three CLIs are treated as **document + quarantine**
@@ -21,10 +21,10 @@ live agent session is non-deterministic and API-costing, not
 because any tool is missing. Correction (2026-07-01): the kickoff
 premise that Gemini CLI was not installed proved wrong; the Mac
 capture found it at `/opt/homebrew/bin/gemini`
-(`ch16-versions-mac.txt`). After the user logged Gemini in, the
+(`ch17-versions-mac.txt`). After the user logged Gemini in, the
 capture was re-run for all three: Claude Code 2.1.197, OpenAI
 Codex CLI 0.142.5, Gemini CLI 0.49.0, with permission flags
-confirmed in `ch16-help-mac.txt`. None is run live in this
+confirmed in `ch17-help-mac.txt`. None is run live in this
 chapter.
 
 ### Claude Code permission modes: default / acceptEdits / plan / auto / dontAsk / bypassPermissions
@@ -122,7 +122,7 @@ chapter.
 - source: "Gemini CLI Configuration" - gemini-cli docs
   (https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html);
   and real `gemini --help` output, Gemini CLI 0.49.0, in
-  `transcripts/ch16-help-mac.txt` (captured 2026-07-01)
+  `transcripts/ch17-help-mac.txt` (captured 2026-07-01)
 - accessed: 2026-07-01
 - verifies: `--approval-mode` takes `default` (prompt each tool
   call), `auto_edit` (auto-approve edit tools, prompt others),
@@ -148,7 +148,7 @@ chapter.
 - confirmable: yes (doc fetched clean 2026-07-01; the
   `--approval-mode` choices `default`/`auto_edit`/`yolo`/`plan`,
   `-y/--yolo`, and `-s/--sandbox` are confirmed in the captured
-  `transcripts/ch16-help-mac.txt`)
+  `transcripts/ch17-help-mac.txt`)
 
 ### Gemini CLI: prompt logging and telemetry
 - chapter/section: Ch 17, "Secrets in prompts"; PITFALL
@@ -179,7 +179,7 @@ chapter.
   would silently change the locked long-short alpha. Demonstrates
   "review the diff before you accept" and ties agent edits to the
   G1 reproducibility invariant (a changed `N_PORT` would fail
-  `make check`). Captured in `transcripts/ch16-review-diff.txt`
+  `make check`). Captured in `transcripts/ch17-review-diff.txt`
   (GNU diffutils 3.8, sandbox, /tmp).
 - version note: n/a (stable tool behavior)
 - confirmable: yes
@@ -198,10 +198,10 @@ chapter.
 
 ## Gate confirmations
 
-- **Version anchor: DONE (2026-07-01).** `capture-ch16-mac.sh`
-  was run on the Mac; `ch16-versions-mac.txt` records Claude Code
+- **Version anchor: DONE (2026-07-01).** `capture-ch17-mac.sh`
+  was run on the Mac; `ch17-versions-mac.txt` records Claude Code
   2.1.197, OpenAI Codex CLI 0.142.5, and Gemini CLI 0.49.0, and
-  `ch16-help-mac.txt` confirms MOST of the flag names the chapter
+  `ch17-help-mac.txt` confirms MOST of the flag names the chapter
   uses: `--permission-mode <mode>` / `--dangerously-skip-permissions`
   (Claude Code); `-s, --sandbox <SANDBOX_MODE>`, `-a,
   --ask-for-approval <APPROVAL_POLICY>` with `on-request` / `never`,
@@ -214,7 +214,7 @@ chapter.
   only the long `--dangerously-bypass-approvals-and-sandbox` form
   (the widened `...|yolo` grep surfaced no `--yolo` help line), but
   the alias is real on two independent grounds, both captured in
-  `ch16-help-mac.txt`: the official Codex CLI reference documents
+  `ch17-help-mac.txt`: the official Codex CLI reference documents
   it, and a functional check `codex --yolo --version` returns
   `codex-cli 0.142.5` (the binary accepts the alias). So `--yolo`
   is docs-backed AND functionally capture-backed, just not printed
@@ -233,8 +233,8 @@ chapter.
   installed was WRONG: the Mac capture found it at
   `/opt/homebrew/bin/gemini`. After the user logged Gemini in, the
   script was updated to capture `gemini --version` + `--help`
-  identically to the other two and re-run, so `ch16-versions-mac.txt`
-  (Gemini CLI 0.49.0) and `ch16-help-mac.txt` no longer contain any
+  identically to the other two and re-run, so `ch17-versions-mac.txt`
+  (Gemini CLI 0.49.0) and `ch17-help-mac.txt` no longer contain any
   "expected absent" wording. Gemini is quarantined by the same
   deliberate choice as the other two (volatile, non-deterministic,
   API-costing live sessions), not because it is missing.

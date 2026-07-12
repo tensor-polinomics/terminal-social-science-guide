@@ -35,7 +35,7 @@ Access date for all web sources below: 2026-07-01.
   on Mac"
   (https://support.apple.com/guide/terminal/change-the-default-shell-trml113/mac),
   which documents zsh as the macOS default; plus the book's own
-  real captures, `transcripts/ch06-divergence-mac.txt` (zsh 5.9
+  real captures, `transcripts/ch07-divergence-mac.txt` (zsh 5.9
   on the author's Mac) and the Linux sandbox (GNU bash 5.1)
 - accessed: 2026-07-01
 - verifies: the macOS interactive default is zsh, Linux is
@@ -49,8 +49,8 @@ Access date for all web sources below: 2026-07-01.
 - chapter/section: Ch 1, DIVERGENCE callout
 - source: the book's own captures, GNU coreutils in the Linux
   sandbox vs BSD tools on the author's Mac
-  (`transcripts/ch06-divergence-mac.txt`,
-  `transcripts/ch11-*-mac.txt`); this is the same BSD/GNU
+  (`transcripts/ch07-divergence-mac.txt`,
+  `transcripts/ch12-*-mac.txt`); this is the same BSD/GNU
   divergence pinned in `verification/chapter-07.md` and
   `verification/chapter-12.md`
 - accessed: 2026-07-01

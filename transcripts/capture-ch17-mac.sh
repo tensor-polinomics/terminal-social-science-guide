@@ -1,143 +1,120 @@
 #!/usr/bin/env bash
-# Capture the Ch 17 (Startup files, PATH & portable dotfiles)
-# macOS/zsh facts on the user's Mac. The sandbox is Linux/GNU with
-# no zsh, so the zsh startup-file ORDER and the macOS specifics
-# (bash 3.2 floor, launchd's bare environment) are Mac captures;
-# the bash startup order was already captured in the sandbox
-# (ch17-bash-order.txt) and is bash-version-stable.
+# Capture the Ch 17 AI-CLI version stamps and the permission/
+# sandbox flag evidence on the user's Mac.
 #
-# SAFETY / PRIVACY (higher-stakes for this chapter). Dotfiles are
-# the most personal files on the machine. This script NEVER reads
-# your real ~/.zshenv / ~/.zprofile / ~/.zshrc / ~/.zlogin / bash
-# rc files. Every zsh invocation runs against a THROWAWAY HOME
-# (mktemp -d) seeded with demo rc files this script writes and
-# removes on exit, exactly the zoxide-throwaway-db lesson from
-# Ch 15 applied to whole dotfiles. Home path, account name, and
-# $TMPDIR hash are masked at capture time.
+# Ch 17 is principles-first and version-stamped. The one thing
+# that MUST be a real, dated capture is the version anchor: the
+# "current as of <date>" claim only means something if a real
+# `--version` backs it. The permission/approval/sandbox behavior
+# itself is pinned to each tool's official docs (see
+# verification/chapter-16.md) and shown as labeled, non-runnable
+# `text` blocks in the chapter, because a live agent session is
+# non-deterministic and API-costing. This script captures only:
+#   1. claude / codex / gemini --version, for all three tools;
+#   2. the permission-relevant lines of each tool's --help, as
+#      real evidence that the flags named in the chapter exist
+#      (not as the authority for their semantics).
 #
-# Run on the Mac, from the terminal repo root
-# (source-private/terminal):
-#   bash transcripts/capture-ch17-mac.sh
-# then paste back the ch17-*-mac.txt files it writes (or say
-# "done" and let the chapter be reconciled against them).
+# All three CLIs (Claude Code, OpenAI Codex, Gemini) are installed
+# on the user's Mac and captured here identically. They are still
+# quarantined in the chapter by deliberate choice (volatile,
+# non-deterministic, API-costing live sessions), not because any
+# is missing; this script never starts a session.
 #
-# NOT `set -e`: a shell that emits a non-tty notice or a missing
-# tool must be recorded, not treated as fatal.
+# Run on the Mac, from the repo root:
+#   bash source-private/terminal/transcripts/capture-ch17-mac.sh
+# then review/commit the two ch17-*-mac.txt files it writes.
+#
+# Safe and read-only: it runs `--version` and `--help` only.
+# It starts NO agent session, sends NO prompt, and touches no
+# file outside transcripts/. No git is run.
+
+# NOT `set -e`: a tool that errors on --help or is missing must be
+# recorded, not treated as a fatal error.
 set -uo pipefail
 
+# Quiet the recurring environment-noise lines (G2 convention).
 unset VIRTUAL_ENV
 export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
 
-acct="$(id -un)"
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+vout="$here/ch17-versions-mac.txt"
+hout="$here/ch17-help-mac.txt"
 
 os_name="$(sw_vers -productName 2>/dev/null || echo macOS)"
 os_ver="$(sw_vers -productVersion 2>/dev/null || echo '?')"
-zver="$(zsh --version 2>/dev/null || echo 'zsh: not found')"
 today="$(date +%F)"
 
-vout="$here/ch17-versions-mac.txt"
-zout="$here/ch17-zsh-order-mac.txt"
-lout="$here/ch17-launchd-mac.txt"
-
 # --- 1. version stamps --------------------------------------
-maskv() { sed -E -e "s|${HOME}|/Users/[account]|g" \
-                 -e "s|${acct}|[account]|g"; }
 {
   echo "# transcript"
   echo "chapter: 17"
   echo "os: ${os_name} ${os_ver} (Apple Silicon)"
-  echo "shell: ${zver} (login default)"
-  echo "tool: zsh + bash version anchor"
+  echo "shell: zsh (login default)"
+  echo "tool: Claude Code + OpenAI Codex + Gemini CLI"
   echo "date: ${today}"
   echo "captured-by: user-mac"
-  echo "note: Version anchor for the 'current as of ${today}'"
-  echo "note: stamp. macOS bash is the 3.2 floor (DIVERGENCE);"
-  echo "note: the login shell is zsh. Paths masked."
+  echo "note: version anchor for the 'current as of ${today}'"
+  echo "      stamp. All three CLIs are quarantined in the chapter"
+  echo "      by choice (volatile, API-costing live sessions), not"
+  echo "      because any is missing. Read-only: --version only."
   echo "---"
-  echo ""
-  echo "\$ zsh --version"
-  zsh --version 2>&1 | maskv
-  echo ""
-  echo "\$ bash --version | head -1"
-  bash --version 2>&1 | head -1 | maskv
-  echo ""
-  echo "\$ echo \$SHELL"
-  echo "$SHELL" | maskv
-} > "$vout"
 
-# --- 2. zsh startup-file ORDER (throwaway HOME) -------------
-# The five zsh files, each echoing a marker, under a demo HOME so
-# the real dotfiles are never read. zsh sources .zshenv on EVERY
-# invocation (even a script), which is the headline divergence
-# from bash. Interactive zsh with no tty may print a job-control
-# notice on stderr; 2>/dev/null drops it (a real terminal has a
-# tty and never prints it).
-zh="$(mktemp -d "${TMPDIR:-/tmp}/ch17zsh.XXXXXX")"
-cleanup() { rm -rf "$zh"; }
-trap cleanup EXIT
-printf "%s\n" "echo 'reading ~/.zshenv'"   > "$zh/.zshenv"
-printf "%s\n" "echo 'reading ~/.zprofile'" > "$zh/.zprofile"
-printf "%s\n" "echo 'reading ~/.zshrc'"    > "$zh/.zshrc"
-printf "%s\n" "echo 'reading ~/.zlogin'"   > "$zh/.zlogin"
-maskz() { sed -E -e "s|${zh}|/Users/[account]|g" \
-                 -e "s|(/private)?/var/folders/[^/]+/[^/]+|/private/var/folders/[tmpdir]|g" \
-                 -e "s|${HOME}|/Users/[account]|g" \
-                 -e "s|${acct}|[account]|g"; }
-{
-  echo "# transcript"
-  echo "chapter: 17"
-  echo "os: ${os_name} ${os_ver} (Apple Silicon)"
-  echo "shell: ${zver}"
-  echo "tool: zsh (startup-file order)"
-  echo "date: ${today}"
-  echo "captured-by: user-mac"
-  echo "note: Every zsh here runs against a THROWAWAY HOME (and"
-  echo "note: ZDOTDIR) with demo rc files; the real ~/.zshenv etc."
-  echo "note: are never read. ZDOTDIR is pointed at the throwaway"
-  echo "note: too, because zsh reads \$ZDOTDIR/.zshenv (not"
-  echo "note: \$HOME/.zshenv) whenever ZDOTDIR is set. Interactive"
-  echo "note: zsh with no tty drops a job-control notice on stderr"
-  echo "note: with 2>/dev/null; a real Terminal tab has a tty and"
-  echo "note: never prints it. HOME/ZDOTDIR/\$TMPDIR masked."
-  echo "---"
-  export HOME="$zh"; export ZDOTDIR="$zh"; cd "$zh" || exit 1
   echo ""
-  echo "\$ ls -a"
-  ls -a | tr '\n' ' ' | sed 's/ $/\n/' | maskz
-  echo ""
-  echo "\$ zsh -l -i -c 'true' 2>/dev/null   # login + interactive"
-  zsh -l -i -c 'true' 2>/dev/null | maskz
-  echo ""
-  echo "\$ zsh -i -c 'true' 2>/dev/null      # non-login interactive"
-  zsh -i -c 'true' 2>/dev/null | maskz
-  echo ""
-  echo "\$ zsh -c 'true'                      # non-interactive script"
-  zsh -c 'true' 2>&1 | maskz
-} > "$zout"
+  echo "\$ claude --version"
+  claude --version 2>&1 || echo "claude: not found"
 
-# --- 3. launchd's bare environment --------------------------
-# A process started by launchd (a GUI app, a LaunchAgent) does NOT
-# read your shell dotfiles; it inherits launchd's own environment.
-# launchctl getenv PATH shows what that PATH is, evidence for why
-# a scheduled/GUI job needs its PATH set explicitly.
+  echo ""
+  echo "\$ codex --version"
+  codex --version 2>&1 || echo "codex: not found"
+
+  echo ""
+  echo "\$ gemini --version"
+  gemini --version 2>&1 || echo "gemini: not found"
+} >"$vout"
+
+# --- 2. permission/sandbox flag evidence (installed tools) ---
+# Grep the help for the flags the chapter names, so the shown
+# flags are backed by real output. If a grep comes back empty
+# (wording changed), that is itself a signal to re-pin the prose.
 {
   echo "# transcript"
   echo "chapter: 17"
   echo "os: ${os_name} ${os_ver} (Apple Silicon)"
-  echo "shell: ${zver}"
-  echo "tool: launchd / launchctl"
+  echo "shell: zsh (login default)"
+  echo "tool: Claude Code + OpenAI Codex + Gemini CLI"
   echo "date: ${today}"
   echo "captured-by: user-mac"
-  echo "note: launchd's environment is not your shell's. PATH may"
-  echo "note: be empty (unset) if nothing set it. Paths masked."
+  echo "note: real evidence that the permission/approval/sandbox"
+  echo "      flags named in the chapter exist. The SEMANTICS are"
+  echo "      pinned to official docs (verification/chapter-16.md),"
+  echo "      not to this help text, which is version-volatile."
   echo "---"
+
   echo ""
-  echo "\$ launchctl getenv PATH"
-  launchctl getenv PATH 2>&1 | maskv
-  echo "(empty output = PATH is not set in launchd's environment)"
-} > "$lout"
+  echo "\$ claude --help | grep -iE 'permission|dangerous'"
+  claude --help 2>&1 | grep -iE 'permission|dangerous' \
+    || echo "(no matching lines; re-check claude --help wording)"
+
+  echo ""
+  echo "\$ codex --help | grep -iE 'sandbox|approval|approve|yolo'"
+  codex --help 2>&1 | grep -iE 'sandbox|approval|approve|yolo' \
+    || echo "(no matching lines; re-check codex --help wording)"
+
+  # Functional proof that Codex accepts the --yolo alias, even if
+  # `codex --help` prints only the long
+  # --dangerously-bypass-approvals-and-sandbox form (round-5 audit).
+  echo ""
+  echo "\$ codex --yolo --version   # does the alias parse?"
+  codex --yolo --version 2>&1 \
+    || echo "(codex --yolo not accepted; alias is docs-only)"
+
+  echo ""
+  echo "\$ gemini --help | grep -iE 'approval|yolo|sandbox|allowed-tools'"
+  gemini --help 2>&1 \
+    | grep -iE 'approval|yolo|sandbox|allowed-tools' \
+    || echo "(no matching lines; re-check gemini --help wording)"
+} >"$hout"
 
 echo "captured -> $vout"
-echo "captured -> $zout"
-echo "captured -> $lout"
+echo "captured -> $hout"

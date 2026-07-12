@@ -1,0 +1,26 @@
+# transcript
+chapter: 09
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU findutils 4.8.0
+date: 2026-07-03
+captured-by: sandbox
+note: Run in a clean copy of the asset-pricing project placed at
+note: /tmp/ap (as in ch06-tour.txt), made a git repo. Listings
+note: are piped through sort because find's traversal order is
+note: unspecified. No user-specific data is shown, so no masks.
+---
+
+$ find scripts -name '*.py' | sort
+scripts/00_make_data.py
+scripts/01_clean.py
+scripts/02_portfolio.py
+scripts/03_figure.py
+scripts/check.py
+
+$ find scripts -type f -name '*.R' | sort
+scripts/04_regression.R
+scripts/bootstrap_renv.R
+
+$ find data -size +1M
+data/raw/firm_panel.csv

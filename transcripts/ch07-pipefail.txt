@@ -1,0 +1,25 @@
+# transcript
+chapter: 07
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-06-30
+captured-by: sandbox
+note: a pipeline's exit status is the last stage's by default,
+      so a failing earlier stage is masked. set -o pipefail
+      surfaces it. Run in a throwaway /tmp dir (no missing.csv).
+---
+$ false | sort
+$ echo $?
+0
+
+$ cut -d, -f1 missing.csv | sort | head -1
+cut: missing.csv: No such file or directory
+$ echo $?
+0
+
+$ set -o pipefail
+$ cut -d, -f1 missing.csv | sort | head -1
+cut: missing.csv: No such file or directory
+$ echo $?
+1

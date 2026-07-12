@@ -1,0 +1,26 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32 (chmod, ls)
+date: 2026-07-03
+captured-by: sandbox
+note: the account name that ls -l prints in the owner and group
+  columns is masked to [account] (Ch 2 personal-data policy),
+  as in Chapter 5. The .env holds a fake, non-working key. The
+  chmod 777 line is the world-writable anti-pattern, shown to
+  be recognized; the file is a throwaway. Sizes/dates are real.
+---
+$ ls -l .env
+-rw-r--r-- 1 [account] [account] 31 Jul  3 19:32 .env
+$ chmod 600 .env
+$ ls -l .env
+-rw------- 1 [account] [account] 31 Jul  3 19:32 .env
+$ ls -l deploy.sh
+-rw-r--r-- 1 [account] [account] 28 Jul  3 19:32 deploy.sh
+$ chmod u+x deploy.sh
+$ ls -l deploy.sh
+-rwxr--r-- 1 [account] [account] 28 Jul  3 19:32 deploy.sh
+$ chmod 777 .env
+$ ls -l .env
+-rwxrwxrwx 1 [account] [account] 31 Jul  3 19:32 .env

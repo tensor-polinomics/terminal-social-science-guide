@@ -1,0 +1,21 @@
+# transcript
+chapter: 11
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16
+date: 2026-07-03
+captured-by: sandbox
+note: throwaway /tmp scratch; no personal data shown.
+---
+$ cat summarize.sh
+#!/usr/bin/env bash
+sort data/clean.csv > sorted.csv
+wc -l < sorted.csv > count.txt
+echo "summary written"
+$ ./summarize.sh          # data/clean.csv does not exist
+sort: cannot read: data/clean.csv: No such file or directory
+summary written
+$ echo $?
+0
+$ cat count.txt
+0

@@ -4,14 +4,14 @@ Per PLAN.md Section 10. This chapter is a curated survey of a
 separately-installed tool kit, so, like the AI-CLI chapter, it is
 **version-stamped**: every tool carries a "current as of
 2026-07-06" note pinned to its project repository. The version
-anchor is `transcripts/ch15-versions-mac.txt` (from
-`transcripts/capture-ch15-mac.sh`, run on the user's Mac
+anchor is `transcripts/ch16-versions-mac.txt` (from
+`transcripts/capture-ch16-mac.sh`, run on the user's Mac
 2026-07-06), which records `bat` 0.26.1, `delta` 0.19.2,
 `zoxide` 0.9.9, `fzf` 0.70.0, `lazygit` 0.62.2, `btop` 1.4.7,
 `ncdu` 2.9.2, and `fd` 10.4.2. `eza`'s `--version` prints a
 description line first, so the `head -1` probe in the versions
 file captured that line rather than the number; `eza` 0.23.4 is
-stamped instead in the header of `ch15-eza-mac.txt` (from `eza
+stamped instead in the header of `ch16-eza-mac.txt` (from `eza
 --version | sed -n 2p`). `ripgrep` 13.0.0 and `fd` 10.4.2 were
 already stamped in Chapter 9.
 
@@ -32,20 +32,20 @@ for all web sources: 2026-07-06.
 - verifies: the five shown fenced `bash` blocks (eza, bat,
   zoxide, fzf, git diff) map to transcripts and were byte-checked
   with `cat -A`:
-  - `eza -l --git scripts` -> `ch15-eza-mac.txt` (the `--tree`
+  - `eza -l --git scripts` -> `ch16-eza-mac.txt` (the `--tree`
     block in that transcript is Unicode box-glyphs and is
     deliberately NOT shown, only described; the ASCII-safe
     `-l --git` block with the real `-M` git-status marker on the
     edited `02_portfolio.py` is the shown one).
   - `bat --style=numbers --decorations=always --color=never
     --paging=never --line-range=1:16 scripts/00_make_data.py`
-    -> `ch15-bat-mac.txt`. `--decorations=always` is forced
+    -> `ch16-bat-mac.txt`. `--decorations=always` is forced
     because bat auto-plains (acts like `cat`) when its stdout is
     not a terminal, e.g. redirected to the capture file; that
     fallback is itself a taught point.
   - `zoxide query` (throwaway `_ZO_DATA_DIR` db) + `fzf --filter`
-    -> `ch15-nav-mac.txt`.
-  - `git diff scripts/02_portfolio.py` -> `ch15-diff-mac.txt`
+    -> `ch16-nav-mac.txt`.
+  - `git diff scripts/02_portfolio.py` -> `ch16-diff-mac.txt`
     (the portable baseline the `delta` section describes; the
     same decile->quintile edit as Chapter 17's review demo).
 - note (byte-identity, disclosed): editors strip trailing
@@ -126,7 +126,7 @@ for all web sources: 2026-07-06.
   navigable `du` that Chapter 14 explicitly routed here. All
   three are full-screen TUIs that own the terminal and cannot be
   scripted, so only their `--version` is captured
-  (`ch15-versions-mac.txt`); the walkthroughs are prose.
+  (`ch16-versions-mac.txt`); the walkthroughs are prose.
 - version note: current as of 2026-07-06; lazygit 0.62.2, btop
   1.4.7, ncdu 2.9.2.
 - confirmable: yes (repos/homepage + captured `--version`)
@@ -190,9 +190,9 @@ for all web sources: 2026-07-06.
 
 ## Gate confirmations
 
-- **Version anchor: DONE (2026-07-06).** `capture-ch15-mac.sh`
+- **Version anchor: DONE (2026-07-06).** `capture-ch16-mac.sh`
   run on the Mac; all nine tools installed and stamped in
-  `ch15-versions-mac.txt`. The chapter states versions in prose
+  `ch16-versions-mac.txt`. The chapter states versions in prose
   and in the provenance note (Ch 12 / Ch 17 style); no
   `--version` command block is shown (the `btop --version` line
   carries raw ANSI, another reason not to show it).

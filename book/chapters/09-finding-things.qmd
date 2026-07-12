@@ -36,8 +36,8 @@ into a git repository so the ignore behavior is real, with
 every file-deleting demonstration confined to a throwaway
 `/tmp` scratch directory, never the project's own files. The
 macOS/BSD `find` divergences and the `fd` runs are captured on
-the author's Mac (`transcripts/capture-ch08-mac.sh`, the
-`ch08-*-mac.txt` files), because `fd` is not installable in the
+the author's Mac (`transcripts/capture-ch09-mac.sh`, the
+`ch09-*-mac.txt` files), because `fd` is not installable in the
 sandbox and BSD `find` differs from GNU `find`.
 
 ## Finding files by name: `find`
@@ -287,7 +287,7 @@ posix-extended`, shown above; BSD `find` (macOS) has no
 `-regextype` and instead takes a `-E` flag *before* the
 starting path. The portable-on-Mac spelling of the same
 search, captured on the author's machine
-(`transcripts/ch08-find-mac.txt`):
+(`transcripts/ch09-find-mac.txt`):
 
 ```bash
 $ find -E scripts -regex '.*/0[0-9]_.*[.]py' | sort
@@ -410,7 +410,7 @@ what project work usually wants. It is a separate install
 (`brew install fd`, Chapter 3's package manager; current as of
 2026-07-03) and, like DuckDB in Chapter 8, it is not
 installable in this book's sandbox, so these blocks are
-captured on the author's Mac (`transcripts/ch08-fd-mac.txt`).
+captured on the author's Mac (`transcripts/ch09-fd-mac.txt`).
 
 ```bash
 $ fd --version

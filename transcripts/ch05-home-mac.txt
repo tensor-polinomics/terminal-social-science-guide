@@ -1,0 +1,17 @@
+# transcript
+chapter: 05
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: zsh; $HOME / ~
+date: 2026-07-02
+captured-by: user-mac
+note: The ~ shorthand and $HOME resolve to /Users/<you> on
+note: macOS; masked to /Users/[account]. Shown from the Mac
+note: because the sandbox home is a /sessions quirk (Ch 2).
+---
+
+$ echo $HOME
+/Users/[account]
+
+$ echo ~
+/Users/[account]

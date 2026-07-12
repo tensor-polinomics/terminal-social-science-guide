@@ -1,0 +1,28 @@
+# transcript
+chapter: 12
+os: Ubuntu 22.04.5 LTS (workspace sandbox, aarch64)
+shell: bash 5.1.16
+tool: GNU Make 4.3
+date: 2026-06-30
+captured-by: sandbox
+note: The TAB trap. `cat -A` (GNU) renders a TAB as ^I and
+      marks line ends with $, so the difference between 8
+      spaces and a TAB is visible. The "(did you mean TAB
+      ...)" hint is NOT 4.x-only: macOS GNU Make 3.81 prints
+      the identical message (verified in ch12-tab-trap-mac.txt).
+      On macOS use `cat -et`; BSD cat has no -A.
+---
+$ cat -A Makefile        # recipe indented with 8 SPACES
+hello:$
+        echo "hi from the recipe"$
+
+$ make
+Makefile:2: *** missing separator (did you mean TAB instead of 8 spaces?).  Stop.
+
+$ cat -A Makefile        # same recipe, now indented with a TAB
+hello:$
+^Iecho "hi from the recipe"$
+
+$ make
+echo "hi from the recipe"
+hi from the recipe

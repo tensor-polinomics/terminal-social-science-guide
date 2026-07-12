@@ -12,7 +12,7 @@ note: macOS's login shell is zsh (SHELL=/bin/zsh), whose
       optimization); a reader at the prompt types just
       `ps -p $$`. /bin/bash is the macOS SYSTEM bash,
       frozen at 3.2.57 (2007) for licensing reasons; this
-      is the bash-3.2 floor Ch 10 returns to. No personal
+      is the bash-3.2 floor Ch 11 returns to. No personal
       data in these lines; $HOME masking applied anyway.
 ---
 

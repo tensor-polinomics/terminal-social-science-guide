@@ -1,0 +1,22 @@
+# transcript
+chapter: 07
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-06-30
+captured-by: sandbox
+note: the PATH-hijack check for the curl|sh DANGER callout.
+      type -a lists every match in PATH order; command -v
+      resolves the one that runs; sha256sum is the checksum
+      tool used in the safe verify-then-run pattern. The
+      curl|sh line itself is NEVER executed anywhere.
+---
+$ type -a sort
+sort is /usr/bin/sort
+sort is /bin/sort
+
+$ command -v sha256sum
+/usr/bin/sha256sum
+
+$ echo 'hello' | sha256sum
+5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03  -

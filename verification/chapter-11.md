@@ -10,7 +10,7 @@ captured on the user's Mac
 (ShellCheck, shfmt, the bash-3.2 floor, BSD `/usr/bin/time`/`date`)
 because the sandbox cannot produce them; those were drafted from
 best-known values and RECONCILED byte-for-byte 2026-07-03 against
-the user's `capture-ch10-mac.sh` run (the Ch 8 DuckDB / Ch 9 `fd`
+the user's `capture-ch11-mac.sh` run (the Ch 8 DuckDB / Ch 9 `fd`
 pattern; five drafted guesses corrected). External behavior is
 pinned to official docs, fetched 2026-07-03.
 
@@ -23,16 +23,16 @@ pinned to official docs, fetched 2026-07-03.
   UNKNOWN, so no version number is asserted), aarch64. All demos
   run in throwaway `/tmp` scratch dirs; the `verify.sh` anchor
   runs over a fresh `/tmp` copy of the running example's
-  `data/raw/`. Transcripts: `ch10-shebang.txt`, `ch10-set.txt`,
-  `ch10-nosete.txt`, `ch10-exit-trap.txt`, `ch10-footguns.txt`,
-  `ch10-debug.txt`, `ch10-tee.txt`, `ch10-time.txt`,
-  `ch10-locale.txt`, `ch10-verify.txt`. Every sandbox block the
+  `data/raw/`. Transcripts: `ch11-shebang.txt`, `ch11-set.txt`,
+  `ch11-nosete.txt`, `ch11-exit-trap.txt`, `ch11-footguns.txt`,
+  `ch11-debug.txt`, `ch11-tee.txt`, `ch11-time.txt`,
+  `ch11-locale.txt`, `ch11-verify.txt`. Every sandbox block the
   chapter shows was diffed against its transcript as a contiguous
   substring (14 blocks, all byte-identical; see counts). The
-  control-flow primer's 8 blocks are in `ch10-primer.txt`;
+  control-flow primer's 8 blocks are in `ch11-primer.txt`;
   that one file was recorded in the CURRENT sandbox image
   (Ubuntu 24.04.4, GNU bash 5.2.21, GNU coreutils 9.4) rather
-  than the 22.04/bash 5.1.16 image of the other `ch10-*` files,
+  than the 22.04/bash 5.1.16 image of the other `ch11-*` files,
   because the constructs it shows (`grep -q` exit status, `if`,
   `[[ ]]`, `[ ]`, `for`, `while`, `{ ...; }` grouping) have no
   version-dependent output (no version strings, no build- or
@@ -45,10 +45,10 @@ pinned to official docs, fetched 2026-07-03.
   the bash-3.2 floor (`/bin/bash --version` + `declare -A`
   failure), ShellCheck on `unsafe.sh` (SC2086), shfmt on
   `messy.sh`, and BSD `/usr/bin/time -l`. The user ran
-  `transcripts/capture-ch10-mac.sh` (macOS 26.5.1, zsh 5.9; no
+  `transcripts/capture-ch11-mac.sh` (macOS 26.5.1, zsh 5.9; no
   interactive shell, no sudo, standard capture-time masks),
-  writing `ch10-bash32-mac.txt`, `ch10-lint-mac.txt`,
-  `ch10-bsd-mac.txt`; all four chapter blocks were re-diffed and
+  writing `ch11-bash32-mac.txt`, `ch11-lint-mac.txt`,
+  `ch11-bsd-mac.txt`; all four chapter blocks were re-diffed and
   are byte-identical. Five drafted guesses were corrected against
   the real capture (the Ch 8/8 lesson): the system bash build is
   `arm64-apple-darwin25` (drafted `darwin24`); the `declare -A`
@@ -65,7 +65,7 @@ pinned to official docs, fetched 2026-07-03.
   stamped from the capture: **ShellCheck 0.11.0, shfmt 3.13.1**
   (current as of 2026-07-03). The `date -d @EPOCH` vs BSD
   `date -r EPOCH` divergence is described in prose and its BSD
-  side captured in `ch10-bsd-mac.txt` (`date -r` gives the same
+  side captured in `ch11-bsd-mac.txt` (`date -r` gives the same
   instant; GNU `date -d @` errors `illegal option -- d` on BSD),
   confirming the prose claim.
 - **Authored, non-capture:** the REPRODUCIBILITY callout's
@@ -79,7 +79,7 @@ pinned to official docs, fetched 2026-07-03.
 Each of these was run and its output captured before the chapter
 asserted it:
 
-- **The control-flow primer runs as shown** (`ch10-primer.txt`):
+- **The control-flow primer runs as shown** (`ch11-primer.txt`):
   `grep -q` sets exit status 0 when the firm id is present and 1
   when absent; `if grep -q ...` takes the `then` arm on 0;
   `[[ -f ]]` / `-gt` / `==` and the single-bracket `[ -f ]` set
@@ -93,26 +93,26 @@ asserted it:
   `for`/`while`/`while read` demos use the book's hand-wrapped,
   no-`>` convention (one line where they fit; `\`-continuation
   for `while read`) rather than showing the PS2 `>` prompt;
-  `ch10-primer.txt` was updated to match and the output is
+  `ch11-primer.txt` was updated to match and the output is
   unchanged, so all 8 primer blocks stay contiguous substrings.
   See `verification/session2-byte-faithfulness.md`.
 
 - **`set -e` stops on the first failed command** and yields its
-  nonzero status; the following line does not run (`ch10-set.txt`,
+  nonzero status; the following line does not run (`ch11-set.txt`,
   `step.sh`: "step 2" absent, `$?` = 1).
 - **`set -u` aborts on an unset variable**, naming the line
-  (`ch10-set.txt`, `need.sh`: `line 3: OUTDIR: unbound variable`).
+  (`ch11-set.txt`, `need.sh`: `line 3: OUTDIR: unbound variable`).
 - **A script without `set -e` marches past a failure** and writes
-  an empty output while exiting 0 (`ch10-nosete.txt`,
+  an empty output while exiting 0 (`ch11-nosete.txt`,
   `summarize.sh`: `sort` fails, `count.txt` = 0, `$?` = 0). This
   is the DANGER.
 - **Explicit `exit 3`** propagates the chosen status
-  (`ch10-exit-trap.txt`, `guard.sh`).
+  (`ch11-exit-trap.txt`, `guard.sh`).
 - **`trap ... ERR`** fires on failure and reports `$LINENO`/`$?`
-  before the `set -e` exit (`ch10-exit-trap.txt`, `traps.sh`:
+  before the `set -e` exit (`ch11-exit-trap.txt`, `traps.sh`:
   `failed at line 5 (exit 1)`).
 - **The three `set -e` footguns**, each verified live
-  (`ch10-footguns.txt`): (1) `local n=$(false-cmd)` masks the
+  (`ch11-footguns.txt`): (1) `local n=$(false-cmd)` masks the
   failure because `local` succeeds, so the function and the
   script continue; (2) a function used as an `if` condition runs
   to the end with `set -e` suppressed; (3) the left side of `&&`
@@ -121,19 +121,19 @@ asserted it:
   the chapter attributes the mask to `local`, not to command
   substitution in general.
 - **`bash -x`** prints the expanded trace and reveals the failing
-  line (`ch10-debug.txt`, `pipeline_step.sh`: line 4 `wc` on a
+  line (`ch11-debug.txt`, `pipeline_step.sh`: line 4 `wc` on a
   missing file, `n` empty).
 - **`tee`** writes to a file and the screen at once
-  (`ch10-tee.txt`).
+  (`ch11-tee.txt`).
 - **`/usr/bin/time -v`** prints the resource report; only the
   stable top lines (Command, User, System, %CPU, Elapsed) are
   quoted, and the note flags that the figures vary per run
-  (`ch10-time.txt`).
+  (`ch11-time.txt`).
 - **`TZ` changes `date` rendering of a fixed epoch**
-  (`ch10-locale.txt`: `@1700000000` = `2023-11-14 22:13 UTC` vs
+  (`ch11-locale.txt`: `@1700000000` = `2023-11-14 22:13 UTC` vs
   `17:13 EST`), using a fixed epoch so the shown output is
   byte-stable.
-- **`verify.sh` anchor** (`ch10-verify.txt`): the file-level
+- **`verify.sh` anchor** (`ch11-verify.txt`): the file-level
   `sha256sum -c` against a locked `SHA256SUMS` reports `OK` and
   exits 0 on intact data; after one appended byte it reports
   `factors.csv: FAILED` + the `sha256sum` WARNING, the `ERR` trap
@@ -205,7 +205,7 @@ asserted it:
   `PATH` lookup finds a Homebrew/Linuxbrew bash.
 - **GNU time `-v` vs BSD `-l`; `time` the shell keyword.** GNU
   `/usr/bin/time -v` verified live in the sandbox
-  (`ch10-time.txt`); the BSD `-l` form is captured on the Mac and
+  (`ch11-time.txt`); the BSD `-l` form is captured on the Mac and
   reconciled. `time` as a bash keyword vs `/usr/bin/time` the
   program is standard bash behavior.
 - **util-linux `script`** records a full session into a

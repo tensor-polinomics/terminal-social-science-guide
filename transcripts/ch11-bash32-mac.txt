@@ -1,0 +1,24 @@
+# transcript
+chapter: 11
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: system /bin/bash (macOS)
+date: 2026-07-03
+captured-by: user-mac
+note: macOS ships /bin/bash frozen at 3.2.57 (Ch 3). A script that
+note: uses a bash-4+ feature runs on Linux (sandbox bash 5.1) and
+note: FAILS on the system bash here. The fix is a Homebrew bash
+note: pointed at by the shebang; the system bash never moves.
+---
+
+$ /bin/bash --version
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+$ /bin/bash -c 'declare -A m; m[x]=1; echo ${m[x]}'
+/bin/bash: line 0: declare: -A: invalid option
+declare: usage: declare [-afFirtx] [-p] [name[=value] ...]
+1
+$ /bin/bash -c 'v=hi; echo ${v^^}'
+/bin/bash: ${v^^}: bad substitution
+$ /bin/bash -c 'mapfile -t rows < /etc/hosts; echo ${#rows[@]}'
+/bin/bash: mapfile: command not found
+0

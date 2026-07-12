@@ -1,0 +1,20 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU tar 1.34, gzip 1.10
+date: 2026-07-04
+captured-by: sandbox
+note: bundle a project tree into one compressed file before
+note: moving it, and list its contents without unpacking. Run in
+note: throwaway scratch; owner column masked to [account].
+---
+$ tar -czf proj.tgz proj
+$ ls -lh proj.tgz
+-rw-r--r-- 1 [account] [account] 282 Jul  4 13:43 proj.tgz
+$ tar -tzf proj.tgz
+proj/
+proj/data/
+proj/data/panel.csv
+proj/scripts/
+proj/scripts/00_make.py

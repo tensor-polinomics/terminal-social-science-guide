@@ -1,0 +1,15 @@
+# transcript
+chapter: 14
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: OpenSSH + rsync (sandbox, GNU side of the divergence)
+date: 2026-07-04
+captured-by: sandbox
+note: version stamps. The sandbox is Linux/GNU: rsync 3.2.7 is the
+note: GNU-era 3.x line. macOS ships openrsync (or old rsync 2.6.9);
+note: the Mac rsync --version is captured separately for the DIVERGENCE.
+---
+$ ssh -V
+OpenSSH_8.9p1 Ubuntu-3ubuntu0.15, OpenSSL 3.0.2 15 Mar 2022
+$ rsync --version | head -1
+rsync  version 3.2.7  protocol version 31

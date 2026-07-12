@@ -9,8 +9,8 @@ note: run in sandbox/asset-pricing. One command writing to both
       streams at once: the count lines go to stdout, the missing-
       file complaint to stderr; on a plain terminal both land on
       the screen interleaved. No redirection is used here; the
-      mechanics of separating the streams are Ch 6's subject.
-      Deliberately a different command from Ch 6's ls demo.
+      mechanics of separating the streams are Ch 7's subject.
+      Deliberately a different command from Ch 7's ls demo.
 ---
 $ wc -l data/raw/factors.csv missing.csv
   181 data/raw/factors.csv

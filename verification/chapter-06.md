@@ -12,16 +12,16 @@ single cross-referenced Mac transcript owned by Chapter 5:
   tour runs in a clean copy of the asset-pricing project's
   repo-relevant tree at `/tmp/ap` (scripts + data + output +
   the root files, with `.venv/`, the `renv/` library, caches,
-  and render products excluded). Transcripts: `ch05-scaffold.txt`,
-  `ch05-place-files.txt`, `ch05-tour.txt`, `ch05-brace-space.txt`,
-  `ch05-scaffold-tools.txt`. Every shown `$` block was diffed
+  and render products excluded). Transcripts: `ch06-scaffold.txt`,
+  `ch06-place-files.txt`, `ch06-tour.txt`, `ch06-brace-space.txt`,
+  `ch06-scaffold-tools.txt`. Every shown `$` block was diffed
   byte-for-byte against its transcript.
 - **No new Mac capture this chapter.** The one place the layout
   meets a platform divergence, case-insensitive filenames, was
   captured on the author's Mac for Chapter 5
-  (`transcripts/ch04-case-mac.txt`, macOS 26.5.1) and is
+  (`transcripts/ch05-case-mac.txt`, macOS 26.5.1) and is
   cross-referenced here, not re-shown. There is therefore no
-  `capture-ch05-mac.sh`: nothing in this chapter behaves
+  `capture-ch06-mac.sh`: nothing in this chapter behaves
   differently enough on macOS to earn one.
 
 Masks: none this chapter. The scaffold, tour, and pitfall use
@@ -46,7 +46,7 @@ never as claims that a stub already teaches or verifies anything.
 
 ### mkdir -p with brace expansion (the one-line scaffold)
 - chapter/section: "Scaffold the whole tree in one move"
-- source: live sandbox capture `ch05-scaffold.txt`: `mkdir
+- source: live sandbox capture `ch06-scaffold.txt`: `mkdir
   asset-pricing`, `cd` in, then `mkdir -p data/{raw,clean}
   scripts output/{figures,tables}` (`echo $?` -> 0), `ls -R`
   walking the built tree, and `echo` on the same brace pattern
@@ -63,7 +63,7 @@ never as claims that a stub already teaches or verifies anything.
 
 ### touch placeholders + ls -a (front-matter files)
 - chapter/section: "Scaffold the whole tree in one move"
-- source: live sandbox capture `ch05-place-files.txt` (first
+- source: live sandbox capture `ch06-place-files.txt` (first
   block): `touch README.md Makefile report.qmd pyproject.toml
   .gitignore` (wrapped with a real `\` continuation) and `ls -a`
   showing `.gitignore` visible only because of `-a`.
@@ -74,7 +74,7 @@ never as claims that a stub already teaches or verifies anything.
 
 ### PITFALL: a space inside the braces
 - chapter/section: "Scaffold the whole tree in one move"; PITFALL
-- source: live sandbox capture `ch05-brace-space.txt`: `echo
+- source: live sandbox capture `ch06-brace-space.txt`: `echo
   data/{raw, clean}` printing the pattern verbatim (expansion
   suppressed by the space), then `mkdir -p data/{raw, clean}`
   silently creating a `data/{raw,` directory and a top-level
@@ -88,18 +88,18 @@ never as claims that a stub already teaches or verifies anything.
 
 ### The project tour (a place for everything)
 - chapter/section: "A place for everything: a tour of the project"
-- source: live sandbox capture `ch05-tour.txt` on the clean
+- source: live sandbox capture `ch06-tour.txt` on the clean
   `/tmp/ap` copy: `ls` (root), `ls -R data` (raw vs clean),
   `ls scripts` (numbered 00-04 + helpers), `ls -R output`
   (figures + tables). Names each home the running example uses;
-  the figure `fig-ch05-layout` summarizes the raw -> scripts ->
+  the figure `fig-ch06-layout` summarizes the raw -> scripts ->
   generated flow. **Human-review addition (2026-07-02):** an
   annotated layout tree opens the section as a labeled,
   non-runnable `text` map (per-home roles inline, no `$`
   prompts); the prose notes "walking it with the Chapter 5
   commands confirms it is really on disk," so the real `ls -R`
   output is the evidence and the tree is the schematic. The
-  tree's names were checked line-for-line against `ch05-tour.txt`;
+  tree's names were checked line-for-line against `ch06-tour.txt`;
   the following naming paragraph was trimmed to complement the
   tree (the raw/clean/output split) rather than re-list every
   home.
@@ -155,10 +155,10 @@ never as claims that a stub already teaches or verifies anything.
 - chapter/section: "Names that survive the trip to the server";
   DIVERGENCE
 - source: NOT re-captured. This is Chapter 5's case-sensitivity
-  divergence (`ch04-case.txt` Linux side; `ch04-case-mac.txt`
+  divergence (`ch05-case.txt` Linux side; `ch05-case-mac.txt`
   macOS APFS side) applied to directory names in a project that
   moves from a case-insensitive Mac to a case-sensitive Linux
-  server. The chapter points at `transcripts/ch04-case-mac.txt`
+  server. The chapter points at `transcripts/ch05-case-mac.txt`
   for the captured macOS behavior rather than duplicating it.
 - accessed: 2026-07-02 (Ch 5 capture reused)
 - verifies: the layout-level consequence (a wrong-case path that
@@ -168,7 +168,7 @@ never as claims that a stub already teaches or verifies anything.
 
 ### copier / cookiecutter (version pins; not run)
 - chapter/section: "Templating a stable layout"
-- source: real install evidence in `ch05-scaffold-tools.txt`
+- source: real install evidence in `ch06-scaffold-tools.txt`
   (`python3 -c` reading each package's `__version__`):
   cookiecutter 2.7.1, copier 9.16.0, both from PyPI in the
   sandbox. The chapter version-stamps them "as of 2026-07-02"
@@ -229,14 +229,14 @@ never as claims that a stub already teaches or verifies anything.
   quarto 1.9.36): `quarto render book` passed, 118-page PDF; the
   ASCII trees render correctly (Ch 2 p.19, Ch 6 p.56) and Figure
   5.1 is clean (p.58).**
-- **Figure:** one authored TikZ exhibit `fig-ch05-layout`
+- **Figure:** one authored TikZ exhibit `fig-ch06-layout`
   (textbook-diagrams design system; raw -> scripts -> generated
   flow, tracked-root band). Built with `pdflatex`; PDF is the
   `lmodern` build (135 KB) and the web SVG is the
   `gs -dNoOutputFonts` + `pdftocairo -svg` outline (290 KB, text
   as paths, no font dependency), NOT the broken `dvisvgm --pdf`
   output. Source + PDF + SVG committed under
-  `book/assets/figures/ch05/`; the `.tex` header records the
+  `book/assets/figures/ch06/`; the `.tex` header records the
   build recipe. Rasterized and inspected complete before install,
   then confirmed in Codex's 118-page Mac render (Figure 5.1 clean
   on p.58). Per the durable figure rule now in `CLAUDE.md`, the
@@ -246,7 +246,7 @@ never as claims that a stub already teaches or verifies anything.
   2 PITFALL (space-in-braces; editing-raw-in-place / mixing
   generated into source), 1 DIVERGENCE (case-insensitive names,
   cross-ref Ch 5). No DANGER (nothing here destroys; not forced).
-  0 em-dashes; all shown `$` blocks byte-diffed to a `ch05-*`
+  0 em-dashes; all shown `$` blocks byte-diffed to a `ch06-*`
   transcript.
 - **External pins:** only the two scaffolding-tool versions
   (cookiecutter 2.7.1, copier 9.16.0), captured from a real
@@ -261,7 +261,7 @@ never as claims that a stub already teaches or verifies anything.
   false in BOTH the section and Try-it exercise 4, both rewritten
   (see the hygiene entry above); (2) a stale mask claim (the
   chapter/verification said
-  `ch05-scaffold-tools.txt` held a masked `/home/[account]` but
+  `ch06-scaffold-tools.txt` held a masked `/home/[account]` but
   the `__version__` capture shows no path), removed; (3) stale
   gate docs (render/validator) reconciled here and across
   CHANGELOG / RESUME / handover; (4, tighten) added the

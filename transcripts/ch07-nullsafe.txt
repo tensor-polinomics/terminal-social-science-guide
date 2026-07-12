@@ -1,0 +1,22 @@
+# transcript
+chapter: 07
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU findutils 4.8.0; GNU coreutils 8.32
+date: 2026-06-30
+captured-by: sandbox
+note: find | xargs splits filenames on whitespace and breaks
+      on spaced names; -print0 with xargs -0 is null-delimited
+      and safe. Run in /tmp with two spaced CSV copies.
+---
+$ find . -name '*.csv' | xargs wc -l
+0 total
+wc: ./fy: No such file or directory
+wc: 2012.csv: No such file or directory
+wc: ./fy: No such file or directory
+wc: 2011.csv: No such file or directory
+
+$ find . -name '*.csv' -print0 | xargs -0 wc -l
+  181 ./fy 2012.csv
+  181 ./fy 2011.csv
+  362 total

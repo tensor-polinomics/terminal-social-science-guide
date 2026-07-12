@@ -1,0 +1,44 @@
+# transcript
+chapter: 18
+os: Ubuntu 22.04 (workspace sandbox)
+shell: 5.1.16(1)-release (aarch64-unknown-linux-gnu)
+tool: GNU bash (startup-file order)
+date: 2026-07-07
+captured-by: sandbox
+note: Every shell here runs against a THROWAWAY HOME with
+note: demo rc files; the real ~/.bashrc etc. are never read.
+note: The interactive case (bash -i) drops a non-tty
+note: job-control notice on stderr with 2>/dev/null; a real
+note: terminal has a tty and never prints it. HOME path and
+note: account name masked to /home/[account].
+---
+
+$ ls -a
+. .. .bash_profile .bashrc .profile
+
+$ tail -n +1 .bash_profile .bashrc .profile
+==> .bash_profile <==
+echo 'reading ~/.bash_profile'
+
+==> .bashrc <==
+echo 'reading ~/.bashrc'
+
+==> .profile <==
+echo 'reading ~/.profile'
+
+$ bash -lc 'true'          # login (a macOS Terminal tab)
+reading ~/.bash_profile
+
+$ bash -i -c 'true' 2>/dev/null   # non-login interactive
+reading ~/.bashrc
+
+$ bash -c 'true'           # non-interactive: script, ssh 'cmd'
+
+$ BASH_ENV=~/.bashrc bash -c 'true'   # the non-interactive hook
+reading ~/.bashrc
+
+$ ls -a           # a home with ONLY .profile
+. .. .profile
+
+$ bash -lc 'true'  # login falls back to .profile
+reading ~/.profile

@@ -1,0 +1,236 @@
+% ======================================================================
+% preamble.tex -- shared TikZ design system for the textbook figures.
+%
+% Usage in a standalone figure:
+%   \documentclass[tikz,border=8pt]{standalone}
+%   \input{preamble.tex}      % path relative to the figure, or via TEXINPUTS
+%   \begin{document}\begin{tikzpicture} ... \end{tikzpicture}\end{document}
+%
+% Design intent (read this before adding one-off styles):
+%   * One palette, used SEMANTICALLY. A colour means a role, never decoration.
+%   * Rounded "card" containers, thin borders, soft fills, one sans-serif.
+%   * Real Lucide icons (built to PDF by icons/build_icons.py), one family.
+%   * Manual layout. We choose spacing and alignment; we do not auto-route.
+%
+% Never hand-pick a colour in a figure. If you need a new role, add it here.
+% ======================================================================
+
+\usepackage[T1]{fontenc}
+\usepackage[scaled=0.95]{helvet}      % Helvetica-like sans; swap for the
+\renewcommand\familydefault{\sfdefault} % book font if the template differs.
+\usepackage{graphicx}
+\usepackage{amssymb}
+
+% Letterspacing for small-caps section labels. Guarded so compilation
+% still works if microtype is unavailable.
+\IfFileExists{microtype.sty}{\usepackage[letterspace=140]{microtype}}{}
+\providecommand{\textls}[1]{#1}   % fallback if microtype is absent
+
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, shapes.geometric, calc, fit,
+  backgrounds, decorations.pathreplacing}
+
+% ----------------------------------------------------------------------
+% 1. SEMANTIC PALETTE  (keep in sync with palette.md and icons INK)
+%    Each role has Fill (soft), Line (border/accent), Text (label).
+%    Anchored to book-private/docs/visual-style-guide.md (the book exhibit
+%    standard): ink #1F2933, muted #64748B, border #CBD5E1, light fill
+%    #F8FAFC, process blue #2563EB, evidence green #059669, stop amber
+%    #D97706, hard-failure red. The three CORE roles (prim / data / stop)
+%    are the guide's blue / green / amber. dsgn, inf, stor are an EXTENDED
+%    tier for rich conceptual maps; the guide's default is at most three
+%    semantic colours per exhibit, so reach for the core three first.
+% ----------------------------------------------------------------------
+\definecolor{tbInk}{HTML}{1F2933}      % icons, strokes, default ink
+\definecolor{tbMute}{HTML}{64748B}     % captions, section labels
+\definecolor{tbLine}{HTML}{94A3B8}     % arrows (secondary stroke)
+\definecolor{tbHair}{HTML}{CBD5E1}     % borders, dividers, faint panels
+\definecolor{tbPaper}{HTML}{F8FAFC}    % panel / light background
+
+% --- CORE semantic roles (the guide's three colours + neutral) ---
+% neutral / slate -- the familiar, the inert, the "given"
+\definecolor{tbNeutFill}{HTML}{F1F5F9}
+\definecolor{tbNeutLine}{HTML}{CBD5E1}
+\definecolor{tbNeutText}{HTML}{334155}
+% primary / process blue -- the main path, question, project spine
+\definecolor{tbPrimFill}{HTML}{EFF6FF}
+\definecolor{tbPrimLine}{HTML}{2563EB}
+\definecolor{tbPrimText}{HTML}{1E3A8A}
+% data / evidence green -- sources, evidence, validation, checks
+\definecolor{tbDataFill}{HTML}{ECFDF5}
+\definecolor{tbDataLine}{HTML}{059669}
+\definecolor{tbDataText}{HTML}{065F46}
+% stop / amber -- stop gates, warnings, revision triggers
+\definecolor{tbStopFill}{HTML}{FEF3C7}
+\definecolor{tbStopLine}{HTML}{D97706}
+\definecolor{tbStopText}{HTML}{78350F}
+
+% --- EXTENDED tier (use sparingly; never break the 3-colour default
+%     without a reason, e.g. a wide conceptual map) ---
+% design / indigo -- design logic, comparison, identification
+\definecolor{tbDsgnFill}{HTML}{EEF2FF}
+\definecolor{tbDsgnLine}{HTML}{4F46E5}
+\definecolor{tbDsgnText}{HTML}{3730A3}
+% inference / teal -- claims, interpretation, warrants
+\definecolor{tbInfFill}{HTML}{F0FDFA}
+\definecolor{tbInfLine}{HTML}{0D9488}
+\definecolor{tbInfText}{HTML}{115E59}
+% store / violet -- the durable record, model, source of truth
+\definecolor{tbStorFill}{HTML}{F5F3FF}
+\definecolor{tbStorLine}{HTML}{7C3AED}
+\definecolor{tbStorText}{HTML}{5B21B6}
+% fail / red -- genuine hard failures only (the guide reserves red)
+\definecolor{tbFailFill}{HTML}{FEF2F2}
+\definecolor{tbFailLine}{HTML}{DC2626}
+\definecolor{tbFailText}{HTML}{991B1B}
+% backward-compatible alias: tbWarn* -> amber stop family
+\colorlet{tbWarnFill}{tbStopFill}
+\colorlet{tbWarnLine}{tbStopLine}
+\colorlet{tbWarnText}{tbStopText}
+
+% ----------------------------------------------------------------------
+% 2. ICONS
+%    Build first:  cd icons && python3 build_icons.py
+%    Then: \tbicon{file-text}  or  \tbicon[5mm]{database}
+%    The icon inherits the recoloured ink baked in at build time.
+% ----------------------------------------------------------------------
+\graphicspath{{icons/cache/}{./icons/cache/}{../icons/cache/}%
+  {../../icons/cache/}{./}}
+\newcommand{\tbicon}[2][4mm]{%
+  \raisebox{-0.12\height}{\includegraphics[height=#1]{#2}}}
+
+% ----------------------------------------------------------------------
+% 3. NODE STYLES
+% ----------------------------------------------------------------------
+\tikzset{
+  % spacing defaults; override per figure with node distance=...
+  node distance = 9mm and 13mm,
+  %
+  % -- base card. Use a semantic family with  tbcard=tbData  etc.
+  %    #1 family stem: Neut Prim Data Stop (core) | Dsgn Inf Stor Fail (ext).
+  %    Border 0.7pt (secondary stroke, per the guide's 0.75-1.0pt band).
+  tbcard/.style 2 args = {
+    rounded corners = 4pt,
+    draw = #1Line, line width = 0.7pt,
+    fill = #1Fill, text = #1Text,
+    align = #2, inner sep = 6pt,
+    minimum height = 11mm, minimum width = 26mm,
+    font = \sffamily\small
+  },
+  tbcard/.default = {tbNeut}{center},
+  % convenience: one-argument families, centered text
+  neut/.style = {tbcard={tbNeut}{center}},
+  prim/.style = {tbcard={tbPrim}{center}},
+  data/.style = {tbcard={tbData}{center}},
+  stop/.style = {tbcard={tbStop}{center}},
+  dsgn/.style = {tbcard={tbDsgn}{center}},
+  inf/.style  = {tbcard={tbInf}{center}},
+  stor/.style = {tbcard={tbStor}{center}},
+  fail/.style = {tbcard={tbFail}{center}},
+  warn/.style = {tbcard={tbStop}{center}},   % alias -> stop (amber)
+  % left-aligned body variants (for cards with a title + detail lines)
+  neutL/.style = {tbcard={tbNeut}{left}},
+  primL/.style = {tbcard={tbPrim}{left}},
+  dataL/.style = {tbcard={tbData}{left}},
+  stopL/.style = {tbcard={tbStop}{left}},
+  dsgnL/.style = {tbcard={tbDsgn}{left}},
+  infL/.style  = {tbcard={tbInf}{left}},
+  storL/.style = {tbcard={tbStor}{left}},
+  failL/.style = {tbcard={tbFail}{left}},
+  %
+  % -- circular variable node for causal DAGs. Single family argument:
+  %    tbvar=tbPrim (treatment), tbvar=tbInf (outcome), etc.
+  tbvar/.style = {
+    circle, draw = #1Line, fill = #1Fill, text = #1Text,
+    line width = 0.7pt, align = center, inner sep = 1.5pt,
+    minimum size = 15mm, font = \sffamily\small
+  },
+  tbvar/.default = tbNeut,
+  %
+  % -- emphasis: a heavier border for the "source of truth" / final node
+  tbstrong/.style = {line width = 1.5pt},
+  %
+  % -- code / monospace inset (e.g. a record or schema snippet)
+  tbcode/.style = {
+    rounded corners = 3pt, draw = tbHair, line width = 0.5pt,
+    fill = white, text = tbNeutText, align = left,
+    inner sep = 5pt, font = \ttfamily\scriptsize
+  },
+  %
+  % -- step chip: small numbered circle pinned to a card corner
+  tbchip/.style = {
+    circle, text = white, font = \sffamily\tiny\bfseries,
+    inner sep = 0pt, minimum size = 4.2mm, fill = tbLine
+  },
+  %
+  % -- pill tag (status label like "required" / "gated path")
+  tbpill/.style = {
+    rounded corners = 5pt, draw = #1Line, line width = 0.5pt,
+    fill = #1Fill, text = #1Text, inner xsep = 4pt, inner ysep = 1.5pt,
+    font = \sffamily\fontsize{6.5}{7.5}\selectfont
+  },
+  tbpill/.default = tbNeut,
+}
+
+% ----------------------------------------------------------------------
+% 4. EDGES
+% ----------------------------------------------------------------------
+% Line-weight convention follows the guide: main path 1.25-1.5pt, secondary
+% 0.75-1.0pt; solid = primary sequence / dependency, dashed = feedback /
+% checking / optional. Heavier stroke marks the main path.
+\tikzset{
+  tbedge/.style = {-{Stealth[length=2.6mm, width=2.1mm]},
+    draw = tbLine, line width = 0.9pt},               % secondary stroke
+  tbedge thick/.style = {tbedge, line width = 1.4pt}, % main path
+  tbdash/.style = {tbedge, dashed},                   % soft / checking link
+  tbback/.style = {tbedge, dashed, draw = tbStopLine},% revision / feedback
+  tbline/.style = {draw = tbLine, line width = 0.9pt},% undirected tie
+}
+
+% ----------------------------------------------------------------------
+% 5. SECTIONS, TITLES, FOOTER
+% ----------------------------------------------------------------------
+\tikzset{
+  % section band: a soft rounded region grouping cards. Draw on the
+  % background layer with  fit  over the member nodes.
+  tbband/.style = {
+    rounded corners = 7pt, draw = tbHair, line width = 0.6pt,
+    fill = tbPaper, inner sep = 6mm
+  },
+  tbband accent/.style = {                 % tinted band, #1 = family stem
+    rounded corners = 7pt, draw = #1Line!55, line width = 0.6pt,
+    fill = #1Fill!45, inner sep = 6mm
+  },
+  % small-caps section label, sits at a band's top-left
+  tbsection/.style = {
+    font = \sffamily\bfseries\scriptsize, text = tbMute, inner sep = 0pt
+  },
+  % figure title + subtitle (place at top, anchored north)
+  tbtitle/.style = {font = \sffamily\bfseries\large, text = tbInk,
+    inner sep = 0pt},
+  tbsubtitle/.style = {font = \sffamily\small, text = tbMute, inner sep = 0pt},
+  % center annotation / aside
+  tbnote/.style = {font = \sffamily\itshape\footnotesize, text = tbMute,
+    align = center, inner sep = 0pt},
+  % footer principle item: icon over a short label
+  tbprinciple/.style = {align = center, text = tbNeutText,
+    font = \sffamily\fontsize{7}{8.5}\selectfont, inner sep = 2pt},
+}
+
+% Helper: a section label placed just above-left of a fitted band.
+% \tbsectionlabel{<node name>}{<TEXT>}
+\newcommand{\tbsectionlabel}[2]{%
+  \node[tbsection, anchor=south west] at ([xshift=2mm,yshift=1.5mm]#1.north west)
+    {\textls{\MakeUppercase{#2}}};}
+
+% Helper: numbered step chip on a card's north-west corner.
+% \tbstep{<node>}{<n>}{<family Line colour>}
+\newcommand{\tbstep}[3]{\node[tbchip, fill=#3] at (#1.north west) {#2};}
+
+% Helper: a titled card body -> icon, bold title, then small detail.
+% Use inside a node:  {\tbhead{file-text}{Prospectus}\\ \tbdetail{...}}
+\newcommand{\tbhead}[2]{\tbicon[4.4mm]{#1}\\[2pt]\textbf{#2}}
+% Detail text: small, and with hyphenation suppressed so short labels
+% wrap on word boundaries instead of breaking mid-word in narrow cards.
+\newcommand{\tbdetail}[1]{{\fontsize{7}{8.6}\selectfont
+  \hyphenpenalty=10000\exhyphenpenalty=10000\relax #1}}

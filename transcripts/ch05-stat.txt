@@ -1,0 +1,27 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in /tmp/asset-pricing (clean sandbox copy). MASK:
+      the Uid/Gid name fields print the sandbox account name,
+      masked to [account]; the numeric ids (1169) are left as
+      captured (not user-identifying, cf. Ch 2 keeping real
+      PIDs). This is GNU stat with the `-c` format string;
+      macOS ships BSD stat, whose default output differs and
+      whose format flag is `-f`, not `-c` (ch05-stat-mac.txt).
+---
+$ stat data/raw/factors.csv
+  File: data/raw/factors.csv
+  Size: 11506     	Blocks: 24         IO Block: 4096   regular file
+Device: 10302h/66306d	Inode: 34106       Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 1169/[account])   Gid: ( 1169/[account])
+Access: 2026-07-02 12:08:41.812001269 -0400
+Modify: 2026-07-02 12:08:41.813001269 -0400
+Change: 2026-07-02 12:09:44.604001299 -0400
+ Birth: 2026-07-02 12:08:41.812001269 -0400
+$ stat -c '%n %s bytes, perms %A, modified %y' \
+    data/raw/factors.csv
+data/raw/factors.csv 11506 bytes, perms -rw-r--r--, modified 2026-07-02 12:08:41.813001269 -0400

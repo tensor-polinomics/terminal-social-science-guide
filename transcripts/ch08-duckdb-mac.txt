@@ -1,0 +1,60 @@
+# transcript
+chapter: 08
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: DuckDB CLI (v1.5.4 (Variegata) 08e34c447b)
+date: 2026-07-03
+captured-by: user-mac
+note: REAL Mac capture (user decision 2026-07-02): the DuckDB
+note: CLI is not installable in the locked-down sandbox, so its
+note: output comes from the user's Mac. All queries are
+note: read-only SELECTs against the running example's raw CSVs
+note: and cleaned Parquet; no database file is created. The
+note: data is the deterministic generator output (hash-locked),
+note: so counts and values should match the sandbox CSVs. No
+note: user data in these lines.
+---
+
+$ duckdb --version
+v1.5.4 (Variegata) 08e34c447b
+
+$ duckdb -csv -c "SELECT month, mkt_rf \
+    FROM 'data/raw/factors.csv' LIMIT 3;"
+month,mkt_rf
+2011-01,0.001383
+2011-02,0.040907
+2011-03,0.061601
+
+$ duckdb -csv -c "DESCRIBE SELECT * \
+    FROM 'data/raw/firm_panel.csv';"
+column_name,column_type,null,key,default,extra
+firm,VARCHAR,YES,NULL,NULL,NULL
+month,VARCHAR,YES,NULL,NULL,NULL
+ret,DOUBLE,YES,NULL,NULL,NULL
+book_equity,DOUBLE,YES,NULL,NULL,NULL
+earnings,DOUBLE,YES,NULL,NULL,NULL
+assets,DOUBLE,YES,NULL,NULL,NULL
+
+$ duckdb -csv -c "SELECT count(*) AS n_rows, \
+    count(DISTINCT firm) AS n_firms \
+    FROM 'data/raw/firm_panel.csv';"
+n_rows,n_firms
+54000,300
+
+$ duckdb -csv <<'SQL'
+SELECT p.month, avg(p.ret) AS mean_ret, f.mkt_rf
+FROM 'data/raw/firm_panel.csv' p
+JOIN 'data/raw/factors.csv' f USING (month)
+GROUP BY p.month, f.mkt_rf
+ORDER BY p.month
+LIMIT 3;
+SQL
+month,mean_ret,mkt_rf
+2011-01,-0.0066718333333333334,0.001383
+2011-02,0.04969140333333332,0.040907
+2011-03,0.07497466333333329,0.061601
+
+$ duckdb -csv -c "SELECT count(*) AS n_months \
+    FROM 'data/clean/portfolio.parquet';"
+n_months
+179

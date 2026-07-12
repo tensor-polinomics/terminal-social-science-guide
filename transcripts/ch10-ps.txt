@@ -1,0 +1,15 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: ps from procps-ng 3.3.17
+date: 2026-07-03
+captured-by: sandbox
+note: inspecting a background job as an OS process (its PID,
+  parent PID, state, and command). PIDs vary per run.
+  `ps -o pid,...` prints no owner column, so nothing is masked.
+---
+$ sleep 300 &
+$ ps -o pid,ppid,stat,args -p "$!"
+    PID    PPID STAT COMMAND
+      7       5 S    sleep 300

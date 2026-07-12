@@ -1,139 +1,114 @@
 #!/usr/bin/env bash
-# Capture the Ch 12 (Environments from the shell) macOS facts on
-# the user's Mac.
+# Capture the Ch 12 Mac-only transcripts for the Make chapter.
 #
-# Ch 12's uv output (uv sync / uv run / uv add / uv pip list, the
-# .venv tree, and every lockfile read) is captured in the book's
-# Linux sandbox (ch12-*.txt). This script captures the things the
-# sandbox cannot: R, renv, and sessionInfo() are Mac-only (the
-# sandbox has no R and CRAN is blocked), the Ch 7 DuckDB / Ch 8 fd
-# / Ch 10 ShellCheck pattern. ALL commands are ordinary
-# non-interactive Rscript/uv invocations (no interactive shell is
-# driven, so nothing hangs on a real terminal):
-#   1. ch12-renv-mac.txt - renv::status() and a no-op
-#      renv::restore() in the real asset-pricing project (both
-#      read-only against a synchronized project: restore finds
-#      nothing to change; NO renv::snapshot() is run, so
-#      renv.lock is never rewritten); then the provenance
-#      receipts R.version.string and packageVersion("fixest"),
-#      and one full sessionInfo() after library(fixest) for the
-#      record (the chapter quotes the receipts and describes
-#      sessionInfo in prose).
-#   2. ch12-uv-mac.txt   - uv --version on the Mac, so the
-#      chapter's sandbox uv version stamp can be reconciled
-#      against the Mac install.
+# These demos exercise the cross-language graph (Python + R +
+# Quarto) that the locked-down sandbox cannot run: the full
+# build, incremental rebuilds that cross into the R target, a
+# dry run, and the `make check` drift-failure path. The output
+# is the real thing; this script only orchestrates it and tees
+# it into one transcript file.
 #
-# Run on the Mac, from the terminal repo root
-# (source-private/terminal), the way ch07/ch08/ch09/ch10 were run:
-#   bash transcripts/capture-ch12-mac.sh
-# then review the two ch12-*-mac.txt files it writes and paste
-# them back (or just say "done" and let the chapter be reconciled
-# against them).
+# Run on the Mac, from anywhere:
+#   bash source-private/terminal/transcripts/capture-ch12-mac.sh
+# then review/commit transcripts/ch12-make-mac.txt.
 #
-# Requirements: R with the project renv library already restored
-# (the normal state of the running example on the Mac), and uv on
-# PATH. Its only writes are the transcripts/ folder. Nothing is
-# installed by this script, no sudo is run, no interactive shell
-# is started, and no real credential is touched.
+# Safe and reversible: the only mutation is a temporary edit to
+# output/tables/ff5_alpha.tex to force a drift failure, undone
+# immediately by `make -B`. No git is run by this script.
 
-# NOT set -e: a surprising renv state (e.g. an out-of-sync
-# library) must be RECORDED, not fatal.
+# NOT `set -e`: we deliberately want to capture a FAILING
+# `make check` (nonzero exit) without aborting the script.
 set -uo pipefail
 
-# Quiet the recurring environment-noise lines (G2 convention).
-unset VIRTUAL_ENV
-export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
-
-# PRIVACY MASK, applied AT CAPTURE TIME (public-repo scrub,
-# transcripts/README.md; same helper as capture-ch10-mac.sh incl.
-# the $TMPDIR folder-hash scrub). renv's loader and sessionInfo()
-# can print the project's absolute path and locale values, so
-# every R block is masked.
-# R's aligned sessionInfo() tables can end lines with right-padding;
-# strip that padding at capture time so tracked transcripts pass
-# whitespace checks without changing any visible teaching content.
-acct="$(id -un)"
-mask() {
-  sed -E \
-    -e "s|${HOME}|/Users/[account]|g" \
-    -e "s|(/private)?/var/folders/[^/]+/[^/]+|/private/var/folders/[tmpdir]|g" \
-    -e "s|${acct}|[account]|g" \
-    -e 's/[[:blank:]]+$//'
-}
+# Quiet the two environment-noise lines (per G2 decision):
+unset VIRTUAL_ENV                            # stray outer venv
+export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE  # renv advisory
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-project="$here/../sandbox/asset-pricing"
+proj="$here/../sandbox/asset-pricing"
+out="$here/ch12-make-mac.txt"
 
-rout="$here/ch12-renv-mac.txt"
-uout="$here/ch12-uv-mac.txt"
-
-os_name="$(sw_vers -productName 2>/dev/null || echo macOS)"
-os_ver="$(sw_vers -productVersion 2>/dev/null || echo '?')"
-zver="$(zsh --version 2>/dev/null || echo 'zsh: not found')"
-today="$(date +%F)"
-
-hdr() {
-  # hdr <chapter-tool-line> <noteline...>
-  echo "# transcript"
-  echo "chapter: 12"
-  echo "os: ${os_name} ${os_ver} (Apple Silicon)"
-  echo "shell: ${zver} (login default)"
-  echo "tool: $1"
-  echo "date: ${today}"
-  echo "captured-by: user-mac"
-  shift
-  for ln in "$@"; do echo "note: ${ln}"; done
-  echo "---"
+cd "$proj" || {
+  echo "cannot cd to $proj" >&2
+  exit 1
 }
 
-# =============================================================
-# 1. renv in the real project: status, no-op restore, receipts,
-#    and one full sessionInfo() for the record.
-# =============================================================
-cd "$project" || exit 1
+rver="$(Rscript -e 'cat(as.character(getRversion()))')"
 
-rver="$(Rscript --no-init-file -e 'cat(R.version.string)' 2>/dev/null \
-  || echo 'R: not found')"
-renvver="$(Rscript -e 'cat(as.character(packageVersion("renv")))' \
-  2>/dev/null || echo '?')"
-
+# --- transcript header --------------------------------------
 {
-  hdr "${rver}; renv ${renvver}" \
-    "run in sandbox/asset-pricing (the real project); Rscript is" \
-    "non-interactive; renv activates via the project .Rprofile." \
-    "renv::restore() against a synchronized library is a no-op;" \
-	    "renv::snapshot() is deliberately NOT run (it would rewrite" \
-	    "renv.lock). Home paths, the account name, and the TMPDIR" \
-	    "hash are masked at capture time; R table right-padding is" \
-	    "stripped after masking."
-  echo ""
-  echo "\$ Rscript -e 'renv::status()'"
-  Rscript -e 'renv::status()' 2>&1 | mask
-  echo "\$ Rscript -e 'renv::restore()'"
-  Rscript -e 'renv::restore()' 2>&1 | mask
-  echo ""
-  echo "\$ Rscript -e 'R.version.string'"
-  Rscript -e 'R.version.string' 2>&1 | mask
-  echo "\$ Rscript -e 'packageVersion(\"fixest\")'"
-  Rscript -e 'packageVersion("fixest")' 2>&1 | mask
-  echo ""
-  echo "\$ Rscript -e 'library(fixest); sessionInfo()'"
-  Rscript -e 'library(fixest); sessionInfo()' 2>&1 | mask
-} > "$rout"
+  echo "# transcript"
+  echo "chapter: 12"
+  echo "os: $(sw_vers -productName) $(sw_vers -productVersion)" \
+       "(Apple Silicon)"
+  echo "shell: bash ${BASH_VERSION} (script)"
+  echo "tool: GNU Make $(make --version | head -1 |
+        awk '{print $3}'); uv $(uv --version |
+        awk '{print $2}'); R ${rver}; Quarto $(quarto --version)"
+  echo "date: $(date +%F)"
+  echo "captured-by: user-mac"
+  echo "note: Cross-language Make demos (R + Quarto) for Ch 12."
+  echo "      VIRTUAL_ENV unset and renv sync-check disabled so"
+  echo "      the recurring noise lines do not appear."
+  echo "---"
+} >"$out"
 
-cd "$here" || exit 1
+# Echo a command, run it, tee output into the transcript.
+run() {
+  echo "" | tee -a "$out"
+  echo "\$ $*" | tee -a "$out"
+  "$@" 2>&1 | tee -a "$out"
+}
 
-# =============================================================
-# 2. Mac uv version stamp.
-# =============================================================
-{
-  hdr "uv (Homebrew or standalone install)" \
-    "version stamp only, to reconcile the chapter's sandbox uv" \
-    "0.11.19 stamp against the Mac install."
-  echo ""
-  echo "\$ uv --version"
-  uv --version 2>&1 | mask
-} > "$uout"
+# Same, but also record the real exit status (the tee pipe
+# would otherwise mask a nonzero exit from `make check`).
+run_status() {
+  echo "" | tee -a "$out"
+  echo "\$ $*" | tee -a "$out"
+  "$@" 2>&1 | tee -a "$out"
+  echo "(exit status: ${PIPESTATUS[0]})" | tee -a "$out"
+}
 
-echo "captured -> $rout"
-echo "captured -> $uout"
+# 1. Clean slate, then the full cross-language build.
+run make clean
+run make
+run_status make check
+
+# PDF render is a separate step (`all` targets HTML).
+run quarto render report.qmd --to pdf
+
+# 2. No-op: nothing changed, so make rebuilds nothing.
+run make
+
+# 3. Incremental, Python upstream: touch the portfolio
+#    script and watch the cascade cross into R + Quarto.
+run touch scripts/02_portfolio.py
+run make
+
+# 4. Incremental, R only: touch the regression script;
+#    only the table and the report should rebuild.
+run touch scripts/04_regression.R
+run make
+
+# 5. Dry run: what WOULD rebuild after a touch (no work done).
+run touch scripts/04_regression.R
+run make -n
+run make   # actually bring it up to date before the drift demo
+
+# 6. `make check` fails loudly on a drifted R table.
+echo "" | tee -a "$out"
+echo "\$ sed -i '' 's/0.0034/0.0099/' \
+output/tables/ff5_alpha.tex" | tee -a "$out"
+sed -i '' 's/0.0034/0.0099/' output/tables/ff5_alpha.tex
+# Touch so make treats the table as up to date and does NOT
+# rebuild it, forcing check.py to read the corrupted file.
+touch output/tables/ff5_alpha.tex
+run_status make check
+run make -B output/tables/ff5_alpha.tex   # restore real table
+run_status make check                     # back to all-pass
+
+# 7. The help target.
+run make help
+
+echo "" | tee -a "$out"
+echo "captured -> $out"

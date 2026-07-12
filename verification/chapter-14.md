@@ -10,7 +10,7 @@ Linux sandbox, where it is network-free and byte-identical to
 the remote form; outbound `ssh` from the sandbox is blocked, so
 every genuinely remote block is captured on the author's Mac
 against a real AWS EC2 Ubuntu server by
-`transcripts/capture-ch13-mac.sh`. External behavior is pinned
+`transcripts/capture-ch14-mac.sh`. External behavior is pinned
 to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
 
 ## Provenance classes
@@ -26,16 +26,16 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   inside a scratch `~/.ssh`, run with relative paths so the
   commands stay within the 64-column limit; the private key
   body is never shown, only the public half and the
-  fingerprint. Transcripts: `ch13-versions.txt`,
-  `ch13-keygen.txt`, `ch13-rsync-move.txt`, `ch13-bundle.txt`,
-  `ch13-space.txt`. Verified: outbound `ssh` from the sandbox
+  fingerprint. Transcripts: `ch14-versions.txt`,
+  `ch14-keygen.txt`, `ch14-rsync-move.txt`, `ch14-bundle.txt`,
+  `ch14-space.txt`. Verified: outbound `ssh` from the sandbox
   fails at DNS resolution (allowlisted network), so the remote
   captures below could not be faked from here even in
   principle.
 - **Mac + real remote server, captured by
-  `transcripts/capture-ch13-mac.sh` (macOS 26.5.1, zsh 5.9;
+  `transcripts/capture-ch14-mac.sh` (macOS 26.5.1, zsh 5.9;
   server: Ubuntu on AWS EC2, kernel 6.8.0-1039-aws, x86_64,
-  with R and uv (userspace) present):** the seven `ch13-*-mac.txt`
+  with R and uv (userspace) present):** the seven `ch14-*-mac.txt`
   transcripts. The script hardcodes NO personal data; it
   derives the server hostname, account, home, mount, device,
   and any literal IP at runtime and masks them at capture time,
@@ -43,15 +43,15 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   calls are non-interactive one-shots (BatchMode; the Ch 10 hang
   lesson applied over the network). The transfer, checksum,
   environment-rebuild, and tunnel demos run in a throwaway
-  `~/ch13-demo` (and `~/ch13-tunnel-demo`) on the server, which
+  `~/ch14-demo` (and `~/ch14-tunnel-demo`) on the server, which
   the scripts delete afterward; nothing else of the user's is
   touched. Two identifiers the capture-time mask could not
   anticipate were masked ON INGESTION and noted in the
   transcript headers: the Mac's own LocalHostName inside a
   `~/.ssh` filename (`environment-<host>` ->
-  `environment-[hostname]`, `ch13-config-mac.txt`) and a
+  `environment-[hostname]`, `ch14-config-mac.txt`) and a
   host-named private key (`id_rsa_<host>` -> `id_rsa_[hostname]`,
-  `ch13-server-mac.txt`); the capture script's `mask()` was
+  `ch14-server-mac.txt`); the capture script's `mask()` was
   then hardened to scrub the Mac hostname on future runs.
 - **Authored, non-capture (labeled listings):** the annotated
   `~/.ssh/` tree (Section 2, the Ch 6 house device, ASCII
@@ -60,22 +60,22 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   blocks, not captures; every line is <= 64 columns and each
   is introduced in prose as illustrative. The `~/.ssh` tree's
   names are cross-checked against the real masked `ls -l`
-  listings in `ch13-config-mac.txt` and `ch13-server-mac.txt`.
+  listings in `ch14-config-mac.txt` and `ch14-server-mac.txt`.
 
 ## Behavior verified live (not assumed)
 
-- **rsync trailing-slash semantics** (`ch13-rsync-move.txt`):
+- **rsync trailing-slash semantics** (`ch14-rsync-move.txt`):
   `rsync -a proj/ backup` copies the CONTENTS of `proj` into
   `backup`; `rsync -a proj nested` nests a `proj/` inside
   `nested`. Shown side by side with `find`.
 - **`rsync --delete` deletes on the destination**
-  (`ch13-rsync-move.txt`): a stale `OLD_RESULT.csv` on the
+  (`ch14-rsync-move.txt`): a stale `OLD_RESULT.csv` on the
   target is reported `deleting OLD_RESULT.csv` under
   `-n --delete` and left in place (the `(DRY RUN)` marker and
   the intact `ls` confirm it), then actually removed when `-n`
   is dropped. This is the chapter's headline DANGER, captured
   with real output rather than asserted.
-- **Cross-machine checksum agreement** (`ch13-transfer-mac.txt`):
+- **Cross-machine checksum agreement** (`ch14-transfer-mac.txt`):
   the three transferred CSVs produce identical SHA-256 hashes
   from GNU `sha256sum` on the server and BSD `shasum -a 256` on
   the Mac (`54989b46...`, `8648c3be...`, `5056f919...`). This
@@ -83,13 +83,13 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   its remote payoff, and Chapter 11's manifest idea applied
   across two machines.
 - **`uv sync` rebuilds the Python env on the server**
-  (`ch13-restore-mac.txt`): from the same universal `uv.lock`,
+  (`ch14-restore-mac.txt`): from the same universal `uv.lock`,
   the server's CPython 3.12 resolves to 18 installed packages
   where the sandbox's 3.10 gave 20 (Chapter 13's
   universal-lock divergence, now demonstrated on a third
   platform); `statsmodels` lands at the locked `0.14.6`.
 - **`renv::restore()` rebuilds the R library on the server**
-  (`ch13-restore-mac.txt`): the server had no renv, so restore
+  (`ch14-restore-mac.txt`): the server had no renv, so restore
   first bootstraps renv 1.2.3, then compiles all 35 packages
   from source ("Successfully installed 35 packages in 420
   seconds"); `fixest` builds to `0.14.2`, matching the lock and
@@ -100,7 +100,7 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   release (the chapter does not assert a specific server R
   version), the live illustration of Chapter 13's honest edge
   that a lockfile pins packages, not the R interpreter.
-- **`ssh -L` port forwarding** (`ch13-tunnel-mac.txt`): a
+- **`ssh -L` port forwarding** (`ch14-tunnel-mac.txt`): a
   background tunnel (`ssh -fN -L 8899:localhost:<port>`) reaches
   a short-lived server-side `python3 -m http.server` via `curl`
   on the laptop; the returned directory listing (`HELLO.txt`,
@@ -108,8 +108,8 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   is chosen at capture time so the demo cannot collide with an
   existing service.
 - **The openrsync divergence, CORRECTED by capture**
-  (`ch13-versions-mac.txt`, `ch13-divergence-mac.txt`,
-  `ch13-versions.txt`): macOS ships `openrsync` (protocol 29,
+  (`ch14-versions-mac.txt`, `ch14-divergence-mac.txt`,
+  `ch14-versions.txt`): macOS ships `openrsync` (protocol 29,
   "rsync 2.6.9 compatible"), the Linux sandbox GNU rsync 3.2.7
   (protocol 31). The draft assumed, from the OpenBSD manual,
   that GNU-only flags `--itemize-changes` and `-z` would fail
@@ -206,7 +206,7 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   or `-z` in the OpenBSD build) and "compatible with rsync
   protocol version 27." NOTE: the CHAPTER does not repeat the
   no-`-i`/`-z` claim, because the live macOS capture
-  (`ch13-divergence-mac.txt`) shows Apple's openrsync accepting
+  (`ch14-divergence-mac.txt`) shows Apple's openrsync accepting
   both; the divergence is framed as implementation/protocol and
   the reader is told to check `rsync --version`.
 - **Slurm** (slurm.schedmd.com/{sbatch,squeue,scancel}.html,
@@ -256,7 +256,7 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   macOS openrsync vs Linux GNU rsync. REPRODUCIBILITY:
   checksum-verified transfer plus lockfile rebuild = same
   bytes and same versions on both machines.
-- **1 figure:** `fig-ch13-motion` (the laptop-to-server-to-GPU
+- **1 figure:** `fig-ch14-motion` (the laptop-to-server-to-GPU
   arrow diagram at the chapter open; textbook-diagrams TikZ,
   built font-independently per the CLAUDE.md recipe).
 - Mechanical: content sections = 7; `{.tier-beginner}` = 5;
@@ -265,7 +265,7 @@ to the OpenSSH, rsync, and Slurm manuals, fetched 2026-07-05.
   gate). Of the 21 fenced code blocks, 18 are transcript-backed
   (17 with `$`/`>` prompts plus the renv output block shown
   without a prompt) and were each verified as contiguous
-  substrings of the `ch13-*` transcripts (with marked `[...]`
+  substrings of the `ch14-*` transcripts (with marked `[...]`
   elisions for the rsync file list and the uv/renv install
   logs); the other 3 are authored non-capture listings (the
   annotated `~/.ssh` tree, the `~/.ssh/config` template, and the

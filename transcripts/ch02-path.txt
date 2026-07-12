@@ -9,7 +9,7 @@ note: PATH is a colon-separated list searched left to right;
       the first match wins. type -a lists every match in PATH
       order (on this box /usr/bin and /bin both hold sort;
       /usr/bin comes first so it wins). Matches the type -a
-      sort output already shown in Ch 6.
+      sort output already shown in Ch 7.
 ---
 $ echo $PATH
 /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

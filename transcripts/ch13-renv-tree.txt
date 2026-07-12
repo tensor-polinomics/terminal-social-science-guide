@@ -1,0 +1,20 @@
+# transcript
+chapter: 13
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-04
+captured-by: sandbox
+note: read-only listing of the real project's renv/ directory (created on the author's Mac by renv; listed here from the sandbox).
+---
+$ cat .Rprofile
+source("renv/activate.R")
+$ ls renv
+activate.R
+library
+settings.json
+staging
+$ ls renv/library
+macos
+$ ls renv/library/macos
+R-4.5

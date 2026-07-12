@@ -12,19 +12,19 @@ provenance classes:
   `/tmp` copy gives teachable absolute paths, exactly as Ch 2
   used `/tmp/ch02-fs/project`) and in throwaway `/tmp` scratch
   directories for the create/overwrite demos. Transcripts:
-  `ch04-pwd-ls.txt`, `ch04-cd.txt`, `ch04-ls-long.txt`,
-  `ch04-stat.txt`, `ch04-mkdir.txt`, `ch04-cp-mv.txt`,
-  `ch04-symlink.txt`, `ch04-case.txt`. Every sandbox block the
+  `ch05-pwd-ls.txt`, `ch05-cd.txt`, `ch05-ls-long.txt`,
+  `ch05-stat.txt`, `ch05-mkdir.txt`, `ch05-cp-mv.txt`,
+  `ch05-symlink.txt`, `ch05-case.txt`. Every sandbox block the
   chapter shows was diffed byte-for-byte against its transcript
   (including the literal tabs in `stat` output).
 - **Real, user's Mac (macOS/BSD divergences), read-only,
   RECONCILED 2026-07-02:** produced by
-  `transcripts/capture-ch04-mac.sh` (makes ONE `mktemp -d`
+  `transcripts/capture-ch05-mac.sh` (makes ONE `mktemp -d`
   scratch, removes it on exit, installs nothing; masks `$HOME`,
   the bare account name, and the `$TMPDIR` folder hash).
-  Transcripts: `ch04-home-mac.txt`, `ch04-ls-mac.txt`,
-  `ch04-stat-mac.txt`, `ch04-symlink-mac.txt`,
-  `ch04-case-mac.txt` (macOS 26.5.1, zsh 5.9). The user ran the
+  Transcripts: `ch05-home-mac.txt`, `ch05-ls-mac.txt`,
+  `ch05-stat-mac.txt`, `ch05-symlink-mac.txt`,
+  `ch05-case-mac.txt` (macOS 26.5.1, zsh 5.9). The user ran the
   script; the chapter's Mac blocks are reconciled to it. Two
   findings landed as edits: (1) on macOS 26.5.1 BOTH
   `readlink -f` and `realpath` resolve the link (exit 0), so
@@ -46,7 +46,7 @@ the macOS per-account `$TMPDIR` folder hash under
 `realpath` resolving into the mktemp scratch) masked to
 `/private/var/folders/[tmpdir]`. The capture script's `mask()`
 was patched to scrub that folder hash on any rerun. The macOS
-group `staff`, numeric uids/gids, and the random `ch04mac.XXXXXX`
+group `staff`, numeric uids/gids, and the masked `ch05mac.[rand]`
 mktemp suffix are not user-identifying and are left as
 captured. Access date for the one external pin below:
 2026-07-02.
@@ -64,8 +64,8 @@ which established that phrasing.)
 ### pwd / ls / cd navigation (working-directory model made operational)
 - chapter/section: "Where you are and what is here";
   "Moving through the tree"
-- source: live sandbox captures `ch04-pwd-ls.txt` (`pwd`, `ls`,
-  `ls data/raw`) and `ch04-cd.txt` (`cd` relative, `cd ..`,
+- source: live sandbox captures `ch05-pwd-ls.txt` (`pwd`, `ls`,
+  `ls data/raw`) and `ch05-cd.txt` (`cd` relative, `cd ..`,
   absolute `cd`, `cd -`, and the PITFALL rerun of `ls data/raw`
   from `/tmp` failing). Operationalizes Ch 2's absolute-vs-
   relative and the "silent precondition" behind `ls data/raw`.
@@ -76,7 +76,7 @@ which established that phrasing.)
 
 ### ~ / $HOME shorthand (shown from the Mac)
 - chapter/section: "Moving through the tree"
-- source: RECONCILED `ch04-home-mac.txt`
+- source: RECONCILED `ch05-home-mac.txt`
   (`echo $HOME`, `echo ~` -> `/Users/[account]`). Shown from
   the Mac because the sandbox home is a `/sessions` quirk, the
   same reason Ch 2 showed `$HOME` from the Mac.
@@ -87,8 +87,8 @@ which established that phrasing.)
 
 ### ls -l / -a / -h and stat (GNU long format + metadata)
 - chapter/section: "Looking closely"
-- source: live sandbox captures `ch04-ls-long.txt`
-  (`ls -l`, `ls -a`, `ls -lh`) and `ch04-stat.txt`
+- source: live sandbox captures `ch05-ls-long.txt`
+  (`ls -l`, `ls -a`, `ls -lh`) and `ch05-stat.txt`
   (`stat`, `stat -c` format). **Human-review addition
   (2026-07-02):** the permission block is now decoded for
   READING (type char + owner/group/other rwx triples, using
@@ -106,10 +106,10 @@ which established that phrasing.)
 
 ### DIVERGENCE: ls -l `total` block units + the -G false friend (BSD vs GNU)
 - chapter/section: "Looking closely"; DIVERGENCE 1
-- source: GNU side live (`ch04-ls-long.txt`: `total` in 1K
+- source: GNU side live (`ch05-ls-long.txt`: `total` in 1K
   blocks, and an `ls -l` / `ls -lG` pair showing GNU `-G` =
   `--no-group` SUPPRESSING the group column); BSD side
-  RECONCILED `ch04-ls-mac.txt` (`total 16` in 512-byte blocks;
+  RECONCILED `ch05-ls-mac.txt` (`total 16` in 512-byte blocks;
   plain `ls -G` exit 0). The 512-vs-1K block-size default is
   BSD `ls` vs GNU `ls` documented behavior, confirmed both
   sides. The `-G` false-friend: GNU `-G` suppresses the group
@@ -120,7 +120,7 @@ which established that phrasing.)
   **Round-1 fix:** the earlier draft's false "BSD `ls` has no
   `--color`" claim was removed (Codex P1). **Round-2 fix:** the
   macOS side is now CAPTURED, not just doc-backed. The user
-  re-ran `capture-ch04-mac.sh` and `ch04-ls-mac.txt` shows
+  re-ran `capture-ch05-mac.sh` and `ch05-ls-mac.txt` shows
   `ls -lG proj/data/raw` on macOS 26.5.1 keeping the `staff`
   group column (identical to `ls -l`), the direct contrast to
   GNU `-G` dropping it. So both sides of the false friend are
@@ -134,8 +134,8 @@ which established that phrasing.)
 
 ### DIVERGENCE: stat -c (GNU) vs stat -f (BSD)
 - chapter/section: "Looking closely"; DIVERGENCE 2
-- source: GNU side live (`ch04-stat.txt`, `stat -c '%n %s %A
-  %y'`); BSD side RECONCILED `ch04-stat-mac.txt`
+- source: GNU side live (`ch05-stat.txt`, `stat -c '%n %s %A
+  %y'`); BSD side RECONCILED `ch05-stat-mac.txt`
   (`stat -f '%N %z %Sp %Sm'` -> a name/size/perms/mtime line;
   the chapter now shows that real output). Different flag AND
   different format specifiers. Portable advice: branch on
@@ -147,7 +147,7 @@ which established that phrasing.)
 
 ### mkdir / mkdir -p / rmdir
 - chapter/section: "Making and clearing directories"
-- source: live sandbox capture `ch04-mkdir.txt`: plain `mkdir`
+- source: live sandbox capture `ch05-mkdir.txt`: plain `mkdir`
   failing on a missing parent (`echo $?` -> 1), `mkdir -p`
   building the chain (`echo $?` -> 0), `ls -R`, and `rmdir`
   removing an empty dir but refusing a non-empty one. The
@@ -163,7 +163,7 @@ which established that phrasing.)
 
 ### cp / cp -r / mv, the silent-overwrite DANGER, and cp -i
 - chapter/section: "Copying and moving"; DANGER; RECOVERY
-- source: live sandbox capture `ch04-cp-mv.txt`: `cp`, `cp -r`,
+- source: live sandbox capture `ch05-cp-mv.txt`: `cp`, `cp -r`,
   `mv` (rename then move), the silent clobber (`cp new.csv
   results.csv` replacing `keep me` with `different`), and
   `cp -i` prompting (`n` fed on stdin for capture; disclosed in
@@ -181,9 +181,9 @@ which established that phrasing.)
 
 ### ln -s / readlink; DIVERGENCE: readlink -f / realpath (BSD support)
 - chapter/section: "Symbolic links"; DIVERGENCE 3
-- source: GNU side live `ch04-symlink.txt` (`ln -s`, `ls -l`
+- source: GNU side live `ch05-symlink.txt` (`ln -s`, `ls -l`
   arrow line, `readlink`, `readlink -f`, `realpath` all
-  resolving). BSD side RECONCILED `ch04-symlink-mac.txt`
+  resolving). BSD side RECONCILED `ch05-symlink-mac.txt`
   (macOS 26.5.1): both `readlink -f` and `realpath` resolve the
   link to the absolute path, exit 0, matching GNU. This settles
   the divergence: recent macOS has caught up, but older macOS
@@ -201,9 +201,9 @@ which established that phrasing.)
 
 ### DIVERGENCE: case sensitivity (Linux ext4 vs macOS APFS default)
 - chapter/section: "When names collide"; DIVERGENCE 4
-- source: Linux side live `ch04-case.txt` (`Foo.txt` and
+- source: Linux side live `ch05-case.txt` (`Foo.txt` and
   `foo.txt` are two distinct files with distinct contents). Mac
-  side RECONCILED `ch04-case-mac.txt` (default APFS is
+  side RECONCILED `ch05-case-mac.txt` (default APFS is
   case-insensitive + case-preserving: `ls` shows one `Foo.txt`
   and `cat Foo.txt` -> `lower`, i.e. `foo.txt` overwrote it, so
   the same names are ONE file). Consequence framed in the bite
@@ -242,8 +242,8 @@ which established that phrasing.)
   overflow check are PENDING (Codex/Mac step), as in prior
   chapters.
 - **Mac captures: RECONCILED 2026-07-02.** The user ran
-  `capture-ch04-mac.sh` (read-only, `mktemp -d` scratch removed
-  on exit, installs nothing); the five `ch04-*-mac.txt` files
+  `capture-ch05-mac.sh` (read-only, `mktemp -d` scratch removed
+  on exit, installs nothing); the five `ch05-*-mac.txt` files
   back the Mac blocks (macOS 26.5.1, zsh 5.9). Results:
   `~`/`$HOME` -> `/Users/[account]`; BSD `ls -l` `total 16`
   (512-byte blocks) + `ls -G` exit 0; BSD `stat -f` prints the
@@ -268,8 +268,8 @@ which established that phrasing.)
   DANGER (short, points to Ch 7 + App A), 1 PITFALL
   (relative-path-from-wrong-dir), 1 RECOVERY (after a cp/mv
   clobber). No figure (none earned). 0 em-dashes; all shown
-  sandbox `$` blocks byte-diffed to a `ch04-*` transcript, and
-  the Mac blocks reconciled to the `ch04-*-mac.txt` captures.
+  sandbox `$` blocks byte-diffed to a `ch05-*` transcript, and
+  the Mac blocks reconciled to the `ch05-*-mac.txt` captures.
 - **External pins:** the BSD-vs-GNU divergences (ls block-size,
   the `-G` false friend, stat flag, readlink/realpath, case
   sensitivity) are ALL settled by real capture on both
@@ -277,5 +277,5 @@ which established that phrasing.)
   two Mac runs on 2026-07-02), per PLAN Section 10's "run the
   command, use the real output." The round-2 re-run closed the
   last doc-only sub-claim: macOS `ls -lG` keeping the group
-  column is now captured in `ch04-ls-mac.txt`. No web-source
+  column is now captured in `ch05-ls-mac.txt`. No web-source
   pin and no dead-host/Internet-Archive fallback needed.

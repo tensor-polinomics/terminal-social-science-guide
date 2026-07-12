@@ -1,0 +1,23 @@
+# transcript
+chapter: 14
+os: macOS 26.5.1 (Apple Silicon) + remote Linux server
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: openrsync (option coverage)
+date: 2026-07-05
+captured-by: user-mac
+note: Run against a throwaway /tmp scratch dir, probing whether
+note: GNU-only rsync flags exist on macOS's openrsync. FINDING:
+note: on this macOS (26.5.1) both --itemize-changes (prints the
+note: change codes cd+++++++/>f+++++++) and -z (runs quietly, no
+note: error) are ACCEPTED. So the real DIVERGENCE is the
+note: implementation and protocol (openrsync proto 29 vs GNU
+note: proto 31, see ch14-versions-mac.txt), NOT a flag failure;
+note: the man-page assumption that openrsync lacks these was
+note: falsified by the capture. Older macOS or bare OpenBSD
+note: openrsync may differ; verify with rsync --version/--help.
+note: Scratch paths masked; no network, no personal data.
+---
+$ rsync -a --itemize-changes src/ dst
+cd+++++++ ./
+>f+++++++ a.txt
+$ rsync -az src/ dst

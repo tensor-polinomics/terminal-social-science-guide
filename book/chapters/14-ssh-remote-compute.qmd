@@ -26,7 +26,7 @@ a server; it drives one.
 
 A note on where the output comes from. The SSH-client blocks
 run on the author's Mac against a real remote Linux server (an
-AWS EC2 Ubuntu box), captured by `transcripts/capture-ch13-mac.sh`;
+AWS EC2 Ubuntu box), captured by `transcripts/capture-ch14-mac.sh`;
 `rsync`'s semantics, `ssh-keygen`, `tar`, and `du` run in this
 book's Linux sandbox, where they need no network and behave
 exactly as they do remotely. Because everything SSH touches is
@@ -37,7 +37,7 @@ mount (`[mount]`) and device (`[device]`); the server alias is
 `lab-server` throughout. No private key is ever shown. The one
 keypair on display is a throwaway generated for the book.
 
-![The laptop-to-server motion this chapter delivers. Your laptop is where you edit and version; a key and `~/.ssh/config` open an authenticated, named connection to a remote Linux box; `rsync` moves the project across (lockfiles, not built environments) and results back; `uv sync` and `renv::restore()` rebuild the environment on arrival. The same pattern reaches a GPU pod or an HPC login node, which you learn to recognize rather than master.](../assets/figures/ch13/fig-ch13-motion){#fig-ch13-motion fig-alt="A left-to-right diagram. On the left a card labeled 'laptop (edit, version, Git)'. An arrow labeled 'ssh: key + ~/.ssh/config' leads to a center card 'remote Linux box'. Between them two arrows: 'rsync -a (lockfiles travel)' pointing right and 'rsync results back' pointing left. Above the center card, 'uv sync / renv::restore() rebuild the environment'. On the right two faded cards, 'GPU pod (+ a meter)' and 'HPC login node (sbatch)', labeled 'recognize and route'." width="5.6in" fig-pos="H"}
+![The laptop-to-server motion this chapter delivers. Your laptop is where you edit and version; a key and `~/.ssh/config` open an authenticated, named connection to a remote Linux box; `rsync` moves the project across (lockfiles, not built environments) and results back; `uv sync` and `renv::restore()` rebuild the environment on arrival. The same pattern reaches a GPU pod or an HPC login node, which you learn to recognize rather than master.](../assets/figures/ch14/fig-ch14-motion){#fig-ch14-motion fig-alt="A left-to-right diagram. On the left a card labeled 'laptop (edit, version, Git)'. An arrow labeled 'ssh: key + ~/.ssh/config' leads to a center card 'remote Linux box'. Between them two arrows: 'rsync -a (lockfiles travel)' pointing right and 'rsync results back' pointing left. Above the center card, 'uv sync / renv::restore() rebuild the environment'. On the right two faded cards, 'GPU pod (+ a meter)' and 'HPC login node (sbatch)', labeled 'recognize and route'." width="5.6in" fig-pos="H"}
 
 ## Reaching a shell on a machine you cannot see
 
@@ -312,7 +312,7 @@ stay home and are rebuilt on the far side:
 
 ```bash
 $ rsync -av --exclude='.venv' --exclude='renv/library' \
-    sandbox/asset-pricing/ lab-server:ch13-demo/
+    sandbox/asset-pricing/ lab-server:ch14-demo/
 [...]
 sent 4994461 bytes  received 1024 bytes  2474114 bytes/sec
 total size is 4989006  speedup is 1.00
@@ -385,7 +385,7 @@ ends. After the push, hash the moved files on the server and on
 the laptop and compare:
 
 ```bash
-$ ssh lab-server 'cd ch13-demo && find . -name "*.csv" | sort \
+$ ssh lab-server 'cd ch14-demo && find . -name "*.csv" | sort \
     | xargs sha256sum'
 54989b4637304f96016a4877d20be4b144165c2db6ee4e7720350cf4ce9b99b1  ./data/clean/portfolio.csv
 8648c3be59440b8be87b9a473a10a029b3e50f33a7af7bd454445de6fd31c7af  ./data/raw/factors.csv
@@ -469,7 +469,7 @@ this is the moment Chapter 13 was built for. `uv sync` reads
 universal lock for whatever interpreter the server has:
 
 ```bash
-$ ssh lab-server 'cd ch13-demo && ~/.local/bin/uv sync'
+$ ssh lab-server 'cd ch14-demo && ~/.local/bin/uv sync'
 Using CPython 3.12.12
 Creating virtual environment at: .venv
 Resolved 28 packages in 45ms
@@ -590,7 +590,7 @@ patterns if you have none yet).
 
 2. Move the project, safely. From the project root, dry-run the
    push first: `rsync -av -n --exclude='.venv'
-   --exclude='renv/library' ./ myalias:ch13-demo/`. Read the
+   --exclude='renv/library' ./ myalias:ch14-demo/`. Read the
    list, then run it for real without `-n`. State in one
    sentence why `.venv/` and `renv/library/` are excluded.
 

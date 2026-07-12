@@ -11,13 +11,13 @@ manuals fetched 2026-07-03. Provenance classes:
   procps-ng 3.3.17 (`ps`), Python 3.10.12, aarch64. All demos
   run in throwaway `/tmp` scratch dirs (the `.gitignore` read
   uses the tracked `sandbox/asset-pricing/.gitignore`).
-  Transcripts: `ch09-jobs.txt`, `ch09-signals.txt`,
-  `ch09-nohup.txt`, `ch09-chmod.txt`, `ch09-env.txt`,
-  `ch09-ps.txt`, `ch09-ps-leak.txt`, `ch09-gitignore.txt`,
-  `ch09-history.txt`. Every sandbox block the chapter shows was
+  Transcripts: `ch10-jobs.txt`, `ch10-signals.txt`,
+  `ch10-nohup.txt`, `ch10-chmod.txt`, `ch10-env.txt`,
+  `ch10-ps.txt`, `ch10-ps-leak.txt`, `ch10-gitignore.txt`,
+  `ch10-history.txt`. Every sandbox block the chapter shows was
   diffed against its transcript (14 blocks, all byte-identical;
   see counts).
-- **bash shell history is a SANDBOX capture** (`ch09-history.txt`),
+- **bash shell history is a SANDBOX capture** (`ch10-history.txt`),
   not a Mac one. Interactive history cannot be captured by a
   script on a real terminal (an interactive zsh/bash reads the
   keyboard, not the script's piped input, so it hangs), but it
@@ -32,9 +32,9 @@ manuals fetched 2026-07-03. Provenance classes:
   terminal and was removed.
 - **Real, user's Mac (macOS 26.5.1, zsh 5.9, Apple Silicon):
   RECONCILED 2026-07-03.** The user ran
-  `transcripts/capture-ch09-mac.sh` (installs nothing, runs no
+  `transcripts/capture-ch10-mac.sh` (installs nothing, runs no
   `sudo`, masks at capture time incl. the `$TMPDIR` scrub):
-  1. **chown** (`ch09-chown-mac.txt`) - the ONE drafted chapter
+  1. **chown** (`ch10-chown-mac.txt`) - the ONE drafted chapter
      block MATCHED the capture byte-for-byte: `$ chown "$(id
      -un)" key.pem` / `$ chown daemon key.pem` -> `chown:
      key.pem: Operation not permitted` / `$ echo $?` -> `1`.
@@ -44,7 +44,7 @@ manuals fetched 2026-07-03. Provenance classes:
      confirming a privilege-free group change; the account name
      is masked, `staff`/`everyone` are standard groups left
      as-is.
-  2. **BSD ps** (`ch09-ps-mac.txt`) - backs the `ps` DIVERGENCE:
+  2. **BSD ps** (`ch10-ps-mac.txt`) - backs the `ps` DIVERGENCE:
      `ps -o pid,args` on macOS printed the same exposed command
      line (`python3 ... --password=hunter2`) under a BSD `PID
      ARGS` header (vs Linux procps `PID COMMAND`). The chapter
@@ -55,7 +55,7 @@ Masking: every secret value in the chapter is a FAKE placeholder
 (`hunter2`, `sk-not-a-real-key-1234`, `DB_PASSWORD=hunter2`,
 `sk-fake-...`); no real credential or real environment dump
 appears anywhere. The account name that `ls -l` prints is masked
-to `[account]` in `ch09-chmod.txt` (Ch 2 policy, as Ch 5 did).
+to `[account]` in `ch10-chmod.txt` (Ch 2 policy, as Ch 5 did).
 `ps -o pid,args` prints no owner column, so the `ps` blocks carry
 no user data. No real `$HISTFILE`, `env`, or `printenv` dump is
 ever shown.
@@ -66,29 +66,29 @@ These process/permission claims were confirmed by running them,
 which is stronger than a doc citation:
 
 - **A trapped `SIGTERM` runs the handler; `SIGKILL` (-9) does
-  not.** `ch09-signals.txt`: the default `kill` let the script's
+  not.** `ch10-signals.txt`: the default `kill` let the script's
   `trap cleanup TERM` write its cleanup line; `kill -9` left the
   log after "started" with no cleanup line. Backs the section and
   the `kill -9` PITFALL.
 - **An exported variable is inherited by a child; a plain shell
-  variable is not.** `ch09-env.txt`: `bash -c 'echo [$DB_PASSWORD]'`
+  variable is not.** `ch10-env.txt`: `bash -c 'echo [$DB_PASSWORD]'`
   printed `[]` before `export` and `[hunter2]` after. Backs the
   env-inheritance PITFALL (and the Ch 17 cross-ref: an agent
   launched from the same shell inherits the same exported
   secrets).
 - **A command-line argument is exposed in `ps`; a value read from
-  the environment is not.** `ch09-ps-leak.txt`:
+  the environment is not.** `ch10-ps-leak.txt`:
   `ps -o pid,args` showed `--password=hunter2` in the arg list,
   and showed only `python3 readkey.py` for the env-reading
   program. Backs the leak DANGER and its mitigation.
-- **`chmod` changes the shown permission bits.** `ch09-chmod.txt`:
+- **`chmod` changes the shown permission bits.** `ch10-chmod.txt`:
   `chmod 600` took `.env` from `-rw-r--r--` to `-rw-------`;
   `chmod u+x` took a script from `-rw-r--r--` to `-rwxr--r--`;
   `chmod 777` produced `-rwxrwxrwx`. Backs the permissions
   section and the `chmod 777` DANGER.
 - **`HISTCONTROL=ignorespace` and `set +o history` keep commands
   out of the saved bash history file.** Captured in the Linux
-  sandbox (isolated `HISTFILE`, exit-write; `ch09-history.txt`):
+  sandbox (isolated `HISTFILE`, exit-write; `ch10-history.txt`):
   the saved file held `echo "public setup line"`, `set +o
   history`, `echo "public line after"` and omitted both the
   leading-space `curl` bearer-token line and the command run
@@ -122,7 +122,7 @@ which is stronger than a doc citation:
    privileges, is permitted to change the file mode bits."
    Examples given include `chmod 644 foo`, `chmod a=r,u+w foo`,
    and `chmod ug+x file`. Backs the octal/symbolic teaching; the
-   bit changes themselves are live in `ch09-chmod.txt`.
+   bit changes themselves are live in `ch10-chmod.txt`.
 3. **Changing a file's owner to another user requires
    privilege.** The coreutils `chmod` pin above states the
    general model ("a process with appropriate privileges"); the
@@ -131,7 +131,7 @@ which is stronger than a doc citation:
    documents it
    (https://www.gnu.org/software/coreutils/manual/html_node/chown-invocation.html).
    The claim is also evidenced DIRECTLY by the reconciled Mac
-   capture (`ch09-chown-mac.txt`, 2026-07-03): an un-privileged
+   capture (`ch10-chown-mac.txt`, 2026-07-03): an un-privileged
    `chown daemon key.pem` fails with "Operation not permitted"
    (exit 1), while `chown` to yourself and `chgrp` to a group you
    already belong to both succeed. Backs the ownership section.
@@ -156,7 +156,7 @@ which is stronger than a doc citation:
    set to cause the shell to save only a subset of the commands
    entered"; HISTFILE "default ~/.bash_history". The specific
    `HISTCONTROL=ignorespace` value's effect is verified LIVE in
-   the sandbox (above) and reproduced in `ch09-history.txt`. The
+   the sandbox (above) and reproduced in `ch10-history.txt`. The
    gnu.org "Bash Variables" page that enumerates the
    `ignorespace`/`ignoreboth` values is the authoritative source
    for those values (it did not return content on this session's

@@ -1,186 +1,0 @@
-# transcript
-chapter: 13
-os: macOS 26.5.1 (Apple Silicon) + remote Linux server
-shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
-tool: uv sync + renv::restore() on the server
-date: 2026-07-05
-captured-by: user-mac
-note: The Ch 12 payoff, live on the server: uv sync rebuilds the
-note: Python env from uv.lock (wheels, fast); renv::restore()
-note: bootstraps renv and rebuilds the R library from renv.lock
-note: (compiles from source, several minutes). The shown restore
-note: output backs the package rebuild and the locked package
-note: versions. The chapter deliberately does not assert the
-note: server's exact R patch version; that check was a chat-time
-note: probe, not committed capture. This is the Ch 12 point that
-note: lockfiles pin packages, not the R interpreter. Long install
-note: logs are captured in full here; the chapter shows a
-note: contiguous slice.
----
-$ ssh lab-server 'cd ch13-demo && ~/.local/bin/uv sync'
-Using CPython 3.12.12
-Creating virtual environment at: .venv
-Resolved 28 packages in 45ms
-Downloading pandas (10.4MiB)
-Downloading matplotlib (9.6MiB)
-Downloading fonttools (4.8MiB)
-Downloading polars-runtime-32 (54.6MiB)
-Downloading pillow (6.8MiB)
-Downloading numpy (15.9MiB)
-Downloading pyarrow (46.6MiB)
-Downloading scipy (33.7MiB)
-Downloading kiwisolver (1.4MiB)
- Downloading kiwisolver
- Downloading pillow
- Downloading fonttools
- Downloading matplotlib
- Downloading numpy
- Downloading polars-runtime-32
- Downloading scipy
- Downloading pandas
- Downloading pyarrow
-Prepared 12 packages in 4.56s
-Installed 18 packages in 217ms
- + contourpy==1.3.3
- + cycler==0.12.1
- + fonttools==4.63.0
- + kiwisolver==1.5.0
- + matplotlib==3.11.0
- + numpy==2.5.0
- + packaging==26.2
- + pandas==3.0.3
- + patsy==1.0.2
- + pillow==12.2.0
- + polars==1.42.1
- + polars-runtime-32==1.42.1
- + pyarrow==24.0.0
- + pyparsing==3.3.2
- + python-dateutil==2.9.0.post0
- + scipy==1.18.0
- + six==1.17.0
- + statsmodels==0.14.6
-
-$ ssh lab-server 'cd ch13-demo && Rscript -e "renv::restore(prompt=FALSE)"'
-Loading required package: DBI
-# Bootstrapping renv 1.2.3 ---------------------------------------------------
-- Downloading renv ... OK
-- Installing renv  ... OK
-
-- One or more packages recorded in the lockfile are not installed.
-- Use `renv::status()` for more details.
-The following package(s) will be updated:
-
-# CRAN -----------------------------------------------------------------------
-- lattice       [0.20-45 -> 0.22-9]
-- nlme          [3.1-160 -> 3.1-168]
-- base64enc     [* -> 0.1-6]
-- bslib         [* -> 0.11.0]
-- cachem        [* -> 1.1.0]
-- cli           [* -> 3.6.6]
-- digest        [* -> 0.6.39]
-- dreamerr      [* -> 1.5.0]
-- evaluate      [* -> 1.0.5]
-- fastmap       [* -> 1.2.0]
-- fixest        [* -> 0.14.2]
-- fontawesome   [* -> 0.5.3]
-- Formula       [* -> 1.2-5]
-- fs            [* -> 2.1.0]
-- highr         [* -> 0.12]
-- htmltools     [* -> 0.5.9]
-- jquerylib     [* -> 0.1.4]
-- jsonlite      [* -> 2.0.0]
-- knitr         [* -> 1.51]
-- lifecycle     [* -> 1.0.5]
-- memoise       [* -> 2.0.1]
-- mime          [* -> 0.13]
-- numDeriv      [* -> 2016.8-1.1]
-- R6            [* -> 2.6.1]
-- rappdirs      [* -> 0.3.4]
-- Rcpp          [* -> 1.1.1-1.1]
-- rlang         [* -> 1.2.0]
-- rmarkdown     [* -> 2.31]
-- sandwich      [* -> 3.1-1]
-- sass          [* -> 0.4.10]
-- stringmagic   [* -> 1.2.0]
-- tinytex       [* -> 0.60]
-- xfun          [* -> 0.59]
-- yaml          [* -> 2.3.12]
-- zoo           [* -> 1.8-15]
-
-- Querying repositories for available source packages ... Done!
-# Downloading packages -------------------------------------------------------
-[?25l  (0/35) Downloading: digest, Formula, R6, numDeriv, ...                                                                                                        [32m✔[0m R6 2.6.1                                 [65 kB in 1.8s]
-  (1/35) Downloading: digest, Formula, numDeriv, base64enc, ...                                                                                                 [32m✔[0m numDeriv 2016.8-1.1                      [76 kB in 1.8s]
-  (2/35) Downloading: digest, Formula, base64enc, fastmap, ...                                                                                                  [32m✔[0m base64enc 0.1-6                          [9 kB in 1.8s]
-  (3/35) Downloading: digest, Formula, fastmap, xfun, ...                                                                                                       [32m✔[0m fastmap 1.2.0                            [47 kB in 1.8s]
-  (4/35) Downloading: digest, Formula, xfun, fixest, ...                                                                                                        [32m✔[0m rappdirs 0.3.4                           [12 kB in 1.8s]
-  (5/35) Downloading: digest, Formula, xfun, fixest, ...                                                                                                        [32m✔[0m cachem 1.1.0                             [27 kB in 1.8s]
-  (6/35) Downloading: digest, Formula, xfun, fixest, ...                                                                                                        [32m✔[0m memoise 2.0.1                            [18 kB in 1.8s]
-  (7/35) Downloading: digest, Formula, xfun, fixest, ...                                                                                                        [32m✔[0m Formula 1.2-5                            [128 kB in 1.9s]
-  (8/35) Downloading: digest, xfun, fixest, lattice, ...                                                                                                        [32m✔[0m digest 0.6.39                            [237 kB in 1.9s]
-  (9/35) Downloading: xfun, fixest, lattice, fontawesome, ...                                                                                                   [32m✔[0m xfun 0.59                                [201 kB in 1.9s]
-  (10/35) Downloading: fixest, lattice, fontawesome, stringmagic, ...                                                                                           [32m✔[0m lattice 0.22-9                           [637 kB in 1.9s]
-  (11/35) Downloading: fixest, fontawesome, stringmagic, zoo, ...                                                                                               [32m✔[0m zoo 1.8-15                               [806 kB in 1.9s]
-  (12/35) Downloading: fixest, fontawesome, stringmagic, knitr, ...                                                                                             [32m✔[0m knitr 1.51                               [484 kB in 1.9s]
-  (13/35) Downloading: fixest, fontawesome, stringmagic, htmltools, ...                                                                                         [32m✔[0m fontawesome 0.5.3                        [1.3 MB in 1.9s]
-  (14/35) Downloading: fixest, stringmagic, htmltools, rmarkdown, ...                                                                                           [32m✔[0m lifecycle 1.0.5                          [107 kB in 36s]
-  (15/35) Downloading: fixest, stringmagic, htmltools, rmarkdown, ...                                                                                           [32m✔[0m stringmagic 1.2.0                        [3.4 MB in 1.9s]
-  (16/35) Downloading: fixest, htmltools, rmarkdown, tinytex, ...                                                                                               [32m✔[0m cli 3.6.6                                [644 kB in 49s]
-  (17/35) Downloading: fixest, htmltools, rmarkdown, tinytex, ...                                                                                               [32m✔[0m fixest 0.14.2                            [5.0 MB in 1.9s]
-  (18/35) Downloading: htmltools, rmarkdown, tinytex, dreamerr, ...                                                                                             [32m✔[0m rmarkdown 2.31                           [2.2 MB in 57s]
-  (19/35) Downloading: htmltools, tinytex, dreamerr, sass, ...                                                                                                  [32m✔[0m tinytex 0.60                             [38 kB in 57s]
-  (20/35) Downloading: htmltools, dreamerr, sass, sandwich, ...                                                                                                 [32m✔[0m htmltools 0.5.9                          [135 kB in 59s]
-  (21/35) Downloading: dreamerr, sass, sandwich, jquerylib, ...                                                                                                 [32m✔[0m sandwich 3.1-1                           [1.4 MB in 58s]
-  (22/35) Downloading: dreamerr, sass, jquerylib, highr, ...                                                                                                    [32m✔[0m sass 0.4.10                              [3.0 MB in 79s]
-  (23/35) Downloading: dreamerr, jquerylib, highr, nlme, ...                                                                                                    [32m✔[0m jquerylib 0.1.4                          [520 kB in 45s]
-  (24/35) Downloading: dreamerr, highr, nlme, bslib, ...                                                                                                        [32m✔[0m evaluate 1.0.5                           [39 kB in 49s]
-  (25/35) Downloading: dreamerr, highr, nlme, bslib, ...                                                                                                        [32m✔[0m highr 0.12                               [14 kB in 49s]
-  (26/35) Downloading: dreamerr, nlme, bslib, mime, ...                                                                                                         [32m✔[0m dreamerr 1.5.0                           [1.1 MB in 92s]
-  (27/35) Downloading: nlme, bslib, mime, yaml, ...                                                                                                             [32m✔[0m yaml 2.3.12                              [109 kB in 53s]
-  (28/35) Downloading: nlme, bslib, mime, Rcpp, ...                                                                                                             [32m✔[0m mime 0.13                                [22 kB in 54s]
-  (29/35) Downloading: nlme, bslib, Rcpp, rlang, ...                                                                                                            [32m✔[0m rlang 1.2.0                              [781 kB in 60s]
-  (30/35) Downloading: nlme, bslib, Rcpp, jsonlite, ...                                                                                                         [32m✔[0m Rcpp 1.1.1-1.1                           [1.9 MB in 64s]
-  (31/35) Downloading: nlme, bslib, jsonlite, fs                                                                                                                [32m✔[0m fs 2.1.0                                 [1.5 MB in 70s]
-  (32/35) Downloading: nlme, bslib, jsonlite                                                                                                                    [32m✔[0m bslib 0.11.0                             [5.8 MB in 94s]
-  (33/35) Downloading: nlme, jsonlite                                                                                                                           [32m✔[0m nlme 3.1-168                             [861 kB in 96s]
-  (34/35) Downloading: jsonlite                                                                                                                                 [32m✔[0m jsonlite 2.0.0                           [1.1 MB in 74s]
-                                                                                Successfully downloaded 35 packages in 2.6 seconds.
-
-# Installing packages --------------------------------------------------------
-  (0/35) Installing: base64enc, cli, digest, evaluate                             (0/35) Installing: base64enc, cli, digest, evaluate                             (0/35) Installing: base64enc, cli, digest, evaluate                             (0/35) Installing: base64enc, cli, digest, evaluate                             (0/35) Installing: base64enc, cli, digest, evaluate                                                                                                           [32m✔[0m evaluate 1.0.5                           [built from source in 4.4s]
-  (1/35) Installing: base64enc, cli, digest                                       (1/35) Installing: base64enc, cli, digest, fastmap                              (1/35) Installing: base64enc, cli, digest, fastmap                              (1/35) Installing: base64enc, cli, digest, fastmap                                                                                                            [32m✔[0m base64enc 0.1-6                          [built from source in 11s]
-  (2/35) Installing: cli, digest, fastmap                                         (2/35) Installing: cli, digest, fastmap, Formula                                (2/35) Installing: cli, digest, fastmap, Formula                                                                                                              [32m✔[0m Formula 1.2-5                            [built from source in 3.8s]
-  (3/35) Installing: cli, digest, fastmap                                         (3/35) Installing: cli, digest, fastmap, fs                                     (3/35) Installing: cli, digest, fastmap, fs                                                                                                                   [32m✔[0m fastmap 1.2.0                            [built from source in 14s]
-  (4/35) Installing: cli, digest, fs                                              (4/35) Installing: cli, digest, fs, jsonlite                                    (4/35) Installing: cli, digest, fs, jsonlite                                    (4/35) Installing: cli, digest, fs, jsonlite                                    (4/35) Installing: cli, digest, fs, jsonlite                                                                                                                  [32m✔[0m digest 0.6.39                            [built from source in 32s]
-  (5/35) Installing: cli, fs, jsonlite                                            (5/35) Installing: cli, fs, jsonlite, lattice                                   (5/35) Installing: cli, fs, jsonlite, lattice                                   (5/35) Installing: cli, fs, jsonlite, lattice                                   (5/35) Installing: cli, fs, jsonlite, lattice                                   (5/35) Installing: cli, fs, jsonlite, lattice                                                                                                                 [32m✔[0m cli 3.6.6                                [built from source in 48s]
-  (6/35) Installing: fs, jsonlite, lattice                                        (6/35) Installing: fs, jsonlite, lattice, mime                                  (6/35) Installing: fs, jsonlite, lattice, mime                                                                                                                [32m✔[0m jsonlite 2.0.0                           [built from source in 35s]
-  (7/35) Installing: fs, lattice, mime                                            (7/35) Installing: fs, lattice, mime, numDeriv                                  (7/35) Installing: fs, lattice, mime, numDeriv                                                                                                                [32m✔[0m mime 0.13                                [built from source in 9.1s]
-  (8/35) Installing: fs, lattice, numDeriv                                        (8/35) Installing: fs, lattice, numDeriv, R6                                                                                                                  [32m✔[0m numDeriv 2016.8-1.1                      [built from source in 4.0s]
-  (9/35) Installing: fs, lattice, R6                                              (9/35) Installing: fs, lattice, R6, rappdirs                                    (9/35) Installing: fs, lattice, R6, rappdirs                                    (9/35) Installing: fs, lattice, R6, rappdirs                                                                                                                  [32m✔[0m R6 2.6.1                                 [built from source in 3.9s]
-  (10/35) Installing: fs, lattice, rappdirs                                       (10/35) Installing: fs, lattice, rappdirs, Rcpp                                 (10/35) Installing: fs, lattice, rappdirs, Rcpp                                                                                                               [32m✔[0m lattice 0.22-9                           [built from source in 30s]
-  (11/35) Installing: fs, rappdirs, Rcpp                                          (11/35) Installing: fs, rappdirs, Rcpp, rlang                                   (11/35) Installing: fs, rappdirs, Rcpp, rlang                                                                                                                 [32m✔[0m rappdirs 0.3.4                           [built from source in 9.3s]
-  (12/35) Installing: fs, Rcpp, rlang                                             (12/35) Installing: fs, Rcpp, rlang, xfun                                       (12/35) Installing: fs, Rcpp, rlang, xfun                                       (12/35) Installing: fs, Rcpp, rlang, xfun                                       (12/35) Installing: fs, Rcpp, rlang, xfun                                       (12/35) Installing: fs, Rcpp, rlang, xfun                                                                                                                     [32m✔[0m xfun 0.59                                [built from source in 16s]
-  (13/35) Installing: fs, Rcpp, rlang                                             (13/35) Installing: fs, Rcpp, rlang, yaml                                       (13/35) Installing: fs, Rcpp, rlang, yaml                                       (13/35) Installing: fs, Rcpp, rlang, yaml                                                                                                                     [32m✔[0m fs 2.1.0                                 [built from source in 1.2m]
-  (14/35) Installing: Rcpp, rlang, yaml                                           (14/35) Installing: Rcpp, rlang, yaml, nlme                                     (14/35) Installing: Rcpp, rlang, yaml, nlme                                     (14/35) Installing: Rcpp, rlang, yaml, nlme                                                                                                                   [32m✔[0m rlang 1.2.0                              [built from source in 35s]
-  (15/35) Installing: Rcpp, yaml, nlme                                            (15/35) Installing: Rcpp, yaml, nlme, zoo                                       (15/35) Installing: Rcpp, yaml, nlme, zoo                                       (15/35) Installing: Rcpp, yaml, nlme, zoo                                       (15/35) Installing: Rcpp, yaml, nlme, zoo                                                                                                                     [32m✔[0m yaml 2.3.12                              [built from source in 26s]
-  (16/35) Installing: Rcpp, nlme, zoo                                             (16/35) Installing: Rcpp, nlme, zoo, highr                                      (16/35) Installing: Rcpp, nlme, zoo, highr                                                                                                                    [32m✔[0m highr 0.12                               [built from source in 3.2s]
-  (17/35) Installing: Rcpp, nlme, zoo                                             (17/35) Installing: Rcpp, nlme, zoo, tinytex                                    (17/35) Installing: Rcpp, nlme, zoo, tinytex                                                                                                                  [32m✔[0m zoo 1.8-15                               [built from source in 19s]
-  (18/35) Installing: Rcpp, nlme, tinytex                                         (18/35) Installing: Rcpp, nlme, tinytex, cachem                                 (18/35) Installing: Rcpp, nlme, tinytex, cachem                                                                                                               [32m✔[0m tinytex 0.60                             [built from source in 5.1s]
-  (19/35) Installing: Rcpp, nlme, cachem                                          (19/35) Installing: Rcpp, nlme, cachem, htmltools                                                                                                             [32m✔[0m Rcpp 1.1.1-1.1                           [built from source in 56s]
-  (20/35) Installing: nlme, cachem, htmltools                                     (20/35) Installing: nlme, cachem, htmltools, lifecycle                          (20/35) Installing: nlme, cachem, htmltools, lifecycle                          (20/35) Installing: nlme, cachem, htmltools, lifecycle                          (20/35) Installing: nlme, cachem, htmltools, lifecycle                                                                                                        [32m✔[0m lifecycle 1.0.5                          [built from source in 5.6s]
-  (21/35) Installing: nlme, cachem, htmltools                                     (21/35) Installing: nlme, cachem, htmltools, knitr                              (21/35) Installing: nlme, cachem, htmltools, knitr                                                                                                            [32m✔[0m cachem 1.1.0                             [built from source in 11s]
-  (22/35) Installing: nlme, htmltools, knitr                                      (22/35) Installing: nlme, htmltools, knitr, sandwich                            (22/35) Installing: nlme, htmltools, knitr, sandwich                            (22/35) Installing: nlme, htmltools, knitr, sandwich                                                                                                          [32m✔[0m htmltools 0.5.9                          [built from source in 16s]
-  (23/35) Installing: nlme, knitr, sandwich                                       (23/35) Installing: nlme, knitr, sandwich, stringmagic                          (23/35) Installing: nlme, knitr, sandwich, stringmagic                                                                                                        [32m✔[0m sandwich 3.1-1                           [built from source in 8.8s]
-  (24/35) Installing: nlme, knitr, stringmagic                                    (24/35) Installing: nlme, knitr, stringmagic, memoise                           (24/35) Installing: nlme, knitr, stringmagic, memoise                                                                                                         [32m✔[0m nlme 3.1-168                             [built from source in 51s]
-  (25/35) Installing: knitr, stringmagic, memoise                                 (25/35) Installing: knitr, stringmagic, memoise, fontawesome                    (25/35) Installing: knitr, stringmagic, memoise, fontawesome                                                                                                  [32m✔[0m memoise 2.0.1                            [built from source in 4.8s]
-  (26/35) Installing: knitr, stringmagic, fontawesome                             (26/35) Installing: knitr, stringmagic, fontawesome, jquerylib                                                                                                [32m✔[0m knitr 1.51                               [built from source in 18s]
-  (27/35) Installing: stringmagic, fontawesome, jquerylib                         (27/35) Installing: stringmagic, fontawesome, jquerylib, sass                   (27/35) Installing: stringmagic, fontawesome, jquerylib, sass                   (27/35) Installing: stringmagic, fontawesome, jquerylib, sass                                                                                                 [32m✔[0m fontawesome 0.5.3                        [built from source in 5.4s]
-  (28/35) Installing: stringmagic, jquerylib, sass                                (28/35) Installing: stringmagic, jquerylib, sass                                                                                                              [32m✔[0m jquerylib 0.1.4                          [built from source in 4.5s]
-  (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                           (29/35) Installing: stringmagic, sass                                                                                                                         [32m✔[0m stringmagic 1.2.0                        [built from source in 50s]
-  (30/35) Installing: sass                                                        (30/35) Installing: sass, dreamerr                                              (30/35) Installing: sass, dreamerr                                              (30/35) Installing: sass, dreamerr                                              (30/35) Installing: sass, dreamerr                                                                                                                            [32m✔[0m dreamerr 1.5.0                           [built from source in 15s]
-  (31/35) Installing: sass                                                        (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                (31/35) Installing: sass, fixest                                                                                                                              [32m✔[0m sass 0.4.10                              [built from source in 3.8m]
-  (32/35) Installing: fixest                                                      (32/35) Installing: fixest, bslib                                               (32/35) Installing: fixest, bslib                                               (32/35) Installing: fixest, bslib                                               (32/35) Installing: fixest, bslib                                                                                                                             [32m✔[0m bslib 0.11.0                             [built from source in 11s]
-  (33/35) Installing: fixest                                                      (33/35) Installing: fixest, rmarkdown                                           (33/35) Installing: fixest, rmarkdown                                           (33/35) Installing: fixest, rmarkdown                                           (33/35) Installing: fixest, rmarkdown                                                                                                                         [32m✔[0m rmarkdown 2.31                           [built from source in 14s]
-  (34/35) Installing: fixest                                                      (34/35) Installing: fixest                                                      (34/35) Installing: fixest                                                      (34/35) Installing: fixest                                                      (34/35) Installing: fixest                                                      (34/35) Installing: fixest                                                                                                                                    [32m✔[0m fixest 0.14.2                            [built from source in 3.6m]
-Successfully installed 35 packages in 420 seconds.
-[?25h

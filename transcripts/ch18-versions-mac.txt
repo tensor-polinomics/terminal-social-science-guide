@@ -1,0 +1,20 @@
+# transcript
+chapter: 18
+os: macOS 26.5.1 (Apple Silicon)
+shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
+tool: zsh + bash version anchor
+date: 2026-07-07
+captured-by: user-mac
+note: Version anchor for the 'current as of 2026-07-07'
+note: stamp. macOS bash is the 3.2 floor (DIVERGENCE);
+note: the login shell is zsh. Paths masked.
+---
+
+$ zsh --version
+zsh 5.9 (arm64-apple-darwin25.0)
+
+$ bash --version | head -1
+GNU bash, version 3.2.57(1)-release (arm64-apple-darwin25)
+
+$ echo $SHELL
+/bin/zsh

@@ -1,0 +1,29 @@
+# transcript
+chapter: 12
+os: macOS 26.5.1 (Apple Silicon)
+shell: bash 3.2.57(1)-release (script)
+tool: GNU Make 3.81
+date: 2026-06-30
+captured-by: user-mac
+note: macOS GNU Make 3.81 TAB-trap message. It is IDENTICAL
+      to the sandbox 4.3 form (the "did you mean TAB" hint is
+      not 4.x-only; an earlier assumption that 3.81 was terser
+      was wrong). cat -et is the BSD spelling of GNU cat -A:
+      $ marks line ends, ^I marks a TAB (macOS cat has no -A).
+---
+
+$ cat -et Makefile
+h:$
+        echo hi$
+
+$ make
+Makefile:2: *** missing separator (did you mean TAB instead of 8 spaces?).  Stop.
+
+$ cat -et Makefile
+h:$
+^Iecho hi$
+
+$ make
+echo hi
+hi
+

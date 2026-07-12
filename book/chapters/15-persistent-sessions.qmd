@@ -44,7 +44,7 @@ through its command interface (`new-session -d`, `ls`,
 sandbox cannot show, that a session outlives the `ssh`
 connection that started it, is captured on the author's Mac
 against a real remote Linux server by
-`transcripts/capture-ch14-mac.sh`. Because a remote session's
+`transcripts/capture-ch15-mac.sh`. Because a remote session's
 prompt, `tmux ls`, and status line all expose identifying
 values, the blocks show placeholders: the account is
 `[account]`, the hostname `[hostname]`, and any address `[ip]`;
@@ -175,7 +175,7 @@ pane twice a few seconds apart:
 
 ```bash
 $ tmux new-session -d -s job -x 80 -y 24 \
-    "cd /tmp/ch14demo && python3 run_pipeline.py"
+    "cd /tmp/ch15demo && python3 run_pipeline.py"
 $ tmux ls
 job: 1 windows (created Sun Jul  5 21:12:52 2026)
 $ tmux capture-pane -t job -p
@@ -205,7 +205,7 @@ the two calls: it is running on its own, and the terminal only
 observes it.
 
 Now put that on a server, where it earns its keep. Let
-`ch14-job.sh` stand in for a slow analysis step: a small script
+`ch15-job.sh` stand in for a slow analysis step: a small script
 that counts to thirty, printing `step N/30 done` every couple of
 seconds and teeing a log (Chapter 11). The move is to start it
 in a detached session over one `ssh` command, then let that
@@ -215,7 +215,7 @@ stays open across the job:
 
 ```bash
 # Connection A: start the job in a DETACHED session, then return.
-$ ssh lab-server 'tmux new-session -d -s job "bash ch14-job.sh"'
+$ ssh lab-server 'tmux new-session -d -s job "bash ch15-job.sh"'
 
 # Connection B (a fresh ssh): the session outlived connection A.
 $ ssh lab-server 'tmux ls'
@@ -241,8 +241,8 @@ along still, and its Chapter 11 log has been written the whole
 time:
 
 ```bash
-# The Ch 10 log survives independently of the session:
-$ ssh lab-server 'tail -3 ~/ch14-job.log'
+# The Ch 11 log survives independently of the session:
+$ ssh lab-server 'tail -3 ~/ch15-job.log'
 step 14/30 done
 step 15/30 done
 step 16/30 done
@@ -366,7 +366,7 @@ had typed it, and `capture-pane` reads the result back, neither
 one attaching:
 
 ```bash
-$ tmux new-session -d -s work -x 80 -y 24 -c /tmp/ch14demo
+$ tmux new-session -d -s work -x 80 -y 24 -c /tmp/ch15demo
 $ tmux send-keys -t work 'python3 run_pipeline.py' Enter
 $ tmux capture-pane -t work -p
 python3 run_pipeline.py

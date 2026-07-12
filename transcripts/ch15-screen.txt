@@ -1,0 +1,16 @@
+# transcript
+chapter: 15
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU Screen 4.09.00
+date: 2026-07-05
+captured-by: sandbox
+note: screen is the older tool tmux replaced; the chapter names it
+note: in one breath (the DIVERGENCE: screen's prefix is C-a, tmux's
+note: is C-b; screen -dmS / -ls / -X quit vs tmux new / ls / kill).
+note: Only the version line is quoted; `screen -ls` is not shown
+note: because its socket path (/run/screen/S-<user>) embeds the
+note: account name, which the book does not publish.
+---
+$ screen --version
+Screen version 4.09.00 (GNU) 30-Jan-22

@@ -1,0 +1,26 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in /tmp/asset-pricing (clean sandbox copy). Shows a
+      symbolic link created with `ln -s`, its `ls -l` arrow
+      line, and three ways to inspect it: `readlink` (prints
+      the stored target), and the GNU `readlink -f` / GNU
+      `realpath` (both resolve to the absolute path). BSD
+      (macOS) differs on `readlink -f` / `realpath`, captured
+      separately (ch05-symlink-mac.txt). MASK: the ls -l owner
+      and group columns print the sandbox account name, masked
+      to [account]; every other byte is verbatim.
+---
+$ ln -s data/raw/factors.csv latest_factors.csv
+$ ls -l latest_factors.csv
+lrwxrwxrwx 1 [account] [account] 20 Jul  2 12:10 latest_factors.csv -> data/raw/factors.csv
+$ readlink latest_factors.csv
+data/raw/factors.csv
+$ readlink -f latest_factors.csv
+/tmp/asset-pricing/data/raw/factors.csv
+$ realpath latest_factors.csv
+/tmp/asset-pricing/data/raw/factors.csv

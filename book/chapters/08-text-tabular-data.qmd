@@ -29,13 +29,13 @@ A note on where the output comes from. The `grep`, `sed`,
 `awk`, `cut`, `sort`, `uniq`, `tr`, and `jq` demonstrations
 run in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash
 5.1.16, GNU coreutils 8.32, GNU grep 3.7, GNU sed 4.8, GNU
-Awk 5.1.0, jq 1.6; the `ch07-*.txt` transcript files), in a
+Awk 5.1.0, jq 1.6; the `ch08-*.txt` transcript files), in a
 clean copy of the asset-pricing project placed at `/tmp/ap`,
 with every file-creating or in-place demonstration confined to
 a throwaway `/tmp` scratch directory, never the project's own
 data. The macOS/BSD divergences (`sed -i`, awk, `sort` under a
 locale) and the DuckDB session are captured on the author's
-Mac (`transcripts/capture-ch07-mac.sh`, the `ch07-*-mac.txt`
+Mac (`transcripts/capture-ch08-mac.sh`, the `ch08-*-mac.txt`
 files) and quoted where they differ.
 
 ## Search without opening the file: `grep`
@@ -233,8 +233,8 @@ project:
 
 ```bash
 $ sed '1s/mkt_rf/mkt_excess/' data/raw/factors.csv \
-    > /tmp/ch07/factors_renamed.csv
-$ head -1 /tmp/ch07/factors_renamed.csv
+    > /tmp/ch08/factors_renamed.csv
+$ head -1 /tmp/ch08/factors_renamed.csv
 month,mkt_excess,smb,hml,rmw,cma,rf
 $ head -1 data/raw/factors.csv
 month,mkt_rf,smb,hml,rmw,cma,rf
@@ -295,7 +295,7 @@ shows.
 BSD `sed` (macOS) **requires** an argument after `-i`, the
 backup suffix; GNU `sed` (Linux) makes it optional. The bare
 GNU form therefore fails outright on a Mac, captured on the
-author's machine in `transcripts/ch07-sed-mac.txt`:
+author's machine in `transcripts/ch08-sed-mac.txt`:
 
 ```bash
 $ sed -i 's/mkt_rf/mkt_excess/' factors.csv
@@ -483,7 +483,7 @@ Same data, two "correct" checksums. The cross-platform
 picture is subtler than the warning usually goes. On the
 author's Mac, BSD `sort` under these same two locale names
 produced byte-identical order and the identical two checksums
-(`transcripts/ch07-sort-locale-mac.txt`), so here the two
+(`transcripts/ch08-sort-locale-mac.txt`), so here the two
 systems agreed. That agreement is not something to lean on: a
 locale name like `en_US.UTF-8` promises a language, not a byte
 order, and collation comes from each platform's own locale
@@ -565,7 +565,7 @@ original BWK `awk` (Brian Kernighan's "one true awk"). For
 everything this section teaches they agree, and the capture
 proves it on the same deterministic data: the filter count
 (33) and the mean (0.00718315) come back byte-identical on the
-author's Mac (`transcripts/ch07-awk-mac.txt`). The split
+author's Mac (`transcripts/ch08-awk-mac.txt`). The split
 appears the moment you use a gawk *extension*. gawk's time
 functions are the classic trap, absent from BWK awk:
 
@@ -658,7 +658,7 @@ table name would go, and DuckDB infers the columns and types.
 A note on provenance for this section: the DuckDB CLI is not
 installable in the book's locked-down sandbox, so these blocks
 are captured on the author's Mac
-(`transcripts/ch07-duckdb-mac.txt`), against the same
+(`transcripts/ch08-duckdb-mac.txt`), against the same
 deterministic, hash-locked data files every other section
 used, which is why the counts below agree with the sandbox
 runs above. The `-csv` flag makes the client print plain CSV

@@ -8,11 +8,97 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 7: provenance realignment, the final
+  consistency pass (2026-07-12; not yet committed). Eliminates the
+  Session-1 `ch(N-1)` transcript and figure freeze offset so the
+  whole repo matches the final chapter numbering, from the author
+  review (`private/review-response-2026-07-08.md` Section 6,
+  Session 7 row; locked decision 6). Renamed every `transcripts/`
+  file for the shifted chapters (Chapters 5-18; Chapters 1-3
+  unchanged): 133 transcript captures and 19 capture scripts, each
+  with its `chapter:` header, note-header sibling references, and
+  capture-script transcript-write paths and `chapter:` echoes
+  realigned by one. The renames leave shown output bytes
+  unchanged (byte-faithfulness contract), touching only file names,
+  the metadata `chapter:` header, note cross-references, and
+  script-internal write paths. The edits to shown content are all
+  small and disclosed: the in-place demo/scratch path renames
+  (command paths only, no output value changes), the Chapter 15
+  `# The Ch 10 log`->`# The Ch 11 log` cross-reference comment, the
+  masked `mktemp` tag, and the removed leaked trailer. Renamed the two figure assets
+  `fig-ch05-layout` to `fig-ch06-layout` (Chapter 6) and
+  `fig-ch13-motion` to `fig-ch14-motion` (Chapter 14) and rebuilt
+  each `.pdf`/`.svg` from its `.tex` per the CLAUDE.md recipe
+  (`pdflatex` -> `gs -dNoOutputFonts` outline -> `pdftocairo -svg`;
+  `lmodern` for `\ttfamily`); the committed SVGs are byte-identical
+  to the pre-rename originals (`fig-ch05-layout.svg` /
+  `fig-ch13-motion.svg`), so the rename changed no figure content, and
+  each figure rebuilds from its `.tex` to the same figure, rasterized
+  and eyeballed (render-identical; the exact SVG byte-serialization
+  depends on the `pdftocairo` version, so a cross-version rebuild is
+  visually but not byte-for-byte identical).
+  Vendored the figure build dependencies (`preamble.tex` plus the
+  needed `icons/cache/`) into `book/assets/figures/` and pointed each
+  `.tex` at `../preamble.tex`, so both figures now rebuild standalone
+  from the repo (the old `.tex` referenced an out-of-repo
+  `scripts/render.sh`).
+  Updated the `![](...)` paths, `{#fig-...}` labels, and
+  `@fig-...` references in Chapters 6 and 14. Swept every remaining
+  offset reference in the chapters and `verification/` (the
+  local-only, gitignored `CLAUDE.md` rules body was swept too, but it
+  is not part of this commit). Realigned the one
+  frozen inside-block chapter cross-reference (`# The Ch 10 log` to
+  `# The Ch 11 log`) in `ch15-server-mac.txt` and its Chapter 15
+  quotation together, per the `transcripts/README.md`
+  byte-faithful-exception note. Removed the temporary freeze and
+  renumber banners from `transcripts/README.md` (tracked) and the
+  local-only `CLAUDE.md` and `private/` planning docs. Also aligned the demo and scratch
+  names the captures create (`ch13-demo`->`ch14-demo`,
+  `ch14-job.*`->`ch15-job.*`, `/tmp/ch07/`->`/tmp/ch08/`,
+  `/tmp/ch14demo`->`/tmp/ch15demo`) in lockstep across the capture
+  script, transcript, and quoted chapter block -- byte-equivalent to
+  a re-run because every shown output value is independent of the
+  path; masked the non-reproducible `mktemp` tag to `ch05mac.[rand]`
+  (the capture script now applies the mask at capture time); and
+  removed a leaked `captured -> ...` trailer from
+  `ch07-divergence-mac.txt`. The illustrative Try-it scratch paths
+  (`/tmp/ch04-play`, `/tmp/ch05-play`) and note-header scratch dirs
+  (`/tmp/ch04mk`, `/tmp/ch04case`) were bumped too, in prose and
+  metadata only. Acceptance: a repo-wide grep finds no
+  stale reference (all resolve), no `chapter:`/filename mismatch,
+  every demo/scratch name carries its own chapter number, and no
+  offset outside CHANGELOG dated history, the gitignored `CLAUDE.md`,
+  and the `private/` trail (refs verified extension-agnostically). Reopens gates G2-G6 (mechanical):
+  `uv run` validator 0/0 (sandbox self-check 0/0), `quarto render
+  book`, Codex blind audit, and human review at the Mac gate. The
+  Codex blind audit ran three rounds, each catching real issues since
+  fixed: round 1 = stale transcript-glob families + demo/scratch
+  dirs (`/tmp/ch04-play`, `ch04mk`) + a `ch12-mtime` note over-bump +
+  figures not repo-reproducible; round 2 = bare extension-less refs
+  (`ch04-home-mac`) that extension-scoped greps missed + a
+  `shadows.blur` TikZ library the vendored preamble loaded but a
+  minimal TeX lacks; round 3 = an over-strong SVG byte-identity claim
+  (cross-`pdftocairo`-version serialization drift) and shown-content
+  wording, corrected here. This
+  entry's own hash-line and the still-deferred Chapter 18
+  `ae78ce1` hash-line are both earmarked for the first Phase-7
+  commit. Source files touched (this CHANGELOG also updated): the
+  renamed `transcripts/` files (133 `.txt` + 19 `.sh`), the modified
+  `book/chapters/*.qmd` files, `transcripts/README.md`, the
+  renamed/rebuilt `book/assets/figures/ch06` and `ch14`, the vendored
+  `book/assets/figures/preamble.tex` + `icons/cache/`, and the
+  modified `verification/*.md` files.**
+
 - **Review-response Session 6: greenfield Preface write
-  (2026-07-12; not yet committed). This commit also ships
-  Session 5's `229490cb` hash-line and flips the Session-5 entry
-  below to committed-and-pushed; this entry's own hash-line rides
-  in the next commit, since a commit cannot contain its own hash.
+  (2026-07-12; committed and pushed 2026-07-12 as `f47dc90d`,
+  `f47dc90d6c4e71bee247385cb92882134410aa56`, message "Close
+  Session 6 Preface"; Codex blind audit round 1 FAIL, 1 BLOCKER,
+  4 SHOULD-FIX, and 1 NIT fixed, re-audit round 2 and human review
+  PASS; validator 0/0 and `quarto render book` clean. Shipped
+  Session 5's `229490cb` hash-line and flipped the Session-5 entry
+  below to committed-and-pushed; this entry's own `f47dc90d`
+  hash-line ships in the Session-7 commit, since a commit cannot
+  contain its own hash.
   The Chapter 18 `ae78ce1` hash-line remains deferred (it is not
   in this CHANGELOG yet), earmarked for the first Phase-7 commit;
   this session does not add it.** Replaced the Preface

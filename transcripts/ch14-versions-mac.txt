@@ -2,14 +2,15 @@
 chapter: 14
 os: macOS 26.5.1 (Apple Silicon) + remote Linux server
 shell: zsh 5.9 (arm64-apple-darwin25.0) (login default)
-tool: macOS tmux + screen
+tool: macOS OpenSSH + openrsync
 date: 2026-07-05
 captured-by: user-mac
-note: The Mac's own tmux (Homebrew) and screen versions, for the
-note: version stamp; the Linux side is in ch14-screen.txt. No
-note: personal data in these version lines.
+note: macOS ships openrsync (an OpenBSD reimplementation) and a
+note: newer OpenSSH than the Linux sandbox; the sandbox side is in
+note: ch14-versions.txt. No personal data in these version lines.
 ---
-$ tmux -V
-tmux 3.7a
-$ screen --version
-Screen version 4.00.03 (FAU) 23-Oct-06
+$ ssh -V
+OpenSSH_10.2p1, LibreSSL 3.3.6
+$ rsync --version | head -2
+openrsync: protocol version 29
+rsync version 2.6.9 compatible

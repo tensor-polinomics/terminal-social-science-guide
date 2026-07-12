@@ -27,14 +27,14 @@ belong at the beginner tier with everything else.
 A note on where the output comes from. The redirection, pipe,
 quoting, glob, and `rm` demonstrations are run in this book's
 Linux sandbox (Ubuntu 22.04, GNU bash 5.1, GNU coreutils 8.32,
-GNU findutils 4.8; the `ch06-*` transcript files). Every
+GNU findutils 4.8; the `ch07-*` transcript files). Every
 destructive demonstration is run in a throwaway `/tmp`
 directory, never in a real project, for reasons that become
 obvious by the end. The macOS and BSD divergences, where zsh
 and BSD tools behave differently from the Linux baseline, are
 captured separately on the author's Mac
-(`transcripts/ch06-divergence-mac.txt`, produced by
-`capture-ch06-mac.sh`) and called out where they diverge. The one
+(`transcripts/ch07-divergence-mac.txt`, produced by
+`capture-ch07-mac.sh`) and called out where they diverge. The one
 command this chapter refuses to run anywhere, a blind
 `curl | sh`, is shown but never executed, and labeled as such.
 
@@ -243,7 +243,7 @@ every Bourne-family shell is `> file 2>&1`, in that order. This
 book writes the portable form in scripts and saves `&>` for the
 interactive prompt. The redirection-order rule above is the
 same on macOS (zsh 5.9, and the system bash 3.2.57) as on
-Linux, confirmed in `transcripts/ch06-divergence-mac.txt`.
+Linux, confirmed in `transcripts/ch07-divergence-mac.txt`.
 :::
 
 ## Pipes: composing small commands
@@ -479,7 +479,7 @@ quote a pattern you mean literally, and check that a glob
 matched before feeding it to anything that deletes. The behavior
 on both shells, zsh 5.9 (`zsh: no matches found`) and the system
 bash 3.2.57 (literal pass-through), is captured in
-`transcripts/ch06-divergence-mac.txt`.
+`transcripts/ch07-divergence-mac.txt`.
 :::
 
 ## Null-safe file lists: `find -print0` and `xargs -0`
@@ -529,7 +529,7 @@ rather than typed by you.
 `find -print0` and `xargs -0` are present on both GNU (Linux)
 and BSD (macOS) systems and behave the same way, so the
 null-safe idiom is portable; the macOS run in
-`transcripts/ch06-divergence-mac.txt` (BSD findutils) produces
+`transcripts/ch07-divergence-mac.txt` (BSD findutils) produces
 the same intact, spaced names. The warning is about the
 *unsafe* version: a naive `find | xargs` breaks identically on
 both platforms (BSD `wc` even reports `open: No such file`), so

@@ -1,284 +1,118 @@
 #!/usr/bin/env bash
-# Capture the Ch 7 (Text and tabular data as data) macOS/BSD
-# facts on the user's Mac.
+# Capture the Ch 7 macOS/BSD divergence transcript for the
+# pipes/redirection/danger chapter.
 #
-# Ch 7's portable/GNU output is captured in the book's Linux
-# sandbox (ch07-*.txt). This script captures the BSD divergences
-# and the DuckDB CLI runs a real Mac shows, which the sandbox
-# cannot (DuckDB's CLI binary is not installable there):
-#   1. ch07-sed-mac.txt         - BSD `sed -i` REQUIRES a backup
-#      suffix argument (GNU makes it optional): the bare GNU
-#      form fails, `-i ''` and `-i.bak` work. Run on a COPY of
-#      factors.csv in a mktemp scratch, never on the real file.
-#   2. ch07-awk-mac.txt         - the macOS awk version line
-#      (BWK awk, not gawk), the SAME filter and column sum the
-#      sandbox ran (the data is deterministic, so the sum should
-#      match byte-for-byte), and one gawk-only call (systime())
-#      recorded honestly whether it fails or works.
-#   3. ch07-sort-locale-mac.txt - BSD `sort` under LC_ALL=C vs
-#      LC_ALL=en_US.UTF-8 on the same nine project-root names
-#      (rebuilt in scratch). Collation is defined by each
-#      platform's own locale data; whichever order appears is
-#      recorded honestly and compared with the sandbox.
-#      Checksums use `shasum -a 256` (Ch 3 DIVERGENCE; no
-#      sha256sum).
-#   4. ch07-duckdb-mac.txt      - DuckDB CLI (REAL Mac capture,
-#      user decision 2026-07-02): version, a SELECT and a
-#      DESCRIBE over the raw CSVs, a firm_panel x factors join,
-#      and a Parquet count. Read-only SELECTs; no database file
-#      is created.
+# The sandbox is Linux/GNU only, so the macOS-specific behavior
+# that Ch 7 contrasts has to be captured on a real Mac:
+#   1. the default shell is zsh, and the system bash is 3.2;
+#   2. an unmatched glob is a hard ERROR in zsh ("no matches
+#      found") but is passed through LITERALLY in bash, the
+#      single most important portability break in this chapter;
+#   3. noclobber refuses an overwrite with a different message
+#      under zsh than under bash;
+#   4. null-safe find -print0 | xargs -0 behaves identically on
+#      BSD findutils, while the naive find | xargs still breaks
+#      on spaced names;
+#   5. redirection order (2>&1 >file does NOT merge) is the same
+#      portable rule as on Linux, confirmed here.
 #
-# Run on the Mac, from the terminal repo root
-# (source-private/terminal), the way ch02/ch03/ch04 were run:
-#   bash transcripts/capture-ch07-mac.sh
-# then review the four ch07-*-mac.txt files it writes and paste
-# them back (or just say "done" and let the chapter be
-# reconciled against them).
+# Run on the Mac, from anywhere:
+#   bash source-private/terminal/transcripts/capture-ch07-mac.sh
+# then review/commit transcripts/ch07-divergence-mac.txt.
 #
-# Requirements: the running example's data files must exist
-# (sandbox/asset-pricing/data/raw/*.csv and
-# data/clean/portfolio.parquet; run `make` in
-# sandbox/asset-pricing first if they do not), and `duckdb`
-# must be on PATH. The script checks both and says what is
-# missing. It works read-only against the project; the only
-# writes are ONE mktemp scratch (removed on exit) and the
-# transcripts/ folder.
+# Safe and reversible: every demo runs in a fresh mktemp -d
+# scratch dir under /tmp and the dir is removed at the end. No
+# file outside that scratch dir is touched, and no git is run.
 
-# NOT set -e: a missing tool or a nonzero demo (the failing BSD
-# `sed -i`) must be recorded, not fatal.
+# NOT `set -e`: several demos intentionally fail (an unmatched
+# glob, a refused overwrite, a broken xargs) and we want to
+# capture those nonzero exits, not abort on them.
 set -uo pipefail
 
-# Quiet the recurring environment-noise lines (G2 convention).
+# Quiet the recurring environment-noise lines (per the G2
+# capture convention), in case this is run from an active venv.
 unset VIRTUAL_ENV
 export RENV_CONFIG_SYNCHRONIZED_CHECK=FALSE
 
-# PRIVACY MASK, applied AT CAPTURE TIME (public-repo scrub,
-# transcripts/README.md; copied from capture-ch04-mac.sh incl.
-# the $TMPDIR folder-hash scrub). These demos print no owner
-# columns, but error messages and resolved paths can expose the
-# home path, the account name, or the per-account $TMPDIR hash,
-# so all three masks are applied to every captured line.
-acct="$(id -un)"
-mask() {
-  sed -E \
-    -e "s|${HOME}|/Users/[account]|g" \
-    -e "s|(/private)?/var/folders/[^/]+/[^/]+|/private/var/folders/[tmpdir]|g" \
-    -e "s|${acct}|[account]|g"
-}
-
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-root="$(cd "$here/.." && pwd)"
-proj="$root/sandbox/asset-pricing"
+out="$here/ch07-divergence-mac.txt"
 
-sout="$here/ch07-sed-mac.txt"
-aout="$here/ch07-awk-mac.txt"
-lout="$here/ch07-sort-locale-mac.txt"
-dout="$here/ch07-duckdb-mac.txt"
-
-os_name="$(sw_vers -productName 2>/dev/null || echo macOS)"
-os_ver="$(sw_vers -productVersion 2>/dev/null || echo '?')"
-zver="$(zsh --version 2>/dev/null || echo 'zsh: not found')"
-today="$(date +%F)"
-
-hdr() {
-  # hdr <toolline> <noteline...>
-  echo "# transcript"
-  echo "chapter: 07"
-  echo "os: ${os_name} ${os_ver} (Apple Silicon)"
-  echo "shell: ${zver} (login default)"
-  echo "tool: $1"
-  echo "date: ${today}"
-  echo "captured-by: user-mac"
-  shift
-  for ln in "$@"; do echo "note: ${ln}"; done
-  echo "---"
-}
-
-# Preflight: data files and duckdb.
-missing=0
-for f in "$proj/data/raw/factors.csv" \
-  "$proj/data/raw/firm_panel.csv" \
-  "$proj/data/clean/portfolio.parquet"; do
-  if [ ! -f "$f" ]; then
-    echo "MISSING: $f (run \`make\` in sandbox/asset-pricing)" >&2
-    missing=1
-  fi
-done
-if ! command -v duckdb >/dev/null 2>&1; then
-  echo "MISSING: duckdb not on PATH (brew install duckdb)" >&2
-  missing=1
-fi
-[ "$missing" -eq 1 ] && exit 1
-
-# A scratch directory we fully own; removed on exit.
-scratch="$(mktemp -d "${TMPDIR:-/tmp}/ch07mac.XXXXXX")"
+scratch="$(mktemp -d /tmp/ch07-mac.XXXXXX)"
 cleanup() { rm -rf "$scratch"; }
 trap cleanup EXIT
 
-# --- 1. BSD sed -i: the backup suffix is REQUIRED -------------
-{
-  hdr "BSD sed (macOS base)" \
-    "BSD \`sed -i\` requires a backup-suffix argument; GNU sed" \
-    "makes it optional. The bare GNU form therefore FAILS on" \
-    "macOS (recorded with its real error and exit status)," \
-    "\`-i ''\` edits with no backup, and \`-i.bak\` keeps one." \
-    "Run on a COPY of factors.csv in a mktemp scratch, never" \
-    "on the project's raw file. No user data in these lines."
-  cd "$scratch" || exit 1
-  cp "$proj/data/raw/factors.csv" .
-  echo ""
-  echo "\$ head -1 factors.csv"
-  head -1 factors.csv | mask
-  echo ""
-  echo "\$ sed -i 's/mkt_rf/mkt_excess/' factors.csv"
-  # </dev/null guards against any stdin read; capture output
-  # and status from the SAME run, then mask.
-  out="$(sed -i 's/mkt_rf/mkt_excess/' factors.csv \
-    </dev/null 2>&1)"
-  st=$?
-  printf '%s\n' "$out" | mask
-  echo "\$ echo \$?"
-  echo "$st"
-  echo ""
-  echo "\$ sed -i '' 's/mkt_rf/mkt_excess/' factors.csv"
-  sed -i '' 's/mkt_rf/mkt_excess/' factors.csv 2>&1 | mask
-  echo "\$ head -1 factors.csv"
-  head -1 factors.csv | mask
-  echo "\$ ls"
-  ls | mask
-  echo ""
-  echo "\$ sed -i.bak 's/mkt_excess/mkt_rf/' factors.csv"
-  sed -i.bak 's/mkt_excess/mkt_rf/' factors.csv 2>&1 | mask
-  echo "\$ ls"
-  ls | mask
-  echo "\$ head -1 factors.csv"
-  head -1 factors.csv | mask
-} >"$sout"
+# Two spaced CSV copies + a tiny tree for the demos.
+: >"$scratch/fy 2011.csv"
+: >"$scratch/fy 2012.csv"
+printf 'a\nb\n' >"$scratch/fy 2011.csv"
+printf 'a\nb\n' >"$scratch/fy 2012.csv"
 
-# --- 2. macOS awk: BWK awk, same shallow subset, gawk-ism -----
-{
-  hdr "macOS awk (BWK awk, macOS base)" \
-    "macOS ships BWK awk (the \"one true awk\"), not gawk. The" \
-    "shallow subset Ch 7 teaches (fields, a filter, a sum) is" \
-    "portable: the same commands on the same deterministic" \
-    "factors.csv should print the same numbers as the sandbox" \
-    "gawk run (ch07-awk.txt). A gawk-only extension" \
-    "(systime()) is then run and recorded honestly, working or" \
-    "failing. No user data in these lines."
-  cd "$proj" || exit 1
-  echo ""
-  echo "\$ awk --version"
-  awk --version 2>&1 | mask
-  echo ""
-  echo "\$ awk -F, 'NR > 1 && \$2 > 0.05' data/raw/factors.csv \\"
-  echo "    | wc -l"
-  awk -F, 'NR > 1 && $2 > 0.05' data/raw/factors.csv \
-    | wc -l | mask
-  echo ""
-  echo "\$ awk -F, 'NR > 1 {s += \$2} END {print s/(NR-1)}' \\"
-  echo "    data/raw/factors.csv"
-  awk -F, 'NR > 1 {s += $2} END {print s/(NR-1)}' \
-    data/raw/factors.csv | mask
-  echo ""
-  echo "\$ awk 'BEGIN {print systime()}'; echo \"exit=\$?\""
-  out="$(awk 'BEGIN {print systime()}' </dev/null 2>&1)"
-  st=$?
-  printf '%s\n' "$out" | mask
-  echo "exit=$st"
-} >"$aout"
+zver="$(zsh --version 2>/dev/null | awk '{print $2}')"
+bver_sys="$(/bin/bash --version | head -1 |
+            sed -E 's/.*version ([0-9.]+).*/\1/')"
 
-# --- 3. BSD sort under LC_ALL: locale and platform ------------
+# --- transcript header --------------------------------------
 {
-  hdr "BSD sort (macOS base); shasum -a 256" \
-    "The same nine project-root names the sandbox sorted" \
-    "(ch07-locale.txt), rebuilt in scratch, sorted under" \
-    "LC_ALL=C and LC_ALL=en_US.UTF-8 on BSD sort. Collation" \
-    "is defined by each platform's own locale data, so" \
-    "whichever order appears is recorded honestly and" \
-    "compared with the sandbox listing. Checksums" \
-    "via \`shasum -a 256\` (macOS has no sha256sum, the Ch 3" \
-    "DIVERGENCE). No user data in these lines."
-  cd "$scratch" || exit 1
-  mkdir -p rootnames
-  cd rootnames || exit 1
-  mkdir -p data output scripts
-  touch Makefile README.md pyproject.toml renv.lock \
-    report.qmd uv.lock
-  echo ""
-  echo "\$ ls | LC_ALL=C sort"
-  ls | LC_ALL=C sort | mask
-  echo ""
-  echo "\$ ls | LC_ALL=en_US.UTF-8 sort"
-  ls | LC_ALL=en_US.UTF-8 sort | mask
-  echo ""
-  echo "\$ ls | LC_ALL=C sort | shasum -a 256"
-  ls | LC_ALL=C sort | shasum -a 256 | mask
-  echo ""
-  echo "\$ ls | LC_ALL=en_US.UTF-8 sort | shasum -a 256"
-  ls | LC_ALL=en_US.UTF-8 sort | shasum -a 256 | mask
-} >"$lout"
+  echo "# transcript"
+  echo "chapter: 07"
+  echo "os: $(sw_vers -productName) $(sw_vers -productVersion)" \
+       "(Apple Silicon)"
+  echo "shell: zsh ${zver:-?} (login default); /bin/bash" \
+       "${bver_sys:-?} (system)"
+  echo "tool: BSD coreutils/findutils (macOS base)"
+  echo "date: $(date +%F)"
+  echo "captured-by: user-mac"
+  echo "note: macOS/BSD divergences for Ch 7. Unmatched glob:" \
+       "zsh errors, bash passes it literally. All demos run in"
+  echo "      a mktemp scratch dir, removed on exit."
+  echo "---"
+} >"$out"
 
-# --- 4. DuckDB CLI: SQL over the project's CSVs and Parquet ---
-{
-  hdr "DuckDB CLI ($(duckdb --version 2>/dev/null | head -1))" \
-    "REAL Mac capture (user decision 2026-07-02): the DuckDB" \
-    "CLI is not installable in the locked-down sandbox, so its" \
-    "output comes from the user's Mac. All queries are" \
-    "read-only SELECTs against the running example's raw CSVs" \
-    "and cleaned Parquet; no database file is created. The" \
-    "data is the deterministic generator output (hash-locked)," \
-    "so counts and values should match the sandbox CSVs. No" \
-    "user data in these lines."
-  cd "$proj" || exit 1
-  echo ""
-  echo "\$ duckdb --version"
-  duckdb --version 2>&1 | mask
-  echo ""
-  # -csv output: the CLI's default "duckbox" table draws
-  # Unicode box glyphs, which the book's LaTeX PDF drops (the
-  # Ch 5 render lesson), and CSV output composes with the rest
-  # of the chapter's tools anyway.
-  echo "\$ duckdb -csv -c \"SELECT month, mkt_rf \\"
-  echo "    FROM 'data/raw/factors.csv' LIMIT 3;\""
-  duckdb -csv -c "SELECT month, mkt_rf \
-    FROM 'data/raw/factors.csv' LIMIT 3;" 2>&1 | mask
-  echo ""
-  echo "\$ duckdb -csv -c \"DESCRIBE SELECT * \\"
-  echo "    FROM 'data/raw/firm_panel.csv';\""
-  duckdb -csv -c "DESCRIBE SELECT * \
-    FROM 'data/raw/firm_panel.csv';" 2>&1 | mask
-  echo ""
-  echo "\$ duckdb -csv -c \"SELECT count(*) AS n_rows, \\"
-  echo "    count(DISTINCT firm) AS n_firms \\"
-  echo "    FROM 'data/raw/firm_panel.csv';\""
-  duckdb -csv -c "SELECT count(*) AS n_rows, \
-    count(DISTINCT firm) AS n_firms \
-    FROM 'data/raw/firm_panel.csv';" 2>&1 | mask
-  echo ""
-  echo "\$ duckdb -csv <<'SQL'"
-  echo "SELECT p.month, avg(p.ret) AS mean_ret, f.mkt_rf"
-  echo "FROM 'data/raw/firm_panel.csv' p"
-  echo "JOIN 'data/raw/factors.csv' f USING (month)"
-  echo "GROUP BY p.month, f.mkt_rf"
-  echo "ORDER BY p.month"
-  echo "LIMIT 3;"
-  echo "SQL"
-  duckdb -csv <<'SQL' 2>&1 | mask
-SELECT p.month, avg(p.ret) AS mean_ret, f.mkt_rf
-FROM 'data/raw/firm_panel.csv' p
-JOIN 'data/raw/factors.csv' f USING (month)
-GROUP BY p.month, f.mkt_rf
-ORDER BY p.month
-LIMIT 3;
-SQL
-  echo ""
-  echo "\$ duckdb -csv -c \"SELECT count(*) AS n_months \\"
-  echo "    FROM 'data/clean/portfolio.parquet';\""
-  duckdb -csv -c "SELECT count(*) AS n_months \
-    FROM 'data/clean/portfolio.parquet';" 2>&1 | mask
-} >"$dout"
+# Echo a label, run a snippet, tee combined output.
+runz() {  # run a snippet under zsh
+  echo "" | tee -a "$out"
+  echo "# zsh: $1" | tee -a "$out"
+  echo "\$ $2" | tee -a "$out"
+  ( cd "$scratch" && zsh -c "$2" ) 2>&1 | tee -a "$out"
+}
+runb() {  # run a snippet under the system bash 3.2
+  echo "" | tee -a "$out"
+  echo "# bash ${bver_sys}: $1" | tee -a "$out"
+  echo "\$ $2" | tee -a "$out"
+  ( cd "$scratch" && /bin/bash -c "$2" ) 2>&1 | tee -a "$out"
+}
 
-echo "captured -> $sout"
-echo "captured -> $aout"
-echo "captured -> $lout"
-echo "captured -> $dout"
+# 1. Version stamp (already in the header; echo for the record).
+echo "" | tee -a "$out"
+echo "\$ zsh --version; /bin/bash --version | head -1" \
+  | tee -a "$out"
+{ zsh --version; /bin/bash --version | head -1; } \
+  2>&1 | tee -a "$out"
+
+# 2. THE big divergence: an unmatched glob.
+runz "unmatched glob is a hard error" 'ls *.xyz; echo "exit=$?"'
+runb "unmatched glob passes through literally" \
+  'ls *.xyz; echo "exit=$?"'
+
+# 3. noclobber refusal message differs by shell.
+runz "noclobber refusal message" \
+  ': >f; set -o noclobber; echo y > f; echo "exit=$?"'
+runb "noclobber refusal message" \
+  ': >f; set -o noclobber; echo y > f; echo "exit=$?"'
+
+# 4. Null-safety on BSD findutils: naive breaks, -0 is safe.
+runb "naive find | xargs breaks on spaced names" \
+  "find . -name '*.csv' | xargs wc -l"
+runb "null-delimited find -print0 | xargs -0 is safe" \
+  "find . -name '*.csv' -print0 | xargs -0 wc -l"
+
+# 5. Redirection order is the same portable rule as on Linux.
+runb "2>&1 >file does NOT merge (order matters)" \
+  'ls . nope 2>&1 > out.log; echo "--- out.log ---"; cat out.log'
+
+# Trailer goes to the terminal ONLY. The original tee -a wrote
+# the absolute path (with the user's account name) into the
+# transcript itself, which is how a personal path reached the
+# public repo (found at the Ch 2 G3 audit; masked there per the
+# transcripts/README scrub convention). Never tee the trailer.
+echo "captured -> $out"

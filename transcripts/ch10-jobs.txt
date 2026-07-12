@@ -1,0 +1,25 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16 (jobs/wait builtins)
+date: 2026-07-03
+captured-by: sandbox
+note: non-interactive capture, so the interactive "[1] 12345"
+  job-start notice and the "Terminated"/"Done" completion
+  notices are suppressed; `jobs` still shows job state. PIDs
+  (7, 9) are real captured values and vary per run. No
+  user-specific data; nothing masked.
+---
+$ sleep 30 &
+$ echo "$!"
+7
+$ jobs
+[1]+  Running                 sleep 30 &
+$ kill %1
+$ jobs
+$ sleep 2 & echo "started $!"
+started 9
+$ wait
+$ echo "all background jobs done"
+all background jobs done

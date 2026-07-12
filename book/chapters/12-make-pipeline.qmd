@@ -25,10 +25,10 @@ A note on where the output comes from. The full
 cross-language build, the incremental rebuilds, the
 timestamp behavior, and `make check` are captured on the
 author's Mac (macOS, GNU Make 3.81, R 4.5.3, Quarto 1.9.36;
-`transcripts/ch11-make-mac.txt`), because R and Quarto do not
+`transcripts/ch12-make-mac.txt`), because R and Quarto do not
 run in this book's Linux sandbox. The generic Make mechanics
 and the Python half of the pipeline are captured in the
-sandbox (Ubuntu 22.04, GNU Make 4.3; the `ch11-*` transcript
+sandbox (Ubuntu 22.04, GNU Make 4.3; the `ch12-*` transcript
 files). The Stata and EViews recipes near the end are
 illustrative and never executed, and are labeled as such.
 

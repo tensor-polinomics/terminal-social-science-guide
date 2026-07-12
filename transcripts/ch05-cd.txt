@@ -1,0 +1,43 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in /tmp/asset-pricing (clean sandbox copy of the
+      project). Covers cd with a relative path, cd .., an
+      absolute path, and the `cd -` toggle to the previous
+      directory. The PITFALL block reruns a relative path
+      (`ls data/raw`) from /tmp, where it fails, to show the
+      working-directory precondition Ch 2 flagged. No
+      user-specific data.
+---
+$ pwd
+/tmp/asset-pricing
+$ cd data/raw
+$ pwd
+/tmp/asset-pricing/data/raw
+$ ls
+factors.csv
+firm_panel.csv
+$ cd ..
+$ pwd
+/tmp/asset-pricing/data
+$ cd /tmp/asset-pricing/output
+$ pwd
+/tmp/asset-pricing/output
+$ cd -
+/tmp/asset-pricing/data
+$ pwd
+/tmp/asset-pricing/data
+
+# --- PITFALL: a relative path run from the wrong directory ---
+$ pwd
+/tmp/asset-pricing
+$ ls data/raw
+factors.csv
+firm_panel.csv
+$ cd /tmp
+$ ls data/raw
+ls: cannot access 'data/raw': No such file or directory

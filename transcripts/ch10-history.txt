@@ -1,0 +1,38 @@
+# transcript
+chapter: 10
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU bash 5.1.16 (history builtin, HISTCONTROL)
+date: 2026-07-03
+captured-by: sandbox
+note: bash history hygiene, captured in the sandbox because it
+  works non-interactively here (the runner has no controlling
+  terminal, so `bash -i` reads the commands from the here-doc).
+  Uses an ISOLATED throwaway HISTFILE, never a real history
+  file. Demonstrates two mechanisms at once: a command typed
+  with a leading space is not recorded (HISTCONTROL=ignorespace),
+  and commands run while `set +o history` is in effect are not
+  recorded (the `set +o history` toggle line itself IS recorded,
+  since it runs just before it takes effect). The leading-space
+  command is a realistic secret (a Bearer-token curl) with a
+  FAKE token. zsh's equivalent (setopt HIST_IGNORE_SPACE) is
+  pinned to the zsh manual in verification/chapter-09.md; it is
+  not demonstrable from a non-interactive script on a real
+  terminal, where interactive zsh reads the keyboard, not the
+  here-doc.
+
+The commands that were run (the leading-space one and the ones
+between set +o/-o history do not appear in the saved file):
+
+  HISTCONTROL=ignorespace
+  echo "public setup line"
+   curl -H "Authorization: Bearer sk-fake-not-real" example
+  set +o history
+  echo "secret work happens here"
+  set -o history
+  echo "public line after"
+---
+$ cat bash_history_demo
+echo "public setup line"
+set +o history
+echo "public line after"

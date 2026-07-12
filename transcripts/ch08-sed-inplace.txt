@@ -1,0 +1,32 @@
+# transcript
+chapter: 08
+os: Ubuntu 22.04.5 LTS (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU sed 4.8
+date: 2026-07-02
+captured-by: sandbox
+note: the sed -i in-place demo runs on a COPY of factors.csv in a
+note: throwaway /tmp scratch directory, never on the project's raw
+note: file. GNU sed accepts -i with no backup suffix; the BSD/GNU
+note: split is captured on the Mac (ch08-sed-mac.txt). No
+note: user-specific data is shown, so no masks are applied.
+---
+
+$ cp /tmp/ap/data/raw/factors.csv .
+$ head -1 factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+
+$ sed -i 's/mkt_rf/mkt_excess/' factors.csv
+$ head -1 factors.csv
+month,mkt_excess,smb,hml,rmw,cma,rf
+$ ls
+factors.csv
+
+$ sed -i.bak 's/mkt_excess/mkt_rf/' factors.csv
+$ ls
+factors.csv
+factors.csv.bak
+$ head -1 factors.csv
+month,mkt_rf,smb,hml,rmw,cma,rf
+$ head -1 factors.csv.bak
+month,mkt_excess,smb,hml,rmw,cma,rf

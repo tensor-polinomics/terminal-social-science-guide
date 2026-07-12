@@ -10,23 +10,23 @@ provenance than on external pins. Provenance classes:
   the asset-pricing project at `/tmp/ap` (the repo-relevant
   tree, as Ch 6's tour used), with every file-creating or
   in-place demo confined to throwaway `/tmp` scratch
-  (`/tmp/ch07`, a separate scratch for the `sed -i` demo),
-  never the project's own data. Transcripts: `ch07-grep.txt`,
-  `ch07-regex-glob.txt`, `ch07-sed.txt`,
-  `ch07-sed-inplace.txt`, `ch07-tabular.txt`, `ch07-tr.txt`,
-  `ch07-locale.txt`, `ch07-awk.txt`, `ch07-jq.txt`. Every
+  (`/tmp/ch08`, a separate scratch for the `sed -i` demo),
+  never the project's own data. Transcripts: `ch08-grep.txt`,
+  `ch08-regex-glob.txt`, `ch08-sed.txt`,
+  `ch08-sed-inplace.txt`, `ch08-tabular.txt`, `ch08-tr.txt`,
+  `ch08-locale.txt`, `ch08-awk.txt`, `ch08-jq.txt`. Every
   sandbox block the chapter shows was diffed byte-for-byte
   against its transcript (31 of the chapter's 39 shown blocks;
   the other 8 are the Mac captures below).
 - **Real, user's Mac (macOS/BSD divergences + DuckDB),
   read-only: INGESTED and RECONCILED 2026-07-03** (macOS
   26.5.1, zsh 5.9, Apple Silicon). The user ran
-  `transcripts/capture-ch07-mac.sh` (makes ONE `mktemp -d`
+  `transcripts/capture-ch08-mac.sh` (makes ONE `mktemp -d`
   scratch, removes it on exit, installs nothing; applies the
   standard capture-time masks incl. the `$TMPDIR` folder-hash
   scrub; preflight checks for `duckdb` and the data files).
-  Transcripts in: `ch07-sed-mac.txt`, `ch07-awk-mac.txt`,
-  `ch07-sort-locale-mac.txt`, `ch07-duckdb-mac.txt`; masks
+  Transcripts in: `ch08-sed-mac.txt`, `ch08-awk-mac.txt`,
+  `ch08-sort-locale-mac.txt`, `ch08-duckdb-mac.txt`; masks
   verified (repo greps clean of home paths, account name, and
   the `$TMPDIR` hash). The chapter's 8 Mac-backed blocks (the
   BSD `sed -i` failure, the `systime()` failure, and the six
@@ -71,7 +71,7 @@ package names and versions.
    server, no import step" sentence rests on this plus the
    capture.
 3. **DuckDB queries CSV and Parquet files directly by path.**
-   Verified by the Mac capture (`ch07-duckdb-mac.txt`,
+   Verified by the Mac capture (`ch08-duckdb-mac.txt`,
    reconciled 2026-07-03) and by the docs, fetched 2026-07-03:
    the CSV overview shows `SELECT * FROM 'flights.csv'` and the
    Parquet overview shows `SELECT * FROM 'test.parquet'` and
@@ -88,7 +88,7 @@ package names and versions.
    https://www.gnu.org/software/gawk/manual/html_node/Time-Functions.html
    (fetched 2026-07-02: "They are gawk extensions; they are not
    specified in the POSIX standard."). The macOS failure is
-   captured (`ch07-awk-mac.txt`, 2026-07-03: BWK awk prints
+   captured (`ch08-awk-mac.txt`, 2026-07-03: BWK awk prints
    `awk: calling undefined function systime` / ` source line
    number 1` and exits 2); the DIVERGENCE callout claims only
    what the capture shows and the manual states.
@@ -102,16 +102,16 @@ package names and versions.
    from the real `factors.csv` (grep-verified 2026-07-02).
 6. **BSD `sed -i` requires a suffix argument; GNU makes it
    optional.** GNU side captured in the sandbox
-   (`ch07-sed-inplace.txt`, GNU sed 4.8 accepts bare `-i`);
-   BSD side captured (`ch07-sed-mac.txt`, 2026-07-03: bare
+   (`ch08-sed-inplace.txt`, GNU sed 4.8 accepts bare `-i`);
+   BSD side captured (`ch08-sed-mac.txt`, 2026-07-03: bare
    `-i` fails with `sed: 1: "factors.csv` + newline +
    `": invalid command code f`, exit 1). No web pin needed:
    both sides are real captures on the two platforms the book
    targets.
 7. **Locale changes `sort` order and stream checksums.**
-   Demonstrated live in the sandbox (`ch07-locale.txt`,
+   Demonstrated live in the sandbox (`ch08-locale.txt`,
    LC_ALL=C vs en_US.UTF-8, different order and different
-   sha256). Cross-platform reconcile (`ch07-sort-locale-mac.txt`,
+   sha256). Cross-platform reconcile (`ch08-sort-locale-mac.txt`,
    2026-07-03): the Mac's BSD `sort` under BOTH `C` and
    `en_US.UTF-8` produced order byte-identical to the sandbox
    and the SAME two `shasum -a 256` values the chapter shows
@@ -121,8 +121,8 @@ package names and versions.
    REPRODUCIBILITY callout was rewritten to report the observed
    agreement and to keep the durable point (a locale name
    promises a language, not a byte order; pin `LC_ALL=C`). The
-   note headers in `ch07-sort-locale-mac.txt` and
-   `capture-ch07-mac.sh`, which had speculated that macOS UTF-8
+   note headers in `ch08-sort-locale-mac.txt` and
+   `capture-ch08-mac.sh`, which had speculated that macOS UTF-8
    locales collate in byte order unlike glibc, were neutralized
    (per the Codex audit) to describe only what is tested;
    collation is platform-defined, and whichever order appears
@@ -130,7 +130,7 @@ package names and versions.
    output lines are untouched. Locale pinning itself is
    deferred to Chapter 11 (forward language).
 8. **jq syntax** (`keys`, key paths, `length`, `.[]` iteration,
-   `-r`). All capture-backed (`ch07-jq.txt`, jq 1.6 on the
+   `-r`). All capture-backed (`ch08-jq.txt`, jq 1.6 on the
    project's real `renv.lock`). Manual fetched 2026-07-03:
    https://jqlang.org/manual/ documents `-r`/`--raw-output`
    and the builtins used.

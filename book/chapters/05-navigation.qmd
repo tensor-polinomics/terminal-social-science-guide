@@ -26,15 +26,15 @@ undone.
 
 A note on where the output comes from. The portable commands
 run in this book's Linux sandbox (Ubuntu 22.04.5, GNU bash
-5.1.16, GNU coreutils 8.32; the `ch04-*.txt` transcript
+5.1.16, GNU coreutils 8.32; the `ch05-*.txt` transcript
 files), in a clean copy of the asset-pricing project placed at
 `/tmp/asset-pricing` and in throwaway `/tmp` scratch
 directories for the demos that create and overwrite files.
 This is also the first chapter to hit real BSD-versus-GNU
 divergences on everyday commands, where the macOS tools behave
 differently from the Linux baseline; those are captured on the
-author's Mac (`transcripts/capture-ch04-mac.sh`, the
-`ch04-*-mac.txt` files) and quoted where they matter. Because
+author's Mac (`transcripts/capture-ch05-mac.sh`, the
+`ch05-*-mac.txt` files) and quoted where they matter. Because
 this chapter is the first to show `ls -l`, whose owner and
 group columns print an account name, that name reads
 `[account]`, and a home path reads `/Users/[account]`; the
@@ -314,7 +314,7 @@ top is a count of disk blocks, and the block unit differs: GNU
 `ls` (Linux) counts in 1-kilobyte blocks while BSD `ls`
 (macOS) counts in 512-byte blocks, so the same directory
 prints a different `total` on each platform (the macOS run in
-`transcripts/ch04-ls-mac.txt` shows the smaller-unit count).
+`transcripts/ch05-ls-mac.txt` shows the smaller-unit count).
 It is not a file count and never was, so do not read meaning
 into the number matching across machines. Second, and nastier,
 `-G` is a *false friend*: it does opposite jobs on the two
@@ -349,7 +349,7 @@ different set of specifiers, `%z` for size, `%N` for name,
 `%Sm` for the modification time, so the portable-looking `stat
 -c '%s'` prints nothing useful on a Mac. The macOS equivalent
 of the format above, captured on a two-byte scratch file in
-`transcripts/ch04-stat-mac.txt`, produces the same kind of
+`transcripts/ch05-stat-mac.txt`, produces the same kind of
 line from an entirely different flag and syntax:
 
 ```bash
@@ -618,7 +618,7 @@ features, and older macOS shipped neither a `readlink` that
 took `-f` nor a `realpath` at all. Recent macOS has caught up:
 on the author's Mac (macOS 26.5.1) both `readlink -f` and
 `realpath` resolve the link exactly as GNU does, exit status
-zero, recorded in `transcripts/ch04-symlink-mac.txt`. The
+zero, recorded in `transcripts/ch05-symlink-mac.txt`. The
 catch is that "recent" is doing real work in that sentence: a
 script that must also run on an older Mac, or on a bare BSD,
 cannot assume either flag exists. So the portable habit for
@@ -658,7 +658,7 @@ case-*preserving*: it remembers the capitalization you typed
 but treats names that differ only in case as the **same file**,
 so the same sequence there produces one file, and writing
 `foo.txt` overwrites `Foo.txt`. That side is captured on the
-Mac in `transcripts/ch04-case-mac.txt`.
+Mac in `transcripts/ch05-case-mac.txt`.
 
 ::: {.callout-note .divergence title="DIVERGENCE"}
 This bites in one direction and it is the expensive one. A
@@ -691,12 +691,12 @@ path in place of the placeholder:
 
 ```text
 # illustrative setup (placeholder path; not a captured run):
-cp -r <your-project> /tmp/ch04-play
-cd /tmp/ch04-play
+cp -r <your-project> /tmp/ch05-play
+cd /tmp/ch05-play
 # then do items 4 to 6 in there, not in your real project
 ```
 
-When you are done you can delete the whole `/tmp/ch04-play`
+When you are done you can delete the whole `/tmp/ch05-play`
 copy; removing a directory tree is `rm -r`, which Chapter 7
 covers along with the care it demands, and `/tmp` is cleared
 on reboot in any case.
@@ -732,7 +732,7 @@ on reboot in any case.
    decline the prompt. Say in one sentence what would have
    brought the file back if it had been committed to Git.
 
-6. Make a symlink and resolve it, inside `/tmp/ch04-play`.
+6. Make a symlink and resolve it, inside `/tmp/ch05-play`.
    Create `latest_factors.csv` pointing at
    `data/raw/factors.csv` with `ln -s`, inspect it with `ls -l`
    and `readlink`, then run `readlink -f` and `realpath` and

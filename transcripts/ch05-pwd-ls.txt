@@ -1,0 +1,29 @@
+# transcript
+chapter: 05
+os: Ubuntu 22.04.5 (workspace sandbox)
+shell: bash 5.1.16
+tool: GNU coreutils 8.32
+date: 2026-07-02
+captured-by: sandbox
+note: run in a clean copy of the asset-pricing project at
+      /tmp/asset-pricing in the sandbox (the sandbox HOME lives
+      under /sessions, a sandbox quirk, so a clean /tmp copy is
+      used for teachable absolute paths; cf. Ch 2's
+      /tmp/ch02-fs/project). No user-specific data in these
+      lines. The `~`/home shorthand is shown from the Mac
+      instead (ch05-home-mac.txt), where home is the natural
+      /Users/[account].
+---
+$ pwd
+/tmp/asset-pricing
+$ ls
+Makefile
+README.md
+data
+output
+pyproject.toml
+report.qmd
+scripts
+$ ls data/raw
+factors.csv
+firm_panel.csv
