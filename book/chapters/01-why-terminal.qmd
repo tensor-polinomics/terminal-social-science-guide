@@ -87,7 +87,11 @@ versions and the written steps rot. Installing software is the
 clearest case: one line does what a paragraph of GUI steps
 struggles to describe, which is why installation instructions
 almost always start with a command to paste, not a sequence of
-screenshots.
+screenshots. This book is written the same way: unlike many
+command-line guides, it shows almost no screenshots. Every
+example is a command printed as text you can read, copy, and
+run, which is exactly why it stays followable when a picture
+of a menu would already be out of date.
 
 The third payoff is speed on the dull, repetitive work that
 fills a research project. The shell was built to do one
@@ -143,8 +147,13 @@ wherever it now has to run.
 ## Why researchers specifically, not just programmers
 
 There are a hundred general introductions to the command line,
-and most of them are written for people building software. This
-one is not, and the difference is the whole reason it exists.
+and most of them are written for people building software. The
+best known, William Shotts's *The Linux Command Line*
+[-@shotts2024], is thorough and deservedly well regarded, but at
+around six hundred pages it can feel intimidating, and much of
+it covers ground a researcher moving a pipeline does not need.
+This one is not, and the difference is the whole reason it
+exists.
 For a researcher the terminal earns its place not as a
 programming skill but as the connective tissue of a reproducible
 workflow: it is the single place from which you drive all the
@@ -202,8 +211,11 @@ thing still reproduces byte for byte wherever it ran.
 
 Sketched as the commands you will meet, that arc looks like the
 roadmap below. Do not run it or try to understand it yet; it is
-here only to show the shape of where the book is going, and each
-line names the chapter that teaches it.
+here only to show the shape of where the book is going. The
+lines that begin with `#`, and any text after a `#` on a
+command line, are comments: notes for a human that the shell
+ignores when it runs, used here to name the chapter that
+teaches each command.
 
 ```text
 # Illustrative roadmap, not run here. Each command below
@@ -289,8 +301,7 @@ is framed as *any Linux box you can SSH to*, a university
 cluster, a cloud virtual machine, a lab server, or a rented GPU
 pod, never an assumption that you personally own a server. Where
 a command genuinely behaves differently across these systems, a
-callout marks it rather than pretending the platforms are
-identical.
+callout marks it.
 
 ::: {.callout-note .divergence title="DIVERGENCE"}
 The single most common way command-line advice misleads

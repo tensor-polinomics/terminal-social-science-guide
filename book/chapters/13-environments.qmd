@@ -8,7 +8,14 @@ nothing: it runs against an interpreter and a stack of
 packages, and those change underneath you. A `polars` that
 renames an argument, a `statsmodels` that revises a default, a
 `fixest` that fixes a bug your old numbers quietly depended on,
-any of these turns "the same script" into a different program.
+any of these turns "the same script" into a different program.^[These
+are the analysis libraries the running example leans on:
+`polars` is a fast Python DataFrame library (the
+data-wrangling layer), `statsmodels` is a Python package for
+statistics and econometrics, and `fixest` is an R package for
+fast fixed-effects regressions. You do not need to know them to
+follow this chapter; they stand in for whatever packages your
+own code imports.]
 A reproducible analysis therefore needs a reproducible
 *environment*: the exact package versions the code ran
 against, captured in a file you can commit, and restored from

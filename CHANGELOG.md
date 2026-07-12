@@ -8,12 +8,68 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 5: targeted per-chapter fixes and the
+  first two `references.bib` entries (2026-07-11; not yet
+  committed). Carries the pending `0b3bf1d` hash-line from Session 4
+  (a commit cannot contain its own hash).** The independent one-off
+  fixes the earlier sessions deferred, from the author review
+  (`private/review-response-2026-07-08.md` Section 6, Session 5 row;
+  points 5, 8, 9, 10, 11, 14, 17). Prose and citation edits only; no
+  fabricated output. Chapter 1 (`01-why-terminal.qmd`): added the
+  "almost no screenshots; commands are copy-pasteable text" point
+  after the paste line; named William Shotts's *The Linux Command
+  Line* as further reading (~600pp, can feel intimidating) and cited
+  it; glossed the leading `#` as a comment at its first appearance
+  (the roadmap block); and deleted "rather than pretending the
+  platforms are identical." Chapter 2 (`02-mental-model.qmd`): before
+  "Try it yourself", added the AI-assistants-as-a-fourth-help-avenue
+  point and the logic-beats-memorizing-syntax argument. Chapter 3
+  (`03-setup.qmd`): added a short "what a terminal emulator is and
+  does", named WezTerm among the cross-platform emulators, and
+  expanded "zsh" to "the Z shell" and "bash" to "the Bourne-again
+  shell". Chapter 5 (`05-navigation.qmd`): introduced
+  `cd /tmp/asset-pricing` in the prose before the first `pwd` (the
+  captured block and its `ch04-pwd-ls.txt` transcript left
+  byte-identical); and taught `tree` (motivated for Finder/Explorer
+  users, with the `brew install tree` / `apt install tree` caveat and
+  `ls -R` as the always-available fallback), in prose, no fabricated
+  `tree`/`ls -R` output. Chapter 8 (`08-text-tabular-data.qmd`): fixed
+  the `mkt_rf` forward-reference by promoting the header-revealing
+  `grep -n 'mkt_rf'` block ahead of the 8.8% sentence (each block
+  stays byte-identical to `ch07-grep.txt`; only order and connective
+  prose changed) and reworded "which is how you learn the header is
+  line 1". Chapter 13 (`13-environments.qmd`): added a footnote
+  glossing `polars` / `statsmodels` / `fixest` at first mention;
+  Docker left as-is (already named, scoped out, none taught, per the
+  memo's push-back). Chapter 18 (`18-startup-files-path.qmd`): added a
+  three-line gloss of the five cron time fields where `0 6 * * *`
+  sits, with a one-line `at` mention; cron not expanded. Bibliography
+  (`book/references.bib`, via the paper-wiki skill, its sole writer):
+  first two entries, both books with no registered DOI (confirmed via
+  Crossref/OpenAlex + web search): `friedl2006` (Friedl, *Mastering
+  Regular Expressions*, 3rd ed., O'Reilly, 2006) and `shotts2024`
+  (Shotts, *The Linux Command Line*, 6th Internet ed., 2024). Cited
+  `@shotts2024` in Chapter 1 and `@friedl2006` in Chapter 8's regex
+  further-reading pointer (consolidated there rather than duplicated
+  in Chapter 7, which only cross-references regex to Chapters 8/9).
+  Source files touched (this CHANGELOG also updated): `book/chapters/01-why-terminal.qmd`,
+  `02-mental-model.qmd`, `03-setup.qmd`, `05-navigation.qmd`,
+  `08-text-tabular-data.qmd`, `13-environments.qmd`,
+  `18-startup-files-path.qmd`, and `book/references.bib`. No new
+  callouts; no section or ADVANCED-mark count change; validator
+  target 0/0 (canonical `uv run` on the Mac at the gate); em-dashes
+  0.
 - **Review-response Session 4: first-use gloss audit across the
   chapters the review memo numbers Ch 2, 4, 6, 7, 8 (current
   numbering 2, 5, 7, 8, 9 after the Session-1 mini-chapter
-  insertion) (2026-07-11; not yet committed). Carries the pending
-  `7a61e86` hash-line from Session 3 (already in the working tree; a
-  commit cannot contain its own hash).** Root cause C of the author
+  insertion) (2026-07-11; committed and pushed 2026-07-11 as
+  `0b3bf1d`, `0b3bf1de5dbf9426eddc2dc9b1f528188042985f`, message
+  "Close Session 4 first-use gloss audit"; Codex blind audit FAIL
+  round 1, both findings fixed, re-audit PASS, then human review;
+  validator 0/0 and `quarto render book` clean. Shipped Session 3's
+  `7a61e86` hash-line; this entry's own `0b3bf1d` hash-line rides in
+  the next commit, since a commit cannot contain its own hash).**
+  Root cause C of the author
   review (`private/review-response-2026-07-08.md` Section 6, Session
   4 row, and the #C first-use items): commands used before they are
   glossed. One consistent pass added short prose glosses at first

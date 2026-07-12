@@ -42,18 +42,31 @@ files) and quoted where they differ.
 
 `grep` reads lines and prints the ones that match a pattern.
 That one sentence covers most of its daily use: it is how you
-look something up in a data file without opening it. What did
-the market do in June 2015? Ask the factor file:
+look something up in a data file without opening it. Before
+reading a value out of the factor file, it helps to see the
+columns. The `-n` option numbers each matching line, so
+searching for `mkt_rf` both finds the header and shows that it
+sits on line 1:
+
+```bash
+$ grep -n 'mkt_rf' data/raw/factors.csv
+1:month,mkt_rf,smb,hml,rmw,cma,rf
+```
+
+So the columns are `month`, then `mkt_rf` (the market's excess
+return) and the other factors. Now ask what the market did in
+June 2015:
 
 ```bash
 $ grep '2015-06' data/raw/factors.csv
 2015-06,0.088176,0.034192,-0.050628,-0.007006,-0.000442,0.001629
 ```
 
-One command, one line back: the market's excess return that
-month was 8.8 percent (the second field; the header a moment
-ago named it `mkt_rf`). When the thing you are looking for is
-a literal string rather than a pattern, `-F` says so, and it
+One command, one line back: read across to the second field
+and the market's excess return that month was 8.8 percent, the
+`mkt_rf` column the header just named. When the thing you are
+looking for is a literal string rather than a pattern, `-F`
+says so, and it
 is the right habit for values copied out of a data file,
 because it turns off every special character:
 
@@ -64,16 +77,8 @@ F0000,2011-01,-0.012231,911.6632,41.9506,1387.1572
 
 That is firm `F0000`'s first row in the panel, a synthetic
 identifier: the panel is simulated data, its 300 firms labeled
-`F0000` through `F0299`. Two more options finish the daily
-kit. `-n` prints the line number of
-each match, which is how you learn the header is line 1:
-
-```bash
-$ grep -n 'mkt_rf' data/raw/factors.csv
-1:month,mkt_rf,smb,hml,rmw,cma,rf
-```
-
-And `-c` counts matching lines instead of printing them. How
+`F0000` through `F0299`. One more option finishes the daily
+kit: `-c` counts matching lines instead of printing them. How
 many panel rows belong to 2011? Anchor the year between the
 comma that ends the firm column and the month's own hyphen,
 and count:
@@ -192,8 +197,10 @@ $ grep -E '^(2015|2016)-01,' data/raw/factors.csv \
 That is as deep as this book goes into regex syntax: literal
 text, `.`, `^`, `$`, character classes like `[0-9]`, and
 `-E`'s alternation cover nearly every data-file question in
-practice. The durable point is the division of labor: globs
-for *which files*, regex for *which lines*. Chapter 9 will
+practice. The full language goes much deeper, and the standard
+reference for it is Friedl's *Mastering Regular Expressions*
+[-@friedl2006]. The durable point is the division of labor:
+globs for *which files*, regex for *which lines*. Chapter 9 will
 draw the same line from the other side, when it searches file
 trees and their contents.
 

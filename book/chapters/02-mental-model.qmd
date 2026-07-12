@@ -714,6 +714,25 @@ a web tutorial's flag "does not exist" on your Mac, suspect
 the platform before you suspect yourself.
 :::
 
+The three levels share a lesson worth stating plainly:
+not one of them asks you to have the flags memorized.
+What this chapter really teaches is not a list of options
+but a way of thinking, that a command is a process, that
+it reads three streams and returns an exit code, and that
+the exact flag is always a lookup away. Hold that model
+and the syntax is cheap to recover; memorize the syntax
+without the model and you are stuck the first time a
+command surprises you. It is also why the AI coding
+assistants of Chapter 17 are a genuine fourth avenue for
+getting unstuck: asked in plain language, they draft the
+exact invocation, name the flag, or explain a cryptic
+error, and they are good at it precisely because shell
+work is mostly looking things up, not reciting them.
+Treat them as a fast `--help` that speaks English, check
+what they suggest against the model you are building
+here, and do not paste a command you cannot yet read,
+above all one that deletes or overwrites.
+
 ## Try it yourself {.unnumbered}
 
 These run anywhere and destroy nothing. Use the asset-pricing

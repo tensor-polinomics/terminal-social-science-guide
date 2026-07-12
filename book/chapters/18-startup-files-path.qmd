@@ -373,6 +373,13 @@ PATH=/home/you/.local/bin:/usr/local/bin:/usr/bin:/bin
 0 6 * * *  cd ~/project && make report
 ```
 
+The five fields before the command are cron's schedule, in
+order minute, hour, day of month, month, and day of week, where
+a `*` means every. So `0 6 * * *` reads as minute 0 of hour 6
+on every day of every month and every weekday: 6:00 each
+morning. (For a job that should run once rather than on a
+repeating schedule, `at` takes a single time instead.)
+
 macOS uses `launchd` rather than `cron` for scheduled and
 GUI-launched work, and it behaves the same way for our purposes:
 a process `launchd` starts inherits `launchd`'s environment, not

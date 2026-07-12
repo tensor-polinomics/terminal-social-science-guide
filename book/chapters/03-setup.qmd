@@ -87,11 +87,19 @@ the divergences flagged. The rest of this chapter's Windows
 guidance assumes you are inside that WSL2 shell; the reasons to
 prefer it over PowerShell are the sidebar at the end.
 
-The terminal application itself, Terminal versus iTerm2 versus
-Windows Terminal, is mostly cosmetic: tabs, colors, fonts, split
-panes. It is worth almost none of your attention right now. What
-runs inside it, the shell, is the thing the next section pins
-down.
+That application has a name worth knowing: it is a **terminal
+emulator**. The name is historical. A terminal was once a
+physical device, a keyboard and screen wired to a shared
+computer; today's app emulates that device in a window. It
+draws the text the shell prints, sends your keystrokes to the
+shell, and handles the conveniences around them: tabs, colors,
+fonts, scrollback, and split panes. The common choices, Terminal
+and iTerm2 on a Mac, Windows Terminal on Windows, and
+cross-platform emulators like WezTerm, differ only in those
+conveniences, not in what the shell can do. Which one you pick
+is close to cosmetic and worth almost none of your attention
+right now. What runs inside it, the shell, is the thing the next
+section pins down.
 
 ## Which shell you have, and why it matters
 
@@ -125,9 +133,10 @@ only command, bash would replace itself with `ps` and report
 `ps`; the extra command keeps `$$` naming the shell. At your own
 prompt you type just `ps -p $$`.) That `$`-versus-`%` split is
 the small difference Chapter 1 told you to notice: macOS defaults
-to zsh, while most Linux systems and the WSL2 Ubuntu shell
-default to bash. The two are close relatives, and for interactive
-use the difference rarely matters. It matters for *scripts*, and
+to zsh, the Z shell, while most Linux systems and the WSL2 Ubuntu
+shell default to bash, the Bourne-again shell, a pun on the older
+Bourne shell (`sh`) whose job it took over. The two are close
+relatives, and for interactive use the difference rarely matters. It matters for *scripts*, and
 this book takes a firm position that Chapter 11 will act on: write
 scripts for bash, with portable habits, never in zsh-only syntax.
 zsh is fine at the prompt; it is not the target you write

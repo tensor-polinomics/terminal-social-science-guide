@@ -45,8 +45,10 @@ brackets are a placeholder your own machine fills in.
 Every session starts with the same two questions: where am I
 standing, and what is in front of me. `pwd` (print working
 directory) answers the first, and `ls` (list) answers the
-second. Standing at the top of the asset-pricing project, the
-pair sketches the whole layout:
+second. First move to the project's top with
+`cd /tmp/asset-pricing` (`cd` is change directory, the next
+section's subject); a clean copy of the project lives at that
+path. Standing there, the pair sketches the whole layout:
 
 ```bash
 $ pwd
@@ -81,6 +83,20 @@ printed, so this exact command depends on standing at the
 project top. That silent precondition, the one Chapter 2
 flagged behind "run `ls data/raw`," is the first thing the
 next section makes concrete.
+
+`ls` shows one level at a time. To see the whole nested
+structure at once there is `tree`, which prints the directory
+as an indented outline: the same picture of folders inside
+folders that Finder on a Mac or File Explorer on Windows draws
+for you, but as plain text you can read, copy into an email, or
+paste into a README. It is the quickest way to show someone the
+shape of a project. One caveat: `tree` is not installed by
+default, so you may have to add it first, `brew install tree`
+on a Mac or `apt install tree` on a Debian or Ubuntu Linux box.
+Where you cannot install anything, a server you have just
+landed on, say, `ls -R` is the always-available fallback: it
+lists every subdirectory recursively, noisier than `tree`'s
+outline but built in everywhere.
 
 ## Moving through the tree: `cd`
 
