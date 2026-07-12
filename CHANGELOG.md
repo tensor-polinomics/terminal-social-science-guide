@@ -8,10 +8,51 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Review-response Session 6: greenfield Preface write
+  (2026-07-12; not yet committed). This commit also ships
+  Session 5's `229490cb` hash-line and flips the Session-5 entry
+  below to committed-and-pushed; this entry's own hash-line rides
+  in the next commit, since a commit cannot contain its own hash.
+  The Chapter 18 `ae78ce1` hash-line remains deferred (it is not
+  in this CHANGELOG yet), earmarked for the first Phase-7 commit;
+  this session does not add it.** Replaced the Preface
+  stub in `book/index.qmd` with the full landing page, from the
+  author review (`private/review-response-2026-07-08.md` Section 6,
+  Session 6 row; point P). Prose plus an HTML-only hero band and a
+  three-card feature grid, mirroring the companion Git book's
+  Preface; no command blocks (the Preface runs nothing, like
+  Chapter 1). The four asks: (a) why reproducibility is now the
+  standard in social science and how the shell is the layer that
+  executes it, stated as stakes and cross-referenced to the Git
+  book and Chapter 1, not re-argued; (b) the terminal is
+  intimidating at first but the skill is durable and compounds over
+  a career; (c) shell literacy is what makes the agentic-AI coding
+  tools effective, tied to Chapter 2's fourth-help-avenue point and
+  Chapter 17; (d) you still learn the shell because you must read
+  and verify what an agent runs, again pointing to Chapters 2 and
+  17. The hero band and feature grid are guarded with
+  `::: {.content-visible when-format="html"}` so the PDF drops them
+  cleanly and falls back to the surrounding prose (the HTML/PDF
+  guard the Chapter 5 figure taught). Wove in the single book-wide
+  "About the captured output" note that Session 3 wrote to the
+  stub, intact, as the closing section; its real-output and masking
+  claims are unchanged. Beginner-default and unlabeled (no ADVANCED
+  section); 0 em-dashes; sandbox `validate_book.py` self-check 0/0;
+  canonical `uv run` validator and `quarto render book` (confirming
+  the hero band and cards in HTML and the prose fallback plus
+  surviving captures note in the PDF) run at the Mac gate, then
+  Codex blind audit and human review. Source files touched (this
+  CHANGELOG also updated): `book/index.qmd`.
 - **Review-response Session 5: targeted per-chapter fixes and the
-  first two `references.bib` entries (2026-07-11; not yet
-  committed). Carries the pending `0b3bf1d` hash-line from Session 4
-  (a commit cannot contain its own hash).** The independent one-off
+  first two `references.bib` entries (2026-07-11; committed and
+  pushed 2026-07-11 as `229490cb`,
+  `229490cb27bf605533dea38e8ff31b91d2241f89`, message "Close
+  Session 5 targeted review fixes"; Codex blind audit round 1 FAIL,
+  1 BLOCKER and 1 NIT fixed, re-audit PASS, then human review;
+  validator 0/0 and `quarto render book` clean, 222pp. Shipped
+  Session 4's `0b3bf1d` hash-line; this entry's own `229490cb`
+  hash-line rides in the next commit, since a commit cannot contain
+  its own hash).** The independent one-off
   fixes the earlier sessions deferred, from the author review
   (`private/review-response-2026-07-08.md` Section 6, Session 5 row;
   points 5, 8, 9, 10, 11, 14, 17). Prose and citation edits only; no

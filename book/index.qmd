@@ -1,23 +1,134 @@
 # Preface {.unnumbered}
 
-<!-- STUB (Phase 0). The full preface prose (hero band + feature cards,
-     HTML-only, decorative; reproducibility, intimidation-but-worth-it,
-     shell-for-agentic-tools) is written in Session 6 of the
-     review-response workstream. The "About the captured output" note
-     below was added in Session 3 as the single book-wide disclosure of
-     the real-output and masking contract; Session 6 weaves it into the
-     finished preface rather than duplicating it. -->
+::::: {.content-visible when-format="html"}
+:::: {.hero-band}
+::: {.hero-lead}
+Social science now has to be reproducible, and reproducibility
+runs at the shell. This is the terminal book for economists and
+for finance and policy researchers: the fluency to drive your own
+analysis from the command line, and to stay in charge of it in an
+age when an AI will happily type the commands for you.
+:::
 
-## About the captured output {.unnumbered}
+[Start at Chapter 1](chapters/01-why-terminal.qmd){.btn .btn-primary}
+[How to read a command](chapters/04-shell-literacy.qmd){.btn .btn-outline-primary}
+[Command cheat sheet](cheatsheet.qmd){.btn .btn-outline-primary}
+::::
+:::::
 
-Every command in this book is shown with its real output. The
-blocks are captured from actual terminal sessions, most on a
-Linux machine, the macOS and BSD divergences on a Mac, and the
+Empirical social science has spent the past decade learning that
+a finding is only as trustworthy as its rebuild, and being able
+to produce that rebuild on demand is now an ordinary expectation
+rather than an exceptional one. The companion Git book makes the
+case for why, and this one takes that as settled. Its subject is
+the layer just beneath: the shell is where a versioned project
+stops being a description of what you did and becomes something a
+stranger can actually rerun. Chapter 1 draws that line in full;
+the Preface only marks where the two books meet, so that
+everything here can point back to reproducibility rather than
+re-argue it.
+
+::::: {.content-visible when-format="html"}
+:::: {.grid .feature-grid}
+::: {.g-col-12 .g-col-md-4 .feature-card}
+#### One real project, run for real
+
+A single asset-pricing study threads through every chapter. Its
+data rebuild from a seeded script, its headline result reproduces
+under a locked environment, and every command block shows the
+output the command actually printed.
+:::
+
+::: {.g-col-12 .g-col-md-4 .feature-card}
+#### From first prompt to remote server
+
+Readers range from an undergraduate who has never opened a
+terminal to a PhD student moving a job onto a cluster. No
+computer-science background is assumed. The default machine is a
+Mac; Linux and Windows (through WSL2) differences are flagged
+where they bite.
+:::
+
+::: {.g-col-12 .g-col-md-4 .feature-card}
+#### Built for the agentic-AI moment
+
+AI coding agents now sit at the prompt and run commands for you.
+This book teaches the literacy that lets you direct them well and
+catch them when they are wrong.
+:::
+::::
+:::::
+
+## It looks intimidating. It repays a career.
+
+There is no use pretending otherwise: the first time you face a
+blank prompt and a blinking cursor, the terminal is intimidating.
+There are no menus to browse, the error messages are terse, and
+the beginner's honest worry, that one wrong keystroke will break
+something you cannot get back, is not unfounded. This book does
+not wave that worry away. It takes the risk seriously and shows
+you where the sharp edges are, in Chapter 1 and then at length in
+Chapter 7, rather than pretending they are not there.
+
+What makes the discomfort worth pushing through is how durable
+the skill is. Graphical apps are redesigned every few years and
+programming languages drift in and out of fashion, but the shell
+you learn now has been stable for decades and will still be
+driving your pipelines long after today's tools are gone. Almost
+nothing else in a research toolkit compounds like that. The
+afternoon that feels wasted in the first week is repaid quietly
+every week after, for the rest of a working life.
+
+## The skill that makes AI worth using
+
+The reason this matters more now than it did a few years ago is
+that the terminal has become the place where AI does its work. A
+new generation of coding agents, Claude Code, OpenAI's Codex, and
+Google's Gemini among them, does not sit in a chat window off to
+the side. It sits at your prompt, runs shell commands, edits your
+files, and wires steps into your pipeline. Chapter 2 counts these
+agents as a genuine fourth way to get unstuck, alongside a
+command's own help, its manual, and the web, and they are good at
+it.
+
+But an agent is only as useful as the person steering it. It
+drafts an invocation; you still have to know whether it is the
+right one. It offers a fix; you still have to see what the fix
+would touch. The researchers who get the most from these tools
+are not the ones who know the least and lean hardest, but the
+ones fluent enough to give a precise instruction and read the
+result that comes back. Chapter 17 takes this up in full.
+
+## Why learn the shell when the AI can type it
+
+That raises the honest question of the moment: if an agent can
+write the commands, why learn to read them? Because you remain
+responsible for what runs on your machine and what goes into your
+paper, and an agent cannot carry that responsibility for you. It
+will propose a command with the same confidence whether the
+command is right or quietly wrong, and the shell does exactly
+what it is told, including deleting data the agent misjudged as
+disposable. You cannot check what you cannot read. Shell literacy
+is what lets you accept the good suggestion, refuse the dangerous
+one, and tell them apart before you press return, which is the
+whole difference between directing a powerful tool and gambling
+with it. AI raises the value of this skill; it does not retire
+it. Chapters 2 and 17 return to the judgment this takes; the
+Preface only plants the flag.
+
+Chapter 1 lays out how to read the book. One convention, though,
+belongs up front, because it shapes every page that follows.
+
+## About the captured output
+
+Every command block in this book that shows a prompt and its
+output is a real capture from an actual terminal session, most on
+a Linux machine, the macOS and BSD divergences on a Mac, and the
 remote examples against a real server; none is typed up from
 memory or invented. Where a tool has to be described rather
 than run, such as a full-screen program or a Stata or EViews
-recipe, the block is labeled as such so you never mistake it
-for a real capture.
+recipe, the block carries no prompt and is labeled as such, so
+you never mistake it for a real capture.
 
 Because the repository is public, values that would identify a
 person or a machine are changed before an output is saved: an
