@@ -1,4 +1,132 @@
-# Panic and Safety Reference {#sec-panic .unnumbered}
+# Appendix A. Panic and Safety Reference {#sec-panic .unnumbered}
 
-<!-- STUB (Phase 0). Appendix A: destructive commands and recovery,
-     single end-of-book reference. Drafted in Phase 7. -->
+The one place the book's DANGER callouts point back to. The shell has
+no trash folder and no reflog: a destructive command takes effect the
+moment you press Enter, and the only reliable recovery is the one you
+set up *beforehand*. This appendix collects the destructive commands
+in one table, then the recovery you actually have, situation by
+situation. Each row and step names the chapter that teaches it in
+full; [Chapter 7](chapters/07-pipes-redirection-danger.qmd) is the
+book's dedicated danger chapter.
+
+## Destructive commands at a glance {.unnumbered}
+
+Every command below is destructive or security-sensitive, and most
+cannot be undone. Read the guard column before you run any of them
+from memory.
+
+| Command | What it destroys | Guard first | Ch |
+|---|---|---|---|
+| `rm -rf <path>` | a file or whole tree, no undo | quote the path; `${VAR:?}`; delete a named dir, not a pattern | 7 |
+| `rm -rf "$X"/` (X unset) | expands toward `/` or your whole disk | `set -u`; `${X:?}`; never put `rm -rf` beside an unguarded variable | 7 |
+| `>` (redirect) | truncates the target to empty before writing | `set -o noclobber`; never redirect a command into its own input | 7 |
+| `cp` / `mv` onto an existing file | replaces the destination silently | `ls` the destination first; `cp -i` / `mv -i` | 5 |
+| `sed -i` on a file | overwrites in place; kills raw-data provenance | write to a new file with `>`; if truly in place, `-i.bak`; never on raw data | 8 |
+| `find ... -delete` / `-exec rm {} +` | every match across the tree | run `-print` first, read the list, then swap in the delete | 9 |
+| `chmod 777` / `chmod -R 777` | opens files to every account (security hole) | grant the minimum: `chmod u+rw`, `600`, `644` | 10 |
+| `kill -9` (SIGKILL) | no cleanup; corrupt output, stale locks | try default `kill` (SIGTERM) first | 10 |
+| secret on a command line | leaks to history, `ps`, logs, transcripts | read it from an env var or a `600` file | 10 |
+| `rsync --delete` | destination files absent from the source | dry-run `-n`; read the `deleting` lines; mind the trailing slash | 14 |
+| `make clean` | generated files via `rm -f` / `rm -rf` | read the recipe; keep paths inside the project | 12 |
+| `curl` piped into `sh` | runs unread remote code as you | fetch, read, checksum, then run | 3, 7 |
+| `git reset --hard` / `git clean -fd` | uncommitted work; untracked files | commit a clean baseline first; the companion Git book owns the undo | 17 |
+| `git push --force` | rewrites shared remote history | use `--force-with-lease`; protect the branch; never on a shared `main` | 17 |
+
+## When it has already happened {.unnumbered}
+
+### You overwrote a file with `cp`, `mv`, or `>` {.unnumbered}
+
+The original is not in a trash folder, so recovery depends entirely on
+what you set up beforehand. If the file was committed, the companion
+Git book's `git restore` brings it back, which is one more reason to
+commit early and often. If it was a generated artifact, regenerate it:
+on the asset-pricing example a clobbered `output/` file rebuilds from
+the seeded scripts with one `make` ([Chapter 12](chapters/12-make-pipeline.qmd)),
+which is the whole point of making outputs reproducible rather than
+precious. For an untracked, unbacked-up raw file, there may be no
+recovery at all. See [Chapter 5](chapters/05-navigation.qmd) and
+[Chapter 7](chapters/07-pipes-redirection-danger.qmd).
+
+### You ran a destructive `rm` (or `find -delete`) {.unnumbered}
+
+Stop typing. The deleted data is not in a trash folder, but on a disk
+the blocks are often still there until something overwrites them, so
+the worst thing you can do is keep working in that directory. The
+honest recovery is the one you set up first: a recent commit (for
+files Git was tracking), a backup (Time Machine, `rsync` snapshots,
+[Chapter 14](chapters/14-ssh-remote-compute.qmd)), or the seed-based
+regeneration this book's example relies on, where `make` rebuilds a
+deleted `output/` from code. For an untracked, unbacked-up raw file,
+there may be no recovery at all, which is the entire argument for
+treating `rm` with caution. See
+[Chapter 7](chapters/07-pipes-redirection-danger.qmd) and
+[Chapter 9](chapters/09-finding-things.qmd).
+
+### A secret leaked (history, `ps`, a log, a screenshot, an agent) {.unnumbered}
+
+Do not try to delete every copy; you can rarely find them all, and
+deletion does nothing against anyone who already read it. The only
+real fix is to *rotate* the credential: generate a new key or password
+at the provider, update wherever the real service reads it, and revoke
+the old one, which makes the leaked value worthless. Treat any secret
+that has touched a command line, a screen, or a repository as
+compromised. Then remove the file from Git's future (the companion Git
+book covers purging it from history) and fix the habit that put it on
+the command line. See
+[Chapter 10](chapters/10-processes-permissions-secrets.qmd) and, for
+agent prompts, [Chapter 17](chapters/17-ai-terminal.qmd).
+
+### An `rsync --delete` erased the wrong files {.unnumbered}
+
+`rsync --delete` makes the destination match the source by deleting
+whatever the source lacks; there is no trash and no undo. Recovery is
+the backup or commit you kept, same as `rm`. The prevention is the
+dry-run you skipped: always `rsync -a -v -n --delete` first and read
+the `deleting` lines before dropping `-n`. See
+[Chapter 14](chapters/14-ssh-remote-compute.qmd).
+
+### An AI agent ran something destructive {.unnumbered}
+
+An agent in a trust-everything mode can run every command in the table
+above, on its own reading of what you meant, faster than you can parse
+its intent. The recovery is identical to doing it yourself: for a
+tracked file, `git diff` and `git restore`; for an untracked one,
+often nothing. The prevention is to keep a clean committed baseline
+before you turn an agent loose, run it in auto-edit rather than
+full-trust mode so edits arrive as reviewable diffs, and never run a
+bypass mode on a machine holding data you cannot regenerate. See
+[Chapter 17](chapters/17-ai-terminal.qmd).
+
+## The defenses that actually work {.unnumbered}
+
+Every recovery above reduces to something you did in advance. Build
+these habits and most panics become a one-line rebuild instead of a
+loss.
+
+- **Commit early and often.** A tracked file is reviewable and
+  reversible: `git restore` brings back its last committed state, and
+  `git reflog` can recover a lost commit or branch tip (not an
+  arbitrary edit you never committed). That is why you commit a clean
+  baseline before risky work.
+- **Make outputs regenerable, not precious.** Raw inputs and code are
+  the only things worth protecting; `data/clean` and `output` are
+  cache that `make` rebuilds from a seed
+  ([Chapter 6](chapters/06-organizing-project.qmd),
+  [Chapter 12](chapters/12-make-pipeline.qmd)).
+- **Keep a backup of the irreplaceable.** Licensed or hand-collected
+  raw data that no seed can regenerate needs a real backup
+  (Time Machine, an `rsync` snapshot, a deposit) before you ever point
+  a destructive command near it.
+- **Look before you leap.** Run the read-only form on the *exact*
+  pattern first: `ls` the destination, `find ... -print`,
+  `rsync -n`, `make -n`. Then swap in the destructive action.
+- **Guard the guard rails.** `set -o noclobber`, `cp -i` / `mv -i`,
+  and `${VAR:?}` are one guard each, not the guard; a script that runs
+  with them unset is unprotected, so write scripts that set their own
+  ([Chapter 11](chapters/11-scripts-fail-loudly.qmd),
+  [Chapter 18](chapters/18-startup-files-path.qmd)).
+
+See the [reproducibility and safety checklist](#sec-checklist) for the
+pass that ties these habits together, and the
+[divergence reference](#sec-divergence) for where a command's
+destructive behavior differs across macOS and Linux.

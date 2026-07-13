@@ -90,7 +90,7 @@ recognize them when they appear.
 @tbl-common-commands is the short list you will see again and
 again. Treat it as a map, not a syllabus: each command gets its
 real introduction, with live output, in the chapter that needs
-it. The reference copy lives in the [cheatsheet](../cheatsheet.qmd)
+it. The reference copy lives in the [cheatsheet](#sec-cheatsheet)
 at the back of the book.
 
 | Command | Purpose |

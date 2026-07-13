@@ -8,8 +8,90 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Phase 7: reference appendices and the reproducibility
+  checklist, the final book-completion workstream (2026-07-12; not
+  yet committed; gate G7 FINAL). Fills the four Phase-0 stubs in the
+  book's "Reference" part with authored content, from `PLAN.md`
+  Section 8 (appendix rows A/B/C plus the checklist) and Section 15
+  (the Phase 7 row). Appendix A, `book/panic.qmd` ("Panic and Safety
+  Reference"): a single end-of-book table of the destructive
+  commands (`rm -rf`, `>` clobber, `cp`/`mv` overwrite, `sed -i`,
+  `find -delete`, `chmod 777`, `kill -9`, a secret on the command
+  line, `rsync --delete`, `make clean`, a piped `curl` installer,
+  `git reset --hard`/`clean`/`push --force`) with a guard column and
+  chapter number, then recovery guidance by situation and the
+  before-the-fact defenses; it consolidates the book's 13 DANGER and
+  9 RECOVERY callouts and is the target the "Appendix A" pointers in
+  Chapters 5, 7, and 17 already reference. Appendix B,
+  `book/divergence.qmd` ("Divergence Reference"): the
+  BSD/GNU/zsh-bash/PowerShell quick-reference tables (shell and
+  platform basics, coreutils flags, shell behavior, build and
+  environment tools, and the PowerShell sidebar), consolidating the
+  book's 30 DIVERGENCE callouts, each row cross-referenced to its
+  chapter. Appendix C, `book/cheatsheet.qmd` ("Portable Command
+  Cheat Sheet"): expands the Session-1 seeded shortlist into the
+  full themed reference, every command mapped to the chapter that
+  introduces it; the streams family (pipe, redirects, `tee`,
+  null-safe `xargs`) is shown as a `bash` block rather than a table
+  so a literal `|` never sits in a pipe-table cell. The
+  reproducibility and safety checklist, `book/checklist.qmd`: a
+  `- [ ]` task-list pass grouped by theme (fail-loud scripts, locked
+  environment, data with a defined home, secret hygiene, guarded
+  destructive commands, end-to-end reproduction, config that
+  survives leaving the machine), each item cross-referenced and
+  closing on the clean-clone test, mirroring the companion Git
+  book's `checklist.qmd`. No fabricated output (the docs quote no
+  machine output; they are prose, tables, and the running example's
+  four-line script header). Style rules held: 0 em-dashes, pure
+  ASCII (no box glyphs), authored code lines wrapped to 64. This
+  first Phase-7 commit also ships the deferred paperwork: Session
+  7's own `98f9fd6` CHANGELOG hash-line plus its status flip below,
+  and the still-deferred Chapter 18 `ae78ce1` hash-line (both
+  verified absent as tracked hits before being added, since a commit
+  cannot contain its own hash). Gate G7: sandbox
+  `validate_book.py book` self-check 0/0; the canonical `uv run`
+  validator, `quarto render book` (HTML and PDF, eyeballing the four
+  new reference pages, the tables, and the cheat-sheet code block),
+  Codex blind audit, and human review run at the Mac gate before the
+  commit closes G7 and completes the book. The Codex blind audit
+  returned NO-GO on rounds 1 and 2; each finding was addressed. The
+  wide Appendix B tables were rebuilt as three-column tables to stop a
+  PDF cell overlap; the checklist's non-interactive-shell claim was
+  corrected and then refined to name the `sshd` exception (an ordinary
+  non-interactive bash reads no user file unless `BASH_ENV` is set, but
+  a bash started by `sshd` for `ssh host 'cmd'` may read `~/.bashrc`;
+  zsh reads `~/.zshenv` on every invocation; probe and set each context
+  explicitly); the panic reference split the `git` row so
+  `git push --force` is scoped to `--force-with-lease` and a protected
+  branch, softened "irreversible" to "destructive or
+  security-sensitive", and scoped the `git reflog` claim to recovering
+  a lost commit or branch tip; the divergence reference dropped the
+  incorrect "GNU rsync" label and framed versions and defaults as
+  typical observed values to check per machine; and the cheat sheet's
+  "one-page" promise was reframed to "a quick reference" (a whole-book
+  command reference runs a few pages), with `private/PLAN.md`
+  Section 8 updated to match. The chapter references to the appendices
+  were made global cross-reference links so they resolve as internal
+  destinations in both HTML and PDF (a file-path link renders as an
+  external `/URI` action in the PDF): `[Appendix A](#sec-panic)` in
+  Chapters 5, 7, and 17, `[appendix divergence table](#sec-divergence)`
+  in Chapter 9, and the pre-existing `[cheatsheet](#sec-cheatsheet)`
+  link in Chapter 4 converted from its file-path form for the same
+  reason. This entry's own hash-line
+  is the sole remaining paperwork after that commit, recorded in
+  `private/RESUME.md` and project memory since it is the final commit.
+  Source files touched (this CHANGELOG also updated): `book/panic.qmd`,
+  `book/divergence.qmd`, `book/cheatsheet.qmd`, `book/checklist.qmd`,
+  and the linkified `book/chapters/04-shell-literacy.qmd`,
+  `book/chapters/05-navigation.qmd`,
+  `book/chapters/07-pipes-redirection-danger.qmd`,
+  `book/chapters/09-finding-things.qmd`, and
+  `book/chapters/17-ai-terminal.qmd`.**
+
 - **Review-response Session 7: provenance realignment, the final
-  consistency pass (2026-07-12; not yet committed). Eliminates the
+  consistency pass (2026-07-12; committed and pushed 2026-07-12 as
+  `98f9fd6`, `98f9fd6877d543e55bf0bb1ab5f73a105ad794c8`, message
+  "Close Session 7 provenance realignment"). Eliminates the
   Session-1 `ch(N-1)` transcript and figure freeze offset so the
   whole repo matches the final chapter numbering, from the author
   review (`private/review-response-2026-07-08.md` Section 6,
@@ -80,9 +162,10 @@ are not part of this repo; this file is the repo-visible history.
   minimal TeX lacks; round 3 = an over-strong SVG byte-identity claim
   (cross-`pdftocairo`-version serialization drift) and shown-content
   wording, corrected here. This
-  entry's own hash-line and the still-deferred Chapter 18
-  `ae78ce1` hash-line are both earmarked for the first Phase-7
-  commit. Source files touched (this CHANGELOG also updated): the
+  entry's own `98f9fd6` hash-line and the deferred Chapter 18
+  `ae78ce1` hash-line are both added in the first Phase-7 commit
+  above (a commit cannot contain its own hash, so both waited for
+  the next one). Source files touched (this CHANGELOG also updated): the
   renamed `transcripts/` files (133 `.txt` + 19 `.sh`), the modified
   `book/chapters/*.qmd` files, `transcripts/README.md`, the
   renamed/rebuilt `book/assets/figures/ch06` and `ch14`, the vendored
@@ -99,9 +182,9 @@ are not part of this repo; this file is the repo-visible history.
   below to committed-and-pushed; this entry's own `f47dc90d`
   hash-line ships in the Session-7 commit, since a commit cannot
   contain its own hash.
-  The Chapter 18 `ae78ce1` hash-line remains deferred (it is not
-  in this CHANGELOG yet), earmarked for the first Phase-7 commit;
-  this session does not add it.** Replaced the Preface
+  The Chapter 18 `ae78ce1` hash-line remained deferred at this
+  session (it was added later, in the first Phase-7 commit above);
+  this session did not add it.** Replaced the Preface
   stub in `book/index.qmd` with the full landing page, from the
   author review (`private/review-response-2026-07-08.md` Section 6,
   Session 6 row; point P). Prose plus an HTML-only hero band and a
@@ -462,12 +545,14 @@ are not part of this repo; this file is the repo-visible history.
   Drafted 2026-07-07; canonical Mac validator 0/0; `quarto render
   book` produced a fresh 211-page PDF with Ch 17 on pp. 197-205;
   Codex blind audit cleared after three rounds; human review
-  approved 2026-07-08. This entry CARRIES the pending Ch 15
-  `91d8e4b` CHANGELOG hash-line touch, added to the Ch 15 entry
-  below with this work since a commit cannot contain its own hash,
-  and it flips that entry's gate tail to committed-and-pushed
-  language; Ch 17's own hash becomes the pending touch for the
-  first Phase-7 commit.)**
+  approved 2026-07-08; committed and pushed 2026-07-08 as
+  `ae78ce1` (`ae78ce1f16ded6be8fe3bf7fdc8cd0f94e8935f0`, message
+  "Add chapter 17 startup files"). This entry CARRIES the pending
+  Ch 15 `91d8e4b` CHANGELOG hash-line touch, added to the Ch 15
+  entry below with this work since a commit cannot contain its own
+  hash, and it flips that entry's gate tail to committed-and-pushed
+  language; Ch 17's own `ae78ce1` hash-line is added later, in the
+  first Phase-7 commit, together with Session 7's `98f9fd6`.)**
   The spine: the shell you type into is not the shell your
   scripts, `ssh host 'cmd'` calls, and cron jobs run in, and a
   setting in a file only your interactive shell reads is invisible

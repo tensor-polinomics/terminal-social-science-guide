@@ -606,8 +606,8 @@ order of strength: never put `rm -rf` next to an unguarded
 variable; quote every path; guard with `${VAR:?}`; prefer
 removing a *named* subdirectory over a pattern; and on your own
 machine consider a trash-style tool (`trash`, `rip`) for
-interactive deletes so there is a way back. Appendix A collects
-the recovery options for when one of these gets past you.
+interactive deletes so there is a way back. [Appendix A](#sec-panic)
+collects the recovery options for when one of these gets past you.
 :::
 
 ::: {.callout-tip .recovery title="RECOVERY"}

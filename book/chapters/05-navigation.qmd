@@ -530,7 +530,7 @@ whether you are about to replace something; use `cp -i` / `mv
 -i` (or their aliases) when you want the shell to stop and ask;
 and never point a copy or move at a path built from an unset
 variable, the empty-variable trap Chapter 7 guards with
-`${VAR:?}`. Appendix A collects the recovery options for when
+`${VAR:?}`. [Appendix A](#sec-panic) collects the recovery options for when
 one of these gets past you.
 :::
 

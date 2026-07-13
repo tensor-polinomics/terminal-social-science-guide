@@ -1,4 +1,111 @@
-# Divergence Reference {#sec-divergence .unnumbered}
+# Appendix B. Divergence Reference {#sec-divergence .unnumbered}
 
-<!-- STUB (Phase 0). Appendix B: BSD/GNU, zsh/bash, and PowerShell
-     divergence table. Drafted in Phase 7. -->
+The book teaches a portable baseline: commands and habits that behave
+the same in the common cases across macOS, Linux, and WSL2 (which
+behaves as Linux). This appendix is the other half of that promise, a
+quick-reference list of where portability breaks. The recurring split
+is macOS versus Linux: macOS ships the BSD versions of the core tools
+and, by default, the zsh shell, while most Linux servers run the GNU
+versions and bash. The values below are the typical observed defaults,
+not guarantees; when it matters, check the version or setting on the
+machine in front of you. Each row names the chapter that treats it in
+full.
+
+## Shell and platform basics {.unnumbered}
+
+| Feature | macOS (BSD, zsh) vs Linux (GNU, bash) | Ch |
+|---|---|---|
+| Core tools and shell | macOS: BSD coreutils, zsh. Linux: GNU coreutils, bash | 1 |
+| System bash version | macOS system bash frozen at `3.2.57` (2007, GPLv3); Linux bash 4+, `5.x` typical | 3, 11 |
+| bash 3.2 gaps | macOS `/bin/bash` lacks `declare -A`, `${var^^}`, `mapfile`; present in bash 4+ | 11 |
+| Install command | macOS `brew install X`; Linux `apt` / `dnf` / `pacman` | 3 |
+| Checksum tool | macOS `shasum -a 256`; Linux `sha256sum`; the digest is identical | 3 |
+| `which` | zsh builtin that knows aliases vs external `/usr/bin/which` | 2 |
+| `--help` | BSD tools mostly answer with an error; GNU prints a usage summary | 2 |
+
+Portable habit: target `#!/usr/bin/env bash` and install a modern bash
+with `brew install bash`; prefer `command -v` over `which`; on a Mac
+reach for `man`, not `--help`.
+
+## Coreutils flags {.unnumbered}
+
+See [Chapter 5](chapters/05-navigation.qmd),
+[Chapter 8](chapters/08-text-tabular-data.qmd), and
+[Chapter 9](chapters/09-finding-things.qmd).
+
+| Command | macOS (BSD) vs Linux (GNU) | Ch |
+|---|---|---|
+| `ls -l` `total` | BSD counts 512-byte blocks; GNU counts 1-KB blocks (not a file count) | 5 |
+| `ls -G` | BSD turns color on and keeps the group; GNU suppresses the group column | 5 |
+| `stat` | BSD `-f '%z %N %Sm'`; GNU `-c '%s %n %y'` | 5 |
+| `readlink -f` / `realpath` | recent macOS has both; older macOS or bare BSD may lack them | 5 |
+| `sed -i` | BSD requires a suffix (`-i.bak`); GNU makes it optional | 8 |
+| `awk` | macOS ships BWK one-true-awk; Linux ships `gawk` with extensions | 8 |
+| `find` regex | BSD `-E` before the path; GNU `-regextype posix-extended` | 9 |
+| `find -printf` | absent on BSD (error); present on GNU | 9 |
+| bare `find` | BSD needs a start path; GNU defaults to `.` | 9 |
+| `ps` listing | `ps aux` works on both; `ps -ef` is the System V (Linux) idiom | 10 |
+| `date` from epoch | BSD `date -r 1700000000`; GNU `date -d @1700000000` | 11 |
+| `cat` show-all | BSD `cat -et` (no `-A`); GNU `cat -A` or `-et` | 12 |
+| `/usr/bin/time` | BSD long report is `-l`; GNU is `-v` | 11 |
+
+Portable habit: prefer the flags both share; write `sed -i.bak` (or
+redirect to a new file); give `find` an explicit path and stick to
+`-name`, `-type`, `-size`; use `ps aux`; use `wc -c` for a portable
+byte count.
+
+## Shell behavior {.unnumbered}
+
+These are shell divergences (zsh vs bash), not coreutil ones. See
+[Chapter 7](chapters/07-pipes-redirection-danger.qmd),
+[Chapter 10](chapters/10-processes-permissions-secrets.qmd), and
+[Chapter 18](chapters/18-startup-files-path.qmd).
+
+| Behavior | zsh (macOS) vs bash (Linux) | Ch |
+|---|---|---|
+| Unmatched glob | zsh errors and aborts the command; bash passes the literal pattern through | 7 |
+| Ignore-space history | zsh `setopt HIST_IGNORE_SPACE`; bash `HISTCONTROL=ignorespace`; off by default either way | 10 |
+| Terminal tab type | Terminal.app and WezTerm open a login+interactive shell (read the profile and rc); many Linux emulators open a non-login interactive shell (read only the rc) | 18 |
+
+Portable habit: never rely on a glob default (quote a literal
+pattern); set your shell's ignore-space option in its rc; test a tab
+with `[[ -o login ]]` (zsh) or `shopt -q login_shell` (bash); and in
+scripts write `> file 2>&1`, not `&>`, since `&>` is undefined in
+POSIX `sh` (dash on Debian and Ubuntu).
+
+## Build and environment tools {.unnumbered}
+
+| Tool | macOS vs Linux | Ch |
+|---|---|---|
+| GNU Make | macOS ships `3.81` (1-second mtime ties); Linux runs `4.x` (sub-second) | 12 |
+| `rsync` | macOS ships `openrsync` (protocol 29); Linux ships rsync `3.x` (protocol 31) | 14 |
+| `uv.lock` | universal on both; the restored environment is platform-built either way | 13 |
+
+Portable habit: `brew install make` for a modern `gmake`; stick to the
+common `rsync` flags and run `rsync --version` on a new machine; commit
+the lockfile and git-ignore the built environment.
+
+## The PowerShell sidebar {.unnumbered}
+
+Windows researchers are steered to WSL2, so PowerShell gets awareness
+only. It is not a second Unix shell; four things bite anyone who
+follows Unix instructions inside it. See
+[Chapter 3](chapters/03-setup.qmd).
+
+- **The pipeline carries objects, not text.** PowerShell `|` passes
+  structured .NET objects between cmdlets, so the text-filtering model
+  (`grep`, `cut`, `sed`) does not transfer.
+- **The aliases are fake friends.** `ls` and `cat` are aliases for
+  `Get-ChildItem` / `Get-Content`: the names work, the options do not.
+  Windows PowerShell 5.1 also aliased `curl` / `wget` to
+  `Invoke-WebRequest`; PowerShell 7 removed those two.
+- **Execution policy blocks scripts.** Windows clients refuse to run
+  scripts by default until you set an execution policy, and even a
+  permissive setting like `RemoteSigned` still blocks unsigned
+  downloaded scripts.
+- **Paths and separators differ.** Windows uses backslashes and a `;`
+  PATH separator (`C:\...`, `;`); Unix uses forward slashes and `:`.
+
+See the [command cheat sheet](#sec-cheatsheet) for the portable form
+of each command, and the [panic reference](#sec-panic) for where a
+divergence changes a command's destructive behavior.

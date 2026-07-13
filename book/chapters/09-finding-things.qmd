@@ -325,7 +325,7 @@ BSD `find` requires one. The portable habit is to always give
 `find`), stick to `-name` globs and the tests both share
 (`-type`, `-size`, `-mtime`), and drop to platform-specific
 regex or formatting flags only inside a script you know the
-platform of. The appendix divergence table collects these.
+platform of. The [appendix divergence table](#sec-divergence) collects these.
 :::
 
 ## Searching contents across a tree: `ripgrep`

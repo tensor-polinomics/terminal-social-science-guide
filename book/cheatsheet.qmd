@@ -1,38 +1,163 @@
-# Portable Command Cheat Sheet {#sec-cheatsheet .unnumbered}
+# Appendix C. Portable Command Cheat Sheet {#sec-cheatsheet .unnumbered}
 
-<!-- SEEDED (Session 1, structural). Common-command shortlist copied
-     from Chapter 4 (How to Read a Shell Command). The full one-page
-     reference, with each command cross-referenced to the chapter that
-     introduces it, is drafted in Phase 7. -->
+A quick reference for the commands this book uses most. Nothing here
+is new: each command gets its real introduction, with live output, in
+the chapter noted beside it, and this page is the map. See
+@sec-command-anatomy for how to read the flags and arguments below, and
+the [divergence reference](#sec-divergence) for the commands marked
+**DIV**, whose behavior differs across macOS and Linux.
 
-A working shortlist of the commands this book uses most. Each one
-gets its real introduction, with live output, in the chapter that
-needs it; this page is the map. See @sec-command-anatomy for how to
-read the flags and arguments below.
+## Navigating and inspecting files {.unnumbered}
 
-| Command | Purpose |
-|------|----------------------------------|
-| `pwd` | print the working directory |
-| `cd` | change directory (`cd -` returns to the previous one) |
-| `ls` | list a directory (`-l` long, `-a` all, `-d` the dir itself) |
-| `cat` | print a file, or concatenate several |
-| `less` | page through a file one screen at a time |
-| `head` | first N lines (`-n`) |
-| `tail` | last N lines (`-n +K` starts at line K) |
-| `cp` | copy (`-r` recursive, `-i` prompt before overwrite) |
-| `mv` | move or rename (`-i` prompt before overwrite) |
-| `rm` | remove; destructive, no undo (`-r` recursive, `-i` prompt); see Chapter 7 |
-| `mkdir` | make a directory (`-p` also makes parents) |
-| `touch` | create an empty file, or update its timestamp (`-t`) |
-| `grep` | print the lines matching a pattern |
-| `sort` | sort lines |
-| `uniq` | drop or count adjacent duplicate lines (`-c`) |
-| `wc` | count lines, words, or bytes (`-l` lines) |
-| `cut` | pick columns (`-d` delimiter, `-f` field) |
-| `find` | search the file tree (`-name`) |
-| `xargs` | build command lines from input |
-| `chmod` | change permissions (`600`, `644`, `755`) |
-| `tar` | bundle a tree (`-czf` to create, `-xzf` to extract) |
-| `echo` | print its arguments |
-| `printf` | formatted print (`\n` newline, `\t` tab) |
-| `man`, `tldr` | show help for a command |
+See [Chapter 5](chapters/05-navigation.qmd) (first met in
+[Chapter 2](chapters/02-mental-model.qmd)).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `pwd` | print the working directory | 5 |
+| `cd` | change directory (`cd -` returns to previous) | 5 |
+| `ls` | list a directory (`-l` long, `-a` all, `-R` recursive); **DIV** `-G`, `total` | 5 |
+| `cat` | print a file, or concatenate several | 5 |
+| `less` | page through a file (`q` to quit) | 4 |
+| `head` / `tail` | first / last N lines (`-n`; `tail -f` follows) | 7 |
+| `tree` | directory as an indented outline (or `ls -R`) | 5 |
+| `stat` | full file metadata; **DIV** `-c` vs `-f` | 5 |
+| `wc` | count lines, words, bytes (`-l`, `-c`) | 2 |
+
+## Manipulating files and directories {.unnumbered}
+
+See [Chapter 5](chapters/05-navigation.qmd);
+`chmod`/`chown` in [Chapter 10](chapters/10-processes-permissions-secrets.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `cp` | copy (`-r` recursive, `-i` prompt); silent overwrite | 5 |
+| `mv` | move or rename (`-i` prompt) | 5 |
+| `rm` | remove; no undo (`-r`, `-f`, `-i`); guard with `${VAR:?}` | 7 |
+| `mkdir` | make a directory (`-p` parents; `{a,b}` braces) | 5 |
+| `touch` | create an empty file, or update mtime (`-t`; **DIV** `-d`) | 5 |
+| `ln -s` | create a symbolic link (target, then link) | 5 |
+| `chmod` | change permissions (`600`, `644`, `755`; `u+rw`) | 10 |
+| `chown` / `chgrp` | change owner / group | 10 |
+
+## Pipes, redirection, and streams {.unnumbered}
+
+See [Chapter 7](chapters/07-pipes-redirection-danger.qmd)
+(`tee` is met in [Chapter 11](chapters/11-scripts-fail-loudly.qmd)).
+
+```bash
+cmd1 | cmd2       # pipe stdout of cmd1 into cmd2
+cmd > file        # redirect stdout, truncating file
+cmd >> file       # redirect stdout, appending
+cmd 2> file       # redirect stderr
+cmd > f 2>&1      # merge stderr into stdout, then to f
+set -o noclobber  # make > refuse to overwrite (>| forces)
+cmd | tee run.log # write to a file and the screen at once
+find . -print0 | xargs -0 cmd  # space-safe file list
+```
+
+## Text and tabular data {.unnumbered}
+
+See [Chapter 8](chapters/08-text-tabular-data.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `grep` | print lines matching a pattern (`-n`, `-c`, `-F`, `-q`) | 8 |
+| `sed` | edit a stream (`s/old/new/`); **DIV** `-i` (use `-i.bak`) | 8 |
+| `awk` | filter and compute on fields (`-F,`, `$1`, `NR>1`); **DIV** | 8 |
+| `sort` / `uniq` | sort lines / count adjacent dups (`sort` piped to `uniq -c`); **DIV** locale | 8 |
+| `cut` / `tr` | pick columns (`-d`, `-f`) / translate chars (`-d '\r'`) | 8 |
+| `jq` | query JSON (`.a.b`, `keys`, `-r`) | 8 |
+| `duckdb` | SQL over CSV/Parquet (`-csv`, `-c`, `DESCRIBE`) | 8 |
+
+## Finding things {.unnumbered}
+
+See [Chapter 9](chapters/09-finding-things.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `find` | walk the tree by name/type/size/time; **DIV** `-regex`, `-printf` | 9 |
+| `fd` | ergonomic `find` (`-e` ext); not on bare servers | 9 |
+| `rg` (ripgrep) | search file contents across a tree (`-n`, `-g`, `-l`) | 9 |
+
+`rg` and `fd` skip `.gitignore`d paths (often your `data/`) by default:
+add `--no-ignore` when that matters.
+
+## Processes, jobs, permissions, secrets {.unnumbered}
+
+See [Chapter 10](chapters/10-processes-permissions-secrets.qmd).
+
+| Item | What it does | Ch |
+|---|---|---|
+| `ps` | report on processes (`aux`, `-o pid,args`); **DIV** | 10 |
+| `&` / `jobs` / `$!` | run in background / list jobs / last job's PID | 10 |
+| `kill` | send a signal (default TERM; `-9` KILL, no cleanup) | 10 |
+| `nohup ... &` | keep a job alive past a hangup | 10 |
+| `export` | put a variable in the environment (secrets, not argv) | 10 |
+| history hygiene | leading space; `HISTCONTROL` / `HIST_IGNORE_SPACE`; **DIV** | 10 |
+| `chmod 600` + `.gitignore` | lock down `.env` / keys (two halves of one habit) | 10 |
+
+## Scripting and safety {.unnumbered}
+
+See [Chapter 11](chapters/11-scripts-fail-loudly.qmd).
+
+```bash
+#!/usr/bin/env bash     # the standard reproducible
+set -euo pipefail       #   script header: pick the
+export LC_ALL=C         #   interpreter, fail loudly,
+export TZ=UTC           #   pin locale and timezone
+```
+
+| Item | What it does | Ch |
+|---|---|---|
+| `[[ ... ]]` | bash test (`-f`, `-d`, `-z`, `-gt`, `==`) | 11 |
+| `$?` / `exit` | read / set the exit code (0 = success) | 11 |
+| `if` / `for` / `while` | branch and loop; `while IFS= read -r` | 11 |
+| `trap '...' ERR` | run a handler when a command fails | 11 |
+| `shellcheck` | lint a script (flags `SC2086`, unquoted vars); **DIV** none | 11 |
+| `shfmt -d` / `-w` | format a script (preview / write) | 11 |
+| `bash -x` | trace execution to find the failing line | 11 |
+| `/usr/bin/time` | time and peak memory; **DIV** `-v` vs `-l` | 11 |
+| `sha256sum` / `shasum -a 256` | checksum and verify (`-c`); **DIV** name | 3, 11 |
+
+## Build and environments {.unnumbered}
+
+See [Chapter 12](chapters/12-make-pipeline.qmd) and
+[Chapter 13](chapters/13-environments.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `make` | rebuild only what changed (TAB-indented recipes); `make check` | 12 |
+| `make -n` / `-B` | preview without running / force a full rebuild | 12 |
+| `uv sync` / `run` / `add` | restore / run inside / change the Python env | 13 |
+| `renv::restore()` / `snapshot()` | restore / record the R env | 13 |
+| `Rscript -e` / `quarto render` | run R non-interactively / render the report | 12 |
+
+## Remote and sessions {.unnumbered}
+
+See [Chapter 14](chapters/14-ssh-remote-compute.qmd) and
+[Chapter 15](chapters/15-persistent-sessions.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `ssh` | shell on a remote machine (`host 'cmd'`, `-L`, `~/.ssh/config`) | 14 |
+| `ssh-keygen` / `ssh-add` | make/inspect a keypair / load it into the agent | 14 |
+| `scp` / `rsync` | copy one file / sync trees (`-avn`, `--delete`); **DIV** | 14 |
+| `tar` | bundle a tree (`-czf` create, `-xzf` extract) | 14 |
+| `du` / `df` / `ncdu` | tree usage / free space / interactive usage | 14 |
+| `tmux` | persistent, detachable sessions (`new -s`, `attach -t`, `Ctrl-b d`) | 15 |
+
+## Help and discovery {.unnumbered}
+
+See [Chapter 2](chapters/02-mental-model.qmd).
+
+| Command | What it does | Ch |
+|---|---|---|
+| `man` | the full manual page (authority for your system) | 2 |
+| `--help` | quick usage summary; **DIV** (a GNU habit) | 2 |
+| `type -a` | how the shell interprets a name (all matches) | 2 |
+| `command -v` | which file actually runs (POSIX; the trustworthy one) | 2 |
+| `tldr` | community worked examples | 2 |
+
+See the [reproducibility and safety checklist](#sec-checklist) for the
+pass that ties these commands together before you circulate results.

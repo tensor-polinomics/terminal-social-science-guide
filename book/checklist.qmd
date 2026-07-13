@@ -1,4 +1,124 @@
 # Reproducibility and Safety Checklist {#sec-checklist .unnumbered}
 
-<!-- STUB (Phase 0). End-of-book reproducibility + safety checklist,
-     each item cross-referenced to its chapter. Drafted in Phase 7. -->
+Run this pass before you circulate results, hand a project to a
+collaborator, or send a job to a server. Each item points to the
+chapter that explains it. The standard is the one the companion Git
+book sets and this book executes: someone with only your repository can
+rerun everything from scratch with a single command, and get the same
+answer.
+
+## Scripts fail loudly and reproducibly {.unnumbered}
+
+See [Chapter 11](chapters/11-scripts-fail-loudly.qmd).
+
+- [ ] Every analysis script starts with the standard header:
+  `#!/usr/bin/env bash`, `set -euo pipefail`, and, where locale- or
+  time-sensitive text enters the output, `export LC_ALL=C` and
+  `export TZ=UTC`.
+- [ ] The shebang is `#!/usr/bin/env bash`, never `#!/bin/sh`, and the
+  script avoids bash-4 features unless a modern bash is targeted (the
+  macOS bash-3.2 floor).
+- [ ] A failing step stops the run instead of writing a confident,
+  empty result; `shellcheck` and `shfmt` have been run on the script.
+
+## The environment is locked {.unnumbered}
+
+See [Chapter 13](chapters/13-environments.qmd).
+
+- [ ] A real lockfile is committed (`uv.lock` for Python,
+  `renv.lock` for R), together with its manifest, and the built
+  environment (`.venv/`, `renv/library/`) is git-ignored.
+- [ ] The code runs inside the locked environment (`uv run python ...`,
+  `renv::restore()`), and `uv run --locked` is used where a stale lock
+  should error rather than silently re-resolve.
+- [ ] A version receipt is saved beside a run (`uv pip list`,
+  `sessionInfo()`) so a puzzling result can be traced to its packages.
+
+## Data has a defined home {.unnumbered}
+
+See [Chapter 6](chapters/06-organizing-project.qmd) and
+[Chapter 12](chapters/12-make-pipeline.qmd).
+
+- [ ] Raw data is treated as immutable: no in-place edit (`sed -i` on a
+  raw file, an editor save) ever breaks the provenance chain.
+- [ ] Synthetic or generated data rebuilds from a script with a fixed
+  seed; licensed or restricted data is described, never committed.
+- [ ] `data/clean` and `output` are regenerable cache, not committed
+  artifacts; only `data/raw` and `scripts` are protected.
+
+## Nothing secret leaks {.unnumbered}
+
+See [Chapter 10](chapters/10-processes-permissions-secrets.qmd).
+
+- [ ] No secret is typed on a command line; keys are read from an
+  environment variable or a `chmod 600` file, and a `.gitignore`
+  stanza (`.env`, `*.pem`, `secrets.*`) keeps them out of Git.
+- [ ] Any credential that has touched a command line, a screen, a log,
+  or an agent prompt is treated as compromised and rotated, not just
+  deleted.
+- [ ] Nothing sensitive was pasted into an AI agent's prompt; the agent
+  is pointed at the mechanism (read `API_KEY`), not the secret. See
+  [Chapter 17](chapters/17-ai-terminal.qmd).
+
+## Destructive commands are guarded {.unnumbered}
+
+See [Chapter 7](chapters/07-pipes-redirection-danger.qmd) and the
+[panic reference](#sec-panic).
+
+- [ ] The read-only form was run first on the exact target: `ls` before
+  a copy, `find -print` before `-delete`, `rsync -n` before a real
+  `--delete`, `make -n` before a build.
+- [ ] `rm -rf` never sits beside an unguarded variable; paths are
+  quoted and guarded with `${VAR:?}`.
+- [ ] An installer is fetched, read, and checksummed against a hash from
+  a different channel before it is run; no blind `curl | sh`. See
+  [Chapter 3](chapters/03-setup.qmd).
+
+## The pipeline reproduces end to end {.unnumbered}
+
+See [Chapter 12](chapters/12-make-pipeline.qmd) and
+[Chapter 14](chapters/14-ssh-remote-compute.qmd).
+
+- [ ] One `make` rebuilds the whole study from the seed, and
+  `make check` re-derives the locked data hash and the alpha (fixed to
+  four decimals, since compiled BLAS numerics differ across machines)
+  and fails on any drift.
+- [ ] A file transferred to or from a server is checksum-verified on
+  both ends (`sha256sum` / `shasum -a 256`), so the same bytes sit on
+  both machines.
+- [ ] A long remote job runs in a persistent session (tmux) and writes
+  its own log with `tee`, so both the result and its record outlive the
+  connection. See [Chapter 15](chapters/15-persistent-sessions.qmd).
+
+## Config survives leaving your machine {.unnumbered}
+
+See [Chapter 18](chapters/18-startup-files-path.qmd).
+
+- [ ] The pipeline does not depend on interactive shell config. Which
+  startup file a shell reads depends on the shell and how it is
+  launched: an ordinary non-interactive bash reads none unless
+  `BASH_ENV` is set, though a bash started by `sshd` for
+  `ssh host 'cmd'` may read `~/.bashrc`; zsh reads `~/.zshenv` on every
+  invocation; a login shell also reads the profile. Because
+  `ssh host 'cmd'`, cron, and CI each run with a different or reduced
+  environment, probe the failing context and set what the script needs
+  explicitly (`LC_ALL`, `TZ`, `PATH`) rather than trusting that a
+  dotfile ran.
+- [ ] Settings a shell needs everywhere go in the file that shell
+  actually reads on every invocation (`~/.zshenv` for zsh; bash has no
+  such universal file, so a script sets its own), and scheduled
+  contexts (cron, launchd, CI) get their PATH and environment set
+  explicitly rather than inherited.
+
+::: {.callout-important .reproducibility title="REPRODUCIBILITY"}
+The only test that matters is the clean-clone test: clone the
+repository fresh into a new directory, restore the locked environment,
+run `make`, and confirm the headline result returns and `make check`
+passes. If it does, the pipeline reproduces. If it does not, fix the
+pipeline, not your memory of how it works. See
+[Chapter 12](chapters/12-make-pipeline.qmd).
+:::
+
+See the [command cheat sheet](#sec-cheatsheet) for the commands behind
+each item, and the [panic reference](#sec-panic) for recovery when a
+destructive command gets past a guard.

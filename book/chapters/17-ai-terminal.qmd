@@ -218,7 +218,7 @@ and the later section on what an agent must never run
 unsupervised takes up how each tool frames the risk. Second, keep
 the irreplaceable out of reach entirely, the raw data you are
 licensed not to lose, covered in the scope section next.
-Appendix A's recovery options apply to an agent's
+[Appendix A](#sec-panic)'s recovery options apply to an agent's
 `rm` exactly as to your own.
 :::
 
