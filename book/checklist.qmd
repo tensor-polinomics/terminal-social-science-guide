@@ -1,4 +1,4 @@
-# Reproducibility and Safety Checklist {#sec-checklist .unnumbered}
+# Appendix D. Reproducibility and Safety Checklist {#sec-checklist .unnumbered}
 
 Run this pass before you circulate results, hand a project to a
 collaborator, or send a job to a server. Each item points to the

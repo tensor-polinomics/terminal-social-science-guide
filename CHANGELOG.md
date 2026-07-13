@@ -8,9 +8,38 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Post-Phase-7 cleanup (2026-07-13; not yet committed). Small
+  corrections after the book was completed at `2219fde`; no new
+  content. Lettered the reproducibility and safety checklist as
+  "Appendix D" (`book/checklist.qmd` H1) so the back matter is a
+  uniform A/B/C/D appendix series; the `#sec-checklist` anchor and all
+  cross-links are unchanged, and the Bibliography stays unlettered.
+  `private/PLAN.md` Section 8 updated to match. Corrected three factual
+  points the Phase-7 Codex audit surfaced in committed chapters:
+  Chapter 3's PowerShell sidebar said the default execution policy on
+  Windows clients is `RemoteSigned` (it is `Restricted`; `RemoteSigned`
+  is a policy you set, and the Windows Server default); Chapter 3's
+  checksum DIVERGENCE said macOS does not ship `sha256sum` (recent
+  macOS, verified on 26.5, ships a stock Apple-signed
+  `/sbin/sha256sum`, though `shasum -a 256` stays the version-portable
+  choice); and Chapter 14 called the Linux rsync "GNU rsync" (rsync is
+  not a GNU project; reworded to "the mainline rsync"). Fixed the `friedl2006`
+  bibliography entry's edition field from `Third` to `Third Edition` so
+  it renders "Third Edition" rather than "Third" (a one-field
+  correction to `book/references.bib`, whose full paper-wiki-owned
+  expansion is the separate Phase-8 citation workstream). Flipped the
+  Phase-7 entry below to committed-and-pushed and added its `2219fde`
+  hash-line. This entry's own hash-line rides the next commit, or is
+  recorded in `private/RESUME.md` and project memory if none follows.
+  Source files touched (this CHANGELOG also updated):
+  `book/checklist.qmd`, `book/chapters/03-setup.qmd`,
+  `book/chapters/14-ssh-remote-compute.qmd`, `book/references.bib`.**
+
 - **Phase 7: reference appendices and the reproducibility
-  checklist, the final book-completion workstream (2026-07-12; not
-  yet committed; gate G7 FINAL). Fills the four Phase-0 stubs in the
+  checklist, the final book-completion workstream (2026-07-12;
+  committed and pushed 2026-07-13 as `2219fde`,
+  `2219fde9af844b4f207561e1823896383dac80b5`, "Close Phase 7 final
+  reference gate"; gate G7 CLOSED). Fills the four Phase-0 stubs in the
   book's "Reference" part with authored content, from `PLAN.md`
   Section 8 (appendix rows A/B/C plus the checklist) and Section 15
   (the Phase 7 row). Appendix A, `book/panic.qmd` ("Panic and Safety
@@ -77,9 +106,9 @@ are not part of this repo; this file is the repo-visible history.
   Chapters 5, 7, and 17, `[appendix divergence table](#sec-divergence)`
   in Chapter 9, and the pre-existing `[cheatsheet](#sec-cheatsheet)`
   link in Chapter 4 converted from its file-path form for the same
-  reason. This entry's own hash-line
-  is the sole remaining paperwork after that commit, recorded in
-  `private/RESUME.md` and project memory since it is the final commit.
+  reason. This entry's own `2219fde`
+  hash-line is added in the post-Phase-7 cleanup commit below, since a
+  commit cannot contain its own hash.
   Source files touched (this CHANGELOG also updated): `book/panic.qmd`,
   `book/divergence.qmd`, `book/cheatsheet.qmd`, `book/checklist.qmd`,
   and the linkified `book/chapters/04-shell-literacy.qmd`,

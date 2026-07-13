@@ -356,7 +356,7 @@ openrsync: protocol version 29
 rsync version 2.6.9 compatible
 ```
 
-Linux ships GNU rsync, a different program at a newer protocol:
+Linux ships the mainline rsync, a different program at a newer protocol:
 
 ```bash
 $ rsync --version | head -1

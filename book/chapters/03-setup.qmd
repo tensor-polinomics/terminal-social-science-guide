@@ -350,10 +350,13 @@ $ printf 'hello\n' | shasum -a 256
 ::: {.callout-note .divergence title="DIVERGENCE"}
 The checksum tool has different names on the two platforms, which
 trips people following cross-platform instructions. Linux (and the
-WSL2 Ubuntu shell) ships GNU `sha256sum`; macOS does not, and
-gives you `shasum -a 256` instead (a Perl tool, where `-a 256`
-picks the SHA-256 algorithm). As the two blocks above show, they
-produce byte-identical digests, so a hash a project publishes
+WSL2 Ubuntu shell) ships GNU `sha256sum`. macOS did not for years
+and gives you `shasum -a 256` instead (a Perl tool, where `-a 256`
+picks the SHA-256 algorithm); recent macOS (verified on 26.5) also
+ships a stock `/sbin/sha256sum`, but `shasum -a 256` works across
+every macOS version, so it stays the portable choice. As the two
+blocks above show, the digests are byte-identical, so a hash a
+project publishes
 verifies the same either way; only the command you type to compute
 it differs. On a Mac reach for `shasum -a 256`, on Linux for
 `sha256sum`, and Chapter 12's `make check` uses this same hashing
@@ -444,9 +447,11 @@ removed those two aliases. Either way, do not assume `curl` or
 
 Fourth, execution policy and path separators. PowerShell has an
 **execution policy** that can refuse to run scripts; the default
-on Windows clients is `RemoteSigned`, which blocks unsigned
-scripts downloaded from the internet until you unblock or sign
-them (Microsoft Learn, `about_Execution_Policies`). And Windows
+on Windows clients is `Restricted`, which refuses to run any
+script until you set a policy such as `RemoteSigned` (which then
+still blocks unsigned scripts downloaded from the internet until
+you unblock or sign them) (Microsoft Learn,
+`about_Execution_Policies`). And Windows
 paths use backslashes with a semicolon PATH separator (`C:\...`,
 `;`), against Unix forward slashes and colons (`/...`, `:`), so
 paths copied between the two do not just work. That is the
