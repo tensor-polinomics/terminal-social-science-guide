@@ -14,7 +14,7 @@ this week.
 The companion Git book argues at length for *why* a project
 should be laid out this way: the replication crisis, the
 canonical folder structure that separates inputs from code from
-output, and the discipline of a package a stranger can rebuild.
+output [@gentzkowshapiro2014; @wilsonEtAl2017], and the discipline of a package a stranger can rebuild.
 This chapter does not re-argue any of that. It takes the layout
 as given and shows how to build it, tour it, and keep it clean
 from the terminal: scaffolding the whole tree in one command,

@@ -67,7 +67,7 @@ did, let alone do it again. Do the same work as shell commands
 and the commands *are* the account, a list you can read back,
 rerun, and hand to someone else to get the same result. The Git
 book argues at length why that reproducibility is now a basic
-research obligation, and this book takes that as settled; the
+research obligation [@sandveEtAl2013; @wilsonEtAl2017; @turingway], and this book takes that as settled; the
 point here is narrower and mechanical, that the terminal is
 where the repeatable version of your work lives. You cannot
 reproduce three hundred point-and-clicks you no longer remember.
@@ -95,7 +95,7 @@ of a menu would already be out of date.
 
 The third payoff is speed on the dull, repetitive work that
 fills a research project. The shell was built to do one
-operation to many things at once, and a surprising amount of
+operation to many things at once [@kernighanPike1984], and a surprising amount of
 research computing is exactly that. Renaming three hundred output
 files to a consistent pattern, moving every figure from last
 week's run into a dated archive folder, finding which of two

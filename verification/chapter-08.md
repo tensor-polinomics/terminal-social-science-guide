@@ -168,3 +168,13 @@ pp. 79-93). Bare `python3 tools/validate_book.py book` requires
 PyYAML, which a stock Mac `python3` lacks
 (`ModuleNotFoundError: No module named 'yaml'`), so always use
 the `uv run` form.
+
+
+## Phase 8 citations (2026-07-13)
+
+- ahoEtAl2023 -- Aho, Kernighan, Weinberger, "The AWK Programming
+  Language," 2nd ed., Addison-Wesley 2023, ISBN 9780138269722
+  (publisher awk.dev / InformIT, 2026-07-13). Cited at the awk
+  introduction. duckdb and jqmanual (tool docs) were already
+  pinned above in this log; friedl2006 was already cited for
+  regex.

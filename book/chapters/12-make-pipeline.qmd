@@ -10,7 +10,7 @@ rebuild the figure from last week's data and not notice. The
 shell will happily let you: it runs what you type, in the
 order you type it, and remembers nothing.
 
-This chapter is about the tool that does remember. `make`
+This chapter is about the tool that does remember. `make` [-@gnumake]
 reads a description of which file is built from which, and
 rebuilds exactly what is out of date, in the right order,
 from one command. For a research project this is the

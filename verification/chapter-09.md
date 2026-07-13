@@ -201,3 +201,16 @@ vary by implementation), at the timestamp-staging block; no new
 command block, callout, or section (all counts above
 unchanged). See pinned claim 6 for the `-t`/`-d` source basis,
 the Codex round-1 correction, and the capture caveat.
+
+## Phase 8 citations (2026-07-13)
+
+- gnufindutils -- the GNU Findutils manual (find),
+  gnu.org/software/findutils/manual/html_node/find_html/, was
+  pinned in the Chapter 7 log (fetched 2026-06-30, the find /
+  pathname discussion) and is CITED here at this chapter's `find`
+  introduction. Recorded here so the citation's authority has a
+  home in the chapter that carries it; the bib `urldate`
+  (2026-06-30) is that Chapter 7 fetch date.
+- ripgrep and fdfind were already pinned in this log above (the
+  ripgrep GUIDE.md and fd README.md records); Phase 8 only
+  surfaced them as in-prose citations.

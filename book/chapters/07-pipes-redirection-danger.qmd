@@ -236,7 +236,7 @@ just the listing. This trips up nearly everyone once.
 ::: {.callout-note .divergence title="DIVERGENCE"}
 bash and zsh both accept the shorthand `&> file` for "redirect
 stdout and stderr to file," and it is convenient interactively.
-It is **not portable**: it is undefined in POSIX `sh`, so a
+It is **not portable**: it is undefined in POSIX `sh` [-@posix2018], so a
 script that runs under `/bin/sh` (dash on Debian and Ubuntu)
 can fail or misbehave with it. The portable form that works in
 every Bourne-family shell is `> file 2>&1`, in that order. This
@@ -459,7 +459,7 @@ $ echo "matches:[" *.xyz "]"
 matches:[ ]
 ```
 
-`shopt` is bash's switch for its own optional behaviors, and
+`shopt` is bash's switch for its own optional behaviors [-@gnubash], and
 `-s` **s**ets (turns on) the one you name, here `nullglob`;
 `shopt -u` unsets it again. With `nullglob` on, the unmatched
 `*.xyz` expanded to nothing at all, so `echo` printed the

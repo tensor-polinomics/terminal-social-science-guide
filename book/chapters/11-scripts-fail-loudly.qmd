@@ -532,7 +532,7 @@ command with its real arguments.
 ## Lint before you run: ShellCheck and shfmt
 
 A script that fails loudly at runtime is good; a script whose
-bugs are caught *before* it runs is better. **ShellCheck** is a
+bugs are caught *before* it runs is better. **ShellCheck** [-@shellcheck] is a
 static analyzer for shell scripts: it reads the file and flags
 the mistakes that bite, most of all the unquoted expansion
 Chapter 7 warned about. Run it on a script with a bare `$infile`
@@ -566,7 +566,7 @@ status like the `local` footgun above. Run `shellcheck
 yourscript.sh` before you trust a script, and wire it into the
 Makefile if you want it enforced.
 
-**shfmt** is the companion formatter: it rewrites a script into
+**shfmt** [-@shfmt] is the companion formatter: it rewrites a script into
 a consistent style so diffs stay small and structure is obvious.
 `shfmt -d` shows what it would change without touching the file:
 

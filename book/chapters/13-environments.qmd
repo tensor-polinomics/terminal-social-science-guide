@@ -104,7 +104,7 @@ in, most of which (`pandas`, `scipy`, `pillow`) appear in no
 manifest and arrived as dependencies of the five you asked
 for. You edit the manifest; uv writes
 the lock; you commit both and never edit `uv.lock` by hand
-(it is machine-managed, per uv's own documentation). R draws
+(it is machine-managed, per uv's own documentation [-@uv]). R draws
 the same line, with one structural difference the renv section
 returns to: there is no manifest *file* on the R side, because
 the project's own code plays that role, and `renv.lock` is the
@@ -339,7 +339,7 @@ $ Rscript -e 'renv::restore()'
 ```
 
 A clean status is the state to keep a project in; renv's
-documentation is blunt that a project which fails `status()`
+documentation [-@renv] is blunt that a project which fails `status()`
 is a project whose `restore()` on another machine may not
 work. There is one more moving part uv does not have. Where
 `uv run` wraps each invocation, renv activates *per project,
@@ -538,7 +538,11 @@ teaches uv and renv because they are lock-first, fast, and
 already wired into the running example; if a collaborator's
 project uses one of the others, the concepts transfer
 unchanged, manifest, lockfile, restore, receipt, and only the
-verbs differ.
+verbs differ. The wider discipline these habits sit
+inside, keeping each R project self-contained and reproducible
+rather than leaning on a saved workspace, is laid out in Bryan
+and colleagues' *What They Forgot to Teach You About R*
+[-@bryanHester].
 
 Second, the layer this book stops at. A lockfile pins
 packages; it does not pin the operating system, the system

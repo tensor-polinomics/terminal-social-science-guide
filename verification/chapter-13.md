@@ -283,3 +283,15 @@ official docs, fetched 2026-07-04.
   + 2 Mac, ALL byte-identical (contiguous-substring diff
   re-run 2026-07-04 after the reconcile and again after the
   Codex round-1 fixes).
+
+
+## Phase 8 citations (2026-07-13)
+
+- bryanHester -- Bryan, Hester, Pileggi, Aja, "What They Forgot to
+  Teach You About R" (rstats.wtf); the four-author list was
+  confirmed against the live site 2026-07-13. Cited as a
+  further-reading pointer in the "Beyond uv and renv" section for
+  the project-oriented R workflow it teaches (keeping each project
+  self-contained and reproducible rather than leaning on a saved
+  workspace) -- distinct from the renv documentation (renv), which
+  is cited separately for status/restore behavior.

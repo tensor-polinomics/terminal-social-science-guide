@@ -89,3 +89,28 @@ Access date for all web sources below: 2026-07-01.
 - version note: named-only in Ch 1; version-stamped operationally
   in Ch 13 (now drafted)
 - confirmable: yes (named-only)
+
+
+## Phase 8 citations (2026-07-13)
+
+Four canonical works cited in this chapter's reproducibility and
+lineage prose as further-reading / verify-here pointers (the
+argument itself stays cross-referenced to the Git book, not
+re-made here). These are NEW bibliographic sources, not previously
+in this log; each verified during Phase 8:
+
+- sandveEtAl2013 -- Sandve, Nekrutenko, Taylor, Hovig, "Ten Simple
+  Rules for Reproducible Computational Research," PLoS Comput Biol
+  9(10):e1003285, DOI 10.1371/journal.pcbi.1003285 (resolved via
+  the PLoS article page, 2026-07-13).
+- wilsonEtAl2017 -- Wilson et al., "Good Enough Practices in
+  Scientific Computing," PLoS Comput Biol 13(6):e1005510, DOI
+  10.1371/journal.pcbi.1005510 (resolved 2026-07-13).
+- turingway -- The Turing Way Community, versioned release 1.0.2,
+  DOI 10.5281/zenodo.7625728 (Zenodo record dated 2022-07-27;
+  resolved 2026-07-13). Concept DOI is 10.5281/zenodo.3233853.
+- kernighanPike1984 -- Kernighan & Pike, "The Unix Programming
+  Environment," Prentice-Hall 1984, ISBN 9780139376818 (publisher
+  / catalog records, 2026-07-13).
+
+shotts2024 (already recorded above) unchanged.

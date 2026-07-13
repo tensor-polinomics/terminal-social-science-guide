@@ -129,9 +129,9 @@ The one thing worth burning into memory is that you set this
 posture yourself, through a flag or a settings file, and the
 agent cannot talk you out of it or raise its own permissions by
 asking nicely in the chat. In Claude Code you pass
-`--permission-mode` or set `defaultMode` in `settings.json`; in
-Codex you pass `--sandbox` and `--ask-for-approval`; in Gemini
-you pass `--approval-mode`. What an ask-mode prompt looks like is
+`--permission-mode` or set `defaultMode` in `settings.json` [-@claudecode_permissions]; in
+Codex you pass `--sandbox` and `--ask-for-approval` [-@openai_codex_security]; in Gemini
+you pass `--approval-mode` [-@geminicli]. What an ask-mode prompt looks like is
 the same everywhere in spirit:
 
 ```text

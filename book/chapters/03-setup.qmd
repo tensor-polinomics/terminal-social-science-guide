@@ -173,7 +173,7 @@ lives in this chapter.
 On **macOS** the de facto standard is **Homebrew**, driven by the
 `brew` command. It is not preinstalled; installing it safely is
 the next section. Once it is in place, `brew install <name>`
-fetches and installs a tool, and on Apple Silicon everything
+fetches and installs a tool [-@homebrew], and on Apple Silicon everything
 lands under the prefix `/opt/homebrew` (the section after next
 returns to why that matters for your PATH).
 
@@ -451,7 +451,7 @@ on Windows clients is `Restricted`, which refuses to run any
 script until you set a policy such as `RemoteSigned` (which then
 still blocks unsigned scripts downloaded from the internet until
 you unblock or sign them) (Microsoft Learn,
-`about_Execution_Policies`). And Windows
+`about_Execution_Policies`) [-@msExecutionPolicy]. And Windows
 paths use backslashes with a semicolon PATH separator (`C:\...`,
 `;`), against Unix forward slashes and colons (`/...`, `:`), so
 paths copied between the two do not just work. That is the

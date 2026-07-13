@@ -1,8 +1,71 @@
 % references.bib - Terminal & Shell book.
 % Populated as source-pinned citations are added (PLAN.md Section 10).
 % Written by the paper-wiki skill (sole owner); do not hand-edit.
-% Entries sorted by citekey. Both current entries are books with no
-% registered DOI (confirmed via Crossref/OpenAlex + web search).
+% Entries sorted by citekey. DOI'd works carry a doi field; tool and
+% standard docs are @misc with url + urldate; volatile tool/AI docs
+% carry a version stamp and a "current as of" note (PLAN Section 10).
+% Case-sensitive names in titles are brace-protected so Chicago
+% author-date rendering preserves them (r -> {R}, uv -> {uv}, etc.).
+
+@book{ahoEtAl2023,
+  author    = {Aho, Alfred V. and Kernighan, Brian W. and Weinberger, Peter J.},
+  title     = {The {AWK} Programming Language},
+  edition   = {Second Edition},
+  publisher = {Addison-Wesley},
+  year      = {2023},
+  isbn      = {9780138269722}
+}
+
+@misc{bryanHester,
+  author       = {Bryan, Jennifer and Hester, Jim and Pileggi, Shannon and Aja, E. David},
+  title        = {What They Forgot to Teach You About {R}},
+  howpublished = {Online book, rstats.wtf},
+  url          = {https://rstats.wtf/},
+  urldate      = {2026-07-06}
+}
+
+@misc{claudecode_permissions,
+  author       = {{Anthropic}},
+  title        = {{Claude Code}: Permission Modes},
+  howpublished = {Claude Code documentation},
+  url          = {https://code.claude.com/docs/en/permission-modes},
+  urldate      = {2026-07-01},
+  note         = {Current as of 2026-07-01}
+}
+
+@misc{crontabman,
+  author       = {Vixie, Paul},
+  title        = {{crontab}(5) -- Manual Page},
+  howpublished = {cronie project; rendered at {man7.org}},
+  url          = {https://man7.org/linux/man-pages/man5/crontab.5.html},
+  urldate      = {2026-07-06}
+}
+
+@misc{duckdb,
+  author       = {{DuckDB}},
+  title        = {{DuckDB} Documentation: {CLI}, {CSV}, and {Parquet}},
+  howpublished = {Documentation at {duckdb.org}},
+  url          = {https://duckdb.org/docs/},
+  urldate      = {2026-07-02}
+}
+
+@misc{ezacli,
+  author       = {{eza community}},
+  title        = {{eza}: A Modern Replacement for {ls}},
+  howpublished = {Software, GitHub repository},
+  url          = {https://github.com/eza-community/eza},
+  urldate      = {2026-07-06},
+  note         = {Current as of 2026-07-06}
+}
+
+@misc{fdfind,
+  author       = {Peter, David},
+  title        = {{fd}: A Simple, Fast and User-Friendly Alternative to {find}},
+  howpublished = {Software, GitHub repository},
+  url          = {https://github.com/sharkdp/fd},
+  urldate      = {2026-07-06},
+  note         = {Current as of 2026-07-06}
+}
 
 @book{friedl2006,
   author    = {Friedl, Jeffrey E. F.},
@@ -13,13 +76,232 @@
   isbn      = {9780596528126}
 }
 
-@book{shotts2024,
-  author    = {Shotts, William E.},
-  title     = {The Linux Command Line},
-  edition   = {Sixth Internet Edition},
-  publisher = {LinuxCommand.org},
-  year      = {2024},
-  note      = {Release 24.11; a LinuxCommand.org book, free
-               at linuxcommand.org; the print edition is
-               published by No Starch Press}
+@misc{geminicli,
+  author       = {{Google}},
+  title        = {{Gemini CLI}: Configuration},
+  howpublished = {Gemini CLI documentation},
+  url          = {https://google-gemini.github.io/gemini-cli/docs/get-started/configuration.html},
+  urldate      = {2026-07-01},
+  note         = {Current as of 2026-07-01}
+}
+
+@misc{gentzkowshapiro2014,
+  author       = {Gentzkow, Matthew and Shapiro, Jesse M.},
+  title        = {Code and Data for the Social Sciences: A Practitioner's Guide},
+  howpublished = {Manuscript, University of Chicago and NBER},
+  year         = {2014},
+  url          = {https://web.stanford.edu/~gentzkow/research/CodeAndData.pdf},
+  urldate      = {2026-07-06}
+}
+
+@misc{gnubash,
+  author       = {Ramey, Chet and Fox, Brian},
+  title        = {{Bash} Reference Manual},
+  howpublished = {GNU Project},
+  url          = {https://www.gnu.org/software/bash/manual/bash.html},
+  urldate      = {2026-07-02}
+}
+
+@misc{gnucoreutils,
+  author       = {{GNU Project}},
+  title        = {{GNU} Coreutils Manual},
+  howpublished = {GNU Project},
+  url          = {https://www.gnu.org/software/coreutils/manual/},
+  urldate      = {2026-07-02}
+}
+
+@misc{gnufindutils,
+  author       = {{GNU Project}},
+  title        = {{GNU} Findutils Manual},
+  howpublished = {GNU Project},
+  url          = {https://www.gnu.org/software/findutils/manual/html_node/find_html/},
+  urldate      = {2026-06-30}
+}
+
+@misc{gnumake,
+  author       = {Stallman, Richard M. and McGrath, Roland and Smith, Paul D.},
+  title        = {{GNU} Make Manual},
+  howpublished = {GNU Project},
+  url          = {https://www.gnu.org/software/make/manual/},
+  urldate      = {2026-07-04}
+}
+
+@misc{homebrew,
+  author       = {{Homebrew}},
+  title        = {{Homebrew} Documentation},
+  howpublished = {Documentation at {brew.sh}},
+  url          = {https://docs.brew.sh/},
+  urldate      = {2026-07-01}
+}
+
+@misc{jqmanual,
+  author       = {Dolan, Stephen and {jq contributors}},
+  title        = {{jq} Manual},
+  howpublished = {Manual at {jqlang.org}},
+  url          = {https://jqlang.org/manual/},
+  urldate      = {2026-07-02}
+}
+
+@book{kernighanPike1984,
+  author    = {Kernighan, Brian W. and Pike, Rob},
+  title     = {The {Unix} Programming Environment},
+  publisher = {Prentice-Hall},
+  year      = {1984},
+  isbn      = {9780139376818}
+}
+
+@misc{msExecutionPolicy,
+  author       = {{Microsoft}},
+  title        = {{about\_Execution\_Policies}},
+  howpublished = {Microsoft Learn, PowerShell documentation},
+  url          = {https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies},
+  urldate      = {2026-07-01}
+}
+
+@misc{openai_codex_security,
+  author       = {{OpenAI}},
+  title        = {{Codex}: Agent Approvals and Security},
+  howpublished = {OpenAI Developers documentation},
+  url          = {https://developers.openai.com/codex/agent-approvals-security},
+  urldate      = {2026-07-01},
+  note         = {Current as of 2026-07-01}
+}
+
+@misc{openssh,
+  author       = {{OpenBSD Project}},
+  title        = {{OpenSSH}: {ssh}(1), {ssh\_config}(5), and {ssh-keygen}(1) Manual Pages},
+  howpublished = {Manual pages at {man.openbsd.org}},
+  url          = {https://man.openbsd.org/ssh.1},
+  urldate      = {2026-07-05},
+  note         = {Also man.openbsd.org/ssh\_config.5 and
+                  man.openbsd.org/ssh-keygen.1}
+}
+
+@misc{posix2018,
+  author       = {{IEEE and The Open Group}},
+  title        = {The {Open Group} Base Specifications Issue 7, 2018 Edition ({POSIX}.1-2017)},
+  howpublished = {The Open Group},
+  url          = {https://pubs.opengroup.org/onlinepubs/9699919799/},
+  urldate      = {2026-07-02}
+}
+
+@misc{renv,
+  author       = {Ushey, Kevin and Wickham, Hadley},
+  title        = {{renv}: Project Environments},
+  howpublished = {Posit, PBC},
+  url          = {https://rstudio.github.io/renv/},
+  urldate      = {2026-07-04}
+}
+
+@misc{ripgrep,
+  author       = {Gallant, Andrew},
+  title        = {{ripgrep}: Recursively Search Directories for a Regex Pattern},
+  howpublished = {Software, GitHub repository},
+  url          = {https://github.com/BurntSushi/ripgrep},
+  urldate      = {2026-07-06},
+  note         = {Current as of 2026-07-06}
+}
+
+@misc{rsync,
+  author       = {Tridgell, Andrew and Mackerras, Paul},
+  title        = {{rsync}(1) -- Manual Page},
+  howpublished = {Manual at {rsync.samba.org}; with many later contributors},
+  url          = {https://download.samba.org/pub/rsync/rsync.1},
+  urldate      = {2026-07-05}
+}
+
+@article{sandveEtAl2013,
+  author  = {Sandve, Geir Kjetil and Nekrutenko, Anton and Taylor, James and Hovig, Eivind},
+  title   = {Ten Simple Rules for Reproducible Computational Research},
+  journal = {PLoS Computational Biology},
+  volume  = {9},
+  number  = {10},
+  pages   = {e1003285},
+  year    = {2013},
+  doi     = {10.1371/journal.pcbi.1003285}
+}
+
+@misc{shellcheck,
+  author       = {Holen, Vidar},
+  title        = {{ShellCheck}: A Static Analysis Tool for Shell Scripts},
+  howpublished = {Software, shellcheck.net; version 0.11.0},
+  url          = {https://www.shellcheck.net/},
+  urldate      = {2026-07-04},
+  note         = {Version 0.11.0, current as of 2026-07-04}
+}
+
+@misc{shfmt,
+  author       = {Mart{\'i}, Daniel},
+  title        = {{shfmt}: A Shell Formatter ({mvdan/sh})},
+  howpublished = {Software, GitHub repository; version 3.13.1},
+  url          = {https://github.com/mvdan/sh},
+  urldate      = {2026-07-04},
+  note         = {Version 3.13.1, current as of 2026-07-04}
+}
+
+@misc{shotts2024,
+  author       = {Shotts, William E.},
+  title        = {The {Linux} Command Line},
+  edition      = {Sixth Internet Edition},
+  howpublished = {LinuxCommand.org, release 24.11},
+  year         = {2024},
+  url          = {https://linuxcommand.org/tlcl.php},
+  urldate      = {2026-07-06},
+  note         = {Free at linuxcommand.org; the print edition is
+                  published by No Starch Press}
+}
+
+@misc{slurm,
+  author       = {{SchedMD}},
+  title        = {{Slurm} Workload Manager Documentation ({sbatch}, {squeue}, {scancel})},
+  howpublished = {Documentation at {schedmd.com}; Slurm version 26.05},
+  url          = {https://slurm.schedmd.com/},
+  urldate      = {2026-07-05}
+}
+
+@misc{tmux,
+  author       = {{tmux project}},
+  title        = {{tmux}: Wiki and {tmux}(1) Manual Page},
+  howpublished = {GitHub wiki},
+  url          = {https://github.com/tmux/tmux/wiki},
+  urldate      = {2026-07-06},
+  note         = {Manual page at man7.org/linux/man-pages/man1/tmux.1.html}
+}
+
+@misc{turingway,
+  author       = {{The Turing Way Community}},
+  title        = {The {Turing Way}: A Handbook for Reproducible, Ethical and Collaborative Research},
+  howpublished = {Zenodo},
+  year         = {2022},
+  version      = {1.0.2},
+  doi          = {10.5281/zenodo.7625728},
+  url          = {https://the-turing-way.netlify.app/},
+  urldate      = {2026-07-06}
+}
+
+@misc{uv,
+  author       = {{Astral}},
+  title        = {{uv} Documentation},
+  howpublished = {Documentation at {docs.astral.sh}},
+  url          = {https://docs.astral.sh/uv/},
+  urldate      = {2026-07-04}
+}
+
+@article{wilsonEtAl2017,
+  author  = {Wilson, Greg and Bryan, Jennifer and Cranston, Karen and Kitzes, Justin and Nederbragt, Lex and Teal, Tracy K.},
+  title   = {Good Enough Practices in Scientific Computing},
+  journal = {PLoS Computational Biology},
+  volume  = {13},
+  number  = {6},
+  pages   = {e1005510},
+  year    = {2017},
+  doi     = {10.1371/journal.pcbi.1005510}
+}
+
+@misc{zshmanual,
+  author       = {{Zsh Development Group}},
+  title        = {The {Z} Shell Manual},
+  howpublished = {Manual at {zsh.sourceforge.io}},
+  url          = {https://zsh.sourceforge.io/Doc/},
+  urldate      = {2026-07-03}
 }

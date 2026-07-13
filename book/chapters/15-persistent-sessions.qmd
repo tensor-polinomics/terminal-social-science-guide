@@ -8,7 +8,7 @@ alive through a disconnect, but a limited one, since you cannot
 reattach to the job and drive it, only follow its log from the
 outside. Both chapters pointed here for the real answer.
 
-That answer is `tmux`, a terminal multiplexer. The idea behind
+That answer is `tmux`, a terminal multiplexer [-@tmux]. The idea behind
 it is one sentence: the connection is disposable, the session is
 not. `tmux` runs a program that owns a session living on the
 machine where `tmux` runs, holding your shells and their running

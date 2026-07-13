@@ -43,7 +43,7 @@ sandbox and BSD `find` differs from GNU `find`.
 ## Finding files by name: `find`
 
 `find` takes a place to start and a test to apply, and prints
-every file beneath that place that passes the test. The
+every file beneath that place that passes the test [-@gnufindutils]. The
 everyday test is `-name`, which matches a filename against a
 shell-style glob. Where are the project's Python scripts?
 
@@ -359,7 +359,7 @@ starting `find` is needed; `-n` adds the line numbers. Three
 things make `rg` the right default for this. It is recursive
 without being asked, it is fast on a large tree, and, as the
 last section of this chapter shows, it knows which files are
-noise and skips them. When you want counts rather than the
+noise and skips them [-@ripgrep]. When you want counts rather than the
 lines themselves, `-c` reports matches per file:
 
 ```bash
@@ -406,7 +406,7 @@ the files, a regex (the pattern) chooses the lines.
 age: tests spelled `-name`, `-type`, `-print0`, an argument
 order that trips everyone at first. `fd` is a modern
 rewrite that keeps the job and changes the defaults to match
-what project work usually wants. It is a separate install
+what project work usually wants [-@fdfind]. It is a separate install
 (`brew install fd`, Chapter 3's package manager; current as of
 2026-07-03) and, like DuckDB in Chapter 8, it is not
 installable in this book's sandbox, so these blocks are

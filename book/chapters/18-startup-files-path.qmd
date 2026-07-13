@@ -49,7 +49,7 @@ Two yes/no questions decide which startup files a shell reads. Is
 it a *login* shell (the first shell of a session, the one a fresh
 terminal tab usually gives you)? And is it *interactive* (reading
 commands you type, as opposed to running a script)? Bash answers
-those two questions with three different files. A login shell
+those two questions with three different files [-@gnubash]. A login shell
 reads `/etc/profile` and then the first of `~/.bash_profile`,
 `~/.bash_login`, `~/.profile` that exists. An interactive shell
 that is not a login shell reads `~/.bashrc`. A non-interactive
@@ -108,7 +108,7 @@ The headline is the last block: `~/.zshenv` runs even for a
 non-interactive `zsh -c` script, where bash read nothing. That
 makes `~/.zshenv` the natural home for anything every zsh must
 see, and the zsh manual specifically warns to keep it small for
-exactly that reason. The rest follows the same login/interactive
+exactly that reason [-@zshmanual]. The rest follows the same login/interactive
 logic as bash: a login shell adds `~/.zprofile` and, last,
 `~/.zlogin`; an interactive shell adds `~/.zshrc`. Put the two
 shells side by side and the whole map is one table:
@@ -342,7 +342,7 @@ way rather than trusting a dotfile ran.
 Scheduled jobs are the same seam, one step further from your
 terminal, and the reason they surprise people is that they start
 from an even barer environment than an SSH command. `cron` sets
-up only a minimal environment for a job: per `crontab(5)`, it
+up only a minimal environment for a job: per `crontab(5)` [-@crontabman], it
 exports `SHELL=/bin/sh` and takes `HOME` and `LOGNAME` from your
 `/etc/passwd` line, and it reads none of your shell startup
 files. Whatever `PATH` a job gets is a minimal default from the

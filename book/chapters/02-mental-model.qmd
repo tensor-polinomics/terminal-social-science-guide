@@ -464,7 +464,7 @@ which is a shell builtin
 which is /usr/bin/which
 ```
 
-The portable habit: use `command -v` (POSIX-specified,
+The portable habit: use `command -v` (POSIX-specified [-@posix2018],
 works everywhere) or your shell's `type`, and treat `which`
 as the one to distrust in instructions you find online.
 :::
@@ -550,7 +550,7 @@ $ echo $?
 ```
 
 The successful listing reported 0; the failed one reported 2,
-which GNU `ls` documents as "serious trouble" (1 would be
+which GNU `ls` documents as "serious trouble" [-@gnucoreutils] (1 would be
 minor trouble, such as an unreadable subdirectory). Beyond
 zero-versus-nonzero, the specific numbers are each tool's
 private vocabulary, documented in its manual; do not assume

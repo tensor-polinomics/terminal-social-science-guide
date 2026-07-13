@@ -8,6 +8,34 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Phase 8: citation and bibliography refactoring (2026-07-13; not
+  yet committed). Expands `book/references.bib` from 2 entries to 34
+  and adds tasteful in-prose citations across 16 chapters, per the
+  runbook `private/phase8-citations-runbook.md` and `PLAN.md`
+  Section 10. Follows the companion Git book's matched-set
+  conventions (DOI/ISBN for canonical works; `@misc` with url +
+  urldate for tool and standard docs; version stamps on volatile
+  tool/AI docs; case-sensitive names and bare-domain `howpublished`
+  values brace-protected). New canonical sources: Sandve et al. 2013
+  (DOI 10.1371/journal.pcbi.1003285), Wilson et al. 2017
+  (10.1371/journal.pcbi.1005510), The Turing Way 1.0.2
+  (10.5281/zenodo.7625728), Kernighan & Pike 1984 (ISBN
+  9780139376818), Aho/Kernighan/Weinberger 2023 (9780138269722),
+  Gentzkow & Shapiro 2014, and Bryan/Hester/Pileggi/Aja (WTF-R);
+  `friedl2006` and `shotts2024` preserved. The tool/standard-doc
+  entries surface authorities already pinned in the per-chapter
+  verification logs. All 34 entries cited, zero orphans; validator
+  0/0 and `quarto render` shows no broken references. Cleared the
+  4-step gate, including five Codex citation-accuracy audit rounds
+  (author attributions set from primary sources; each citation
+  placed only on a claim its source supports). Source files touched:
+  `book/references.bib`; the 16 chapters 01-03 and 06-18 (not
+  04-05); the verification logs `verification/chapter-01.md`,
+  `-03.md`, `-06.md`, `-08.md`, `-09.md`, `-13.md`, and the new
+  `verification/phase8-citations.md` (this CHANGELOG also updated).
+  The `## [1.0.0]` release stays deferred to the author's
+  post-Phase-8 read-through.**
+
 - **Post-Phase-7 cleanup (2026-07-13; not yet committed). Small
   corrections after the book was completed at `2219fde`; no new
   content. Lettered the reproducibility and safety checklist as

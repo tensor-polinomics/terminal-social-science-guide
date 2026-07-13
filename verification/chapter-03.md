@@ -236,8 +236,9 @@ anything.
     list no longer includes `curl`/`wget`
   - Execution policy: Microsoft Learn `about_Execution_Policies`
     (https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies):
-    default on Windows clients is `RemoteSigned`, which blocks
-    unsigned scripts downloaded from the internet
+    default on Windows clients is `Restricted` (no scripts run);
+    `RemoteSigned`, the Windows Server default, is the policy that
+    blocks unsigned scripts downloaded from the internet
   - Path separators: Windows `\` and `;` vs Unix `/` and `:`
     (general, long-stable platform fact)
 - accessed: 2026-07-01 (all three PowerShell pages fetched)

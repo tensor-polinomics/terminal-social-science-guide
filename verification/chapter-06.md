@@ -270,3 +270,18 @@ never as claims that a stub already teaches or verifies anything.
   it as immutable from that seam on). What Codex passed:
   validator 0/0, render + figure, counts, block/transcript
   matches, the case-sensitivity reuse, and the version claims.
+
+
+## Phase 8 citations (2026-07-13)
+
+Two canonical project-layout sources cited on the folder-structure
+clause (NOT the replication-crisis clause, which remains the
+companion Git book's to argue). NEW to this log:
+
+- gentzkowshapiro2014 -- Gentzkow & Shapiro, "Code and Data for the
+  Social Sciences: A Practitioner's Guide" (manuscript, U. Chicago
+  and NBER); the bib entry mirrors the companion Git book's. URL
+  verified live 2026-07-13.
+- wilsonEtAl2017 -- "Good Enough Practices in Scientific
+  Computing," DOI 10.1371/journal.pcbi.1005510 (full record in the
+  Chapter 1 Phase-8 log).

@@ -496,7 +496,7 @@ here.
 
 ## `awk`, the twenty percent (ADVANCED) {.tier-advanced}
 
-`awk` is a full programming language, and this book refuses to
+`awk` is a full programming language [@ahoEtAl2023], and this book refuses to
 teach it as one, because for a researcher with Python and R a
 long awk program is a worse version of a script you already
 know how to write. What earns awk its place at the prompt is
@@ -639,7 +639,7 @@ against another machine's lockfile. Those four patterns, keys,
 a key path, `length`, and iterate-and-format, are the jq
 equivalent of the shallow awk kit: enough for every
 look-something-up job, with a real query language underneath
-when you eventually want more.
+when you eventually want more [-@jqmanual].
 
 ## When lines run out: SQL over CSV and Parquet with DuckDB
 
@@ -764,7 +764,7 @@ is relational or the file is columnar; and your versioned
 Python and R scripts, not the prompt, for the estimation and
 figures that go in the paper (the pipeline Chapter 12 wires
 together). DuckDB's SQL goes far beyond what is shown here;
-the CSV and Parquet readers are documented at duckdb.org,
+the CSV and Parquet readers are documented at duckdb.org [-@duckdb],
 pinned in this chapter's verification log.
 
 ## Try it yourself {.unnumbered}

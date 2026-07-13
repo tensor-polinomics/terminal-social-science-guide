@@ -25,7 +25,7 @@ land on a plain box the muscle memory fails. So the spine of
 this chapter is: adopt what makes your laptop nicer, and keep it
 a convenience layer that never becomes a dependency your work or
 your reflexes rely on. You have already met two members of this
-kit, `fd` and `ripgrep`, in Chapter 9; they carry the same tax,
+kit, `fd` [-@fdfind] and `ripgrep` [-@ripgrep], in Chapter 9; they carry the same tax,
 and this chapter is the rest of the family plus the accounting.
 
 A note on where the output comes from, and its shelf life. The
@@ -55,7 +55,7 @@ throwaway database so no real directory history appears.
 
 ## eza: `ls` with a git column
 
-`eza` is a drop-in-nicer `ls`. It takes the same everyday flags
+`eza` is a drop-in-nicer `ls` [-@ezacli]. It takes the same everyday flags
 Chapter 5 taught, `-l` for a long listing, `-a` for hidden
 files, and prints them with better defaults: human-readable
 sizes without asking, and, on a project under version control,

@@ -41,7 +41,7 @@ keypair on display is a throwaway generated for the book.
 
 ## Reaching a shell on a machine you cannot see
 
-`ssh` logs you into a remote host and runs commands there. Give
+`ssh` logs you into a remote host and runs commands there [-@openssh]. Give
 it an address and it opens an interactive shell; give it a
 command and it runs just that one and returns, which is how
 scripts and capture tools talk to a server without a human at
@@ -299,7 +299,7 @@ nested/proj/scripts/01_clean.py
 ```
 
 `proj/` put the contents directly into `backup`; `proj` (no
-slash) nested a `proj/` inside `nested`. The `rsync` manual
+slash) nested a `proj/` inside `nested`. The `rsync` manual [-@rsync]
 puts it exactly: a trailing slash "means 'copy the contents of
 this directory' as opposed to 'copy the directory by name'."
 `-a` (archive) preserves permissions, times, and symlinks and
@@ -552,7 +552,7 @@ A university HPC cluster adds a scheduler, and here the change
 is real: you do not run heavy jobs on the login node you land
 on. You write a small job script and *submit* it to a scheduler
 (usually Slurm), which queues it and runs it on a compute node
-when resources free up. Three verbs are enough to recognize the
+when resources free up [-@slurm]. Three verbs are enough to recognize the
 world: `sbatch` submits a job script (whose `#SBATCH` comment
 lines set resources), `squeue` shows the queue, and `scancel`
 cancels a job. A minimal script, shown to be read, not run
