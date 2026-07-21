@@ -8,6 +8,34 @@ are not part of this repo; this file is the repo-visible history.
 
 ### Changed
 
+- **Preface revision for the publisher proposal (2026-07-21; not
+  yet committed). Prose-only expansion of the Preface
+  (`book/index.qmd`); no chapters, captured output, or the
+  real-output/masking contract changed. Adds two sections: "Why
+  this book exists" (a short first-person account of the gap the
+  book fills for researchers, versus material written for sysadmins
+  and engineers) and "The companion volume" (states the division of
+  labor with *Git and GitHub for Social Science Researchers* and
+  names the two deliberately-split boundary topics: environments,
+  built at the shell in this book's Chapter 13 versus recorded in
+  the repository in the companion's Chapter 8; and AI tools,
+  directed at the prompt in this book's Chapter 17 versus reviewed
+  as diffs in the companion's Chapter 16). Two smaller edits: the
+  opening paragraph now names the companion volume in full with its
+  italic title rather than "the companion Git book", and the "From
+  first prompt to remote server" audience card is broadened to
+  include the practicing researcher or analyst who was never
+  formally taught the shell. Chapter cross-references stay plain
+  prose per house style; the HTML-only hero-band buttons are
+  unchanged. Verified pure ASCII, zero em-dashes, balanced Quarto
+  fences. Source files touched (this CHANGELOG also updated):
+  `book/index.qmd`. Awaiting the Mac-side gate (validator +
+  `quarto render` + Codex read-through) before commit; this entry's
+  hash-line rides the next commit, or is recorded in
+  `private/RESUME.md` and project memory if none follows. The
+  `## [1.0.0]` release stays deferred to the author's post-Phase-8
+  read-through.**
+
 - **Phase 8: citation and bibliography refactoring (2026-07-13; not
   yet committed). Expands `book/references.bib` from 2 entries to 34
   and adds tasteful in-prose citations across 16 chapters, per the

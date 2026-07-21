@@ -19,8 +19,9 @@ age when an AI will happily type the commands for you.
 Empirical social science has spent the past decade learning that
 a finding is only as trustworthy as its rebuild, and being able
 to produce that rebuild on demand is now an ordinary expectation
-rather than an exceptional one. The companion Git book makes the
-case for why, and this one takes that as settled. Its subject is
+rather than an exceptional one. The companion volume, *Git and
+GitHub for Social Science Researchers*, makes the case for why,
+and this one takes that as settled. Its subject is
 the layer just beneath: the shell is where a versioned project
 stops being a description of what you did and becomes something a
 stranger can actually rerun. Chapter 1 draws that line in full;
@@ -43,10 +44,11 @@ output the command actually printed.
 #### From first prompt to remote server
 
 Readers range from an undergraduate who has never opened a
-terminal to a PhD student moving a job onto a cluster. No
-computer-science background is assumed. The default machine is a
-Mac; Linux and Windows (through WSL2) differences are flagged
-where they bite.
+terminal to a PhD student moving a job onto a cluster, and
+include the practicing researcher or analyst who was never
+formally taught the shell. No computer-science background is
+assumed. The default machine is a Mac; Linux and Windows
+(through WSL2) differences are flagged where they bite.
 :::
 
 ::: {.g-col-12 .g-col-md-4 .feature-card}
@@ -58,6 +60,18 @@ catch them when they are wrong.
 :::
 ::::
 :::::
+
+## Why this book exists
+
+I wrote this book because I needed it and it did not exist.
+Producing empirical research, I had to assemble command-line
+fluency from sources written for system administrators and
+software engineers, where the examples are servers and the
+anxieties are uptime. The hardest part was never a single command.
+It was not knowing what I did not yet know: which habits keep an
+analysis rebuildable, which commands quietly destroy work, how to
+move a job onto a bigger machine without losing the thread. This
+book is the map I wanted then, drawn for researchers.
 
 ## It looks intimidating. It repays a career.
 
@@ -115,6 +129,33 @@ whole difference between directing a powerful tool and gambling
 with it. AI raises the value of this skill; it does not retire
 it. Chapters 2 and 17 return to the judgment this takes; the
 Preface only plants the flag.
+
+## The companion volume
+
+This book has a companion, *Git and GitHub for Social Science
+Researchers*, written together with this one and designed as its
+pair. The division of labor is simple. The companion is about
+keeping an honest record of a project: version control,
+collaboration on GitHub, and the replication package a journal
+will accept. This book is about the layer where the project
+actually runs: the shell, the data pipeline, the software
+environment, and the remote machine. Each book stands alone and
+restates what it needs, so you are never sent away mid-chapter.
+Read together, in either order, they cover the reproducible
+workflow end to end.
+
+Two boundary topics are split deliberately rather than repeated.
+Environments: Chapter 13 of this book builds and activates them
+at the shell; Chapter 8 of the companion records them in the
+repository through lockfiles. AI tools: Chapter 17 of this book
+is about directing an agent at the prompt; Chapter 16 of the
+companion is about reviewing what the agent did as diffs.
+
+If you want the full argument for reproducibility, the
+companion's Chapter 1 makes it, and this book takes it as
+settled. If you have never opened a terminal, you are exactly who
+this book's first chapters are for; start here, and the companion
+will read more easily afterward.
 
 Chapter 1 lays out how to read the book. One convention, though,
 belongs up front, because it shapes every page that follows.
